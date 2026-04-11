@@ -88,20 +88,13 @@ function parseTDT(raw) {
   }
 
   // Sort: Final Table last
-  tables.sort((a, b) => {
-    // Final Table always last
-    const aFinal = a.toUpperCase().includes('FINAL');
-    const bFinal = b.toUpperCase().includes('FINAL');
-    if (aFinal && !bFinal) return 1;
-    if (!aFinal && bFinal) return -1;
-    // Extract number from name for natural numeric sort
-    const aMatch = a.match(/\d+/);
-    const bMatch = b.match(/\d+/);
-    const numA = aMatch ? parseInt(aMatch[0]) : 9999;
-    const numB = bMatch ? parseInt(bMatch[0]) : 9999;
-    if (numA !== numB) return numA - numB;
-    return a.localeCompare(b);
-  });
+  const TABLE_ORDER = ['FINAL','RED','GREEN','YELLOW','CYAN','BLUE','PURPLE'];
+  function tableRank(name) {
+    const u = name.toUpperCase();
+    const idx = TABLE_ORDER.findIndex(k => u.includes(k));
+    return idx === -1 ? 99 : idx;
+  }
+  tables.sort((a, b) => tableRank(a) - tableRank(b));
 
   // ── 3. Parse blind levels and current level ──
   const blinds = [];
