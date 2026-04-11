@@ -338,13 +338,9 @@ function isElim(id){ return S.eliminations.some(e => e.id === id); }
 function renderDealerSel() {
   const sel = document.getElementById('dealer-sel');
   const cur = sel.value;
-  const sorted = [...S.tables].sort((a, b) => {
-    if(a.toUpperCase().includes('FINAL')) return 1;
-    if(b.toUpperCase().includes('FINAL')) return -1;
-    const na = parseInt(a.match(/\d+/) || [9999]);
-    const nb = parseInt(b.match(/\d+/) || [9999]);
-    return na - nb;
-  });
+  const TABLE_ORDER = ['FINAL','RED','GREEN','YELLOW','CYAN','BLUE','PURPLE'];
+  function tblRank(n){ const u=n.toUpperCase(); const i=TABLE_ORDER.findIndex(k=>u.includes(k)); return i===-1?99:i; }
+  const sorted = [...S.tables].sort((a,b) => tblRank(a) - tblRank(b));
   sel.innerHTML = '<option value="">-- Tisch wählen --</option>' + sorted.map(t => `<option value="${t}">${t}</option>`).join('') + (sorted.length ? '<option value="__ALL__">── Alle Tische ──</option>' : '');
   if(cur && S.tables.includes(cur)) sel.value = cur;
   renderDealer();
