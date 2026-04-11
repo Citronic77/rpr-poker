@@ -163,8 +163,11 @@ wss.on('connection', ws => {
       if (msg.type === 'eliminate') {
         const { playerId, playerName, table, time } = msg;
         if (!state.eliminations.find(e => e.id === playerId)) {
-          const pos = state.players.length - state.eliminations.length;
-          state.eliminations.push({ id: playerId, name: playerName, table, time, pos });
+          // pos = number of players still active at moment of elimination = their finishing place
+          const activePlayers = state.players.length - state.eliminations.length;
+          const player = state.players.find(p => p.id === playerId);
+          const seat = player ? player.seat : null;
+          state.eliminations.push({ id: playerId, name: playerName, table, seat, time, pos: activePlayers });
           broadcastState();
         }
       } else if (msg.type === 'undo') {
