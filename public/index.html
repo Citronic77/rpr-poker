@@ -341,7 +341,14 @@ function isElim(id){ return S.eliminations.some(e => e.id === id); }
 function renderDealerSel() {
   const sel = document.getElementById('dealer-sel');
   const cur = sel.value;
-  sel.innerHTML = '<option value="">-- Tisch wählen --</option>' + S.tables.map(t => `<option value="${t}">${t}</option>`).join('') + (S.tables.length ? '<option value="__ALL__">── Alle Tische ──</option>' : '');
+  const sorted = [...S.tables].sort((a, b) => {
+    if(a.toUpperCase().includes('FINAL')) return 1;
+    if(b.toUpperCase().includes('FINAL')) return -1;
+    const na = parseInt(a.match(/\d+/) || [9999]);
+    const nb = parseInt(b.match(/\d+/) || [9999]);
+    return na - nb;
+  });
+  sel.innerHTML = '<option value="">-- Tisch wählen --</option>' + sorted.map(t => `<option value="${t}">${t}</option>`).join('') + (sorted.length ? '<option value="__ALL__">── Alle Tische ──</option>' : '');
   if(cur && S.tables.includes(cur)) sel.value = cur;
   renderDealer();
 }
