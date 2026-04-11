@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Poker Tournament Manager</title>
+<title>RPR Poker — Tournament Manager</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -14,65 +14,58 @@
   --green:#1D9E75;--gl:#E1F5EE;--gd:#0F6E56;
   --red:#E24B4A;--rl2:#FCEBEB;--rd:#A32D2D;
   --amber:#EF9F27;--al:#FAEEDA;--ad:#BA7517;
-  --blue:#378ADD;
 }
 @media(prefers-color-scheme:dark){
   :root{--bg:#1e1e1c;--bg2:#2a2a27;--bg3:#323230;--text:#f0ede8;--text2:#a09d98;--text3:#555;--border:#3a3a37;--border2:#4a4a47;}
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
-
 .app{max-width:960px;margin:0 auto;padding:.75rem}
+
+/* HEADER */
 .header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:var(--rl);border:.5px solid var(--border);margin-bottom:.75rem;gap:10px}
-.header-title{font-size:15px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.conn-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.header-left{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.header-title{font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.conn-pill{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;border:.5px solid var(--border);font-size:12px;color:var(--text2)}
+.conn-dot{width:7px;height:7px;border-radius:50%}
 .conn-dot.on{background:var(--green);animation:pulse 2s infinite}
 .conn-dot.off{background:var(--red)}
 .conn-dot.connecting{background:var(--amber);animation:blink .7s infinite}
-.conn-label{font-size:12px;color:var(--text2)}
+.notif-btn{background:none;border:.5px solid var(--border2);border-radius:var(--r);padding:5px 9px;cursor:pointer;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:4px}
 
+/* TABS */
 .tabs{display:flex;gap:6px;margin-bottom:.75rem}
-.tab{flex:1;padding:9px;font-size:14px;font-weight:500;border:.5px solid var(--border);border-radius:var(--r);background:var(--bg2);color:var(--text2);cursor:pointer;text-align:center;transition:all .15s}
+.tab{flex:1;padding:10px;font-size:14px;font-weight:500;border:.5px solid var(--border);border-radius:var(--r);background:var(--bg2);color:var(--text2);cursor:pointer;text-align:center;transition:all .15s}
 .tab.active{background:var(--bg);color:var(--text);border-color:var(--border2)}
-
 .panel{display:none}.panel.active{display:block}
 
-/* FORMS */
-input,select,button{font-family:inherit;font-size:14px}
-input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text)}
-.btn{padding:9px 18px;border:.5px solid var(--border2);border-radius:var(--r);font-size:14px;font-weight:500;cursor:pointer;background:var(--bg);color:var(--text);transition:all .15s;display:inline-block}
-.btn:hover{background:var(--bg2)}.btn:active{transform:scale(.98)}
-.btn.primary{background:var(--green);color:#fff;border-color:var(--gd)}.btn.primary:hover{background:var(--gd)}
-.btn.danger{background:var(--red);color:#fff;border-color:var(--rd)}.btn.danger:hover{background:var(--rd)}
-.btn.warn{background:var(--amber);color:#fff;border-color:var(--ad)}.btn.warn:hover{background:var(--ad)}
-.btn.sm{padding:5px 12px;font-size:12px}
-.btn.full{width:100%}
-.card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:1rem 1.25rem}
-
-/* UPLOAD */
-.drop-zone{border:2px dashed var(--border2);border-radius:var(--rl);padding:2.5rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg2)}
-.drop-zone:hover,.drop-zone.drag{border-color:var(--green);background:var(--gl)}
-.drop-icon{font-size:44px;display:block;margin-bottom:.75rem}
-.drop-title{font-size:15px;font-weight:500;margin-bottom:.3rem}
-.drop-sub{font-size:13px;color:var(--text2);line-height:1.5}
-.upload-status{margin-top:.75rem;padding:10px 14px;border-radius:var(--r);font-size:13px;display:none}
-.upload-status.ok{background:var(--gl);color:var(--gd);border:.5px solid #9FE1CB}
-.upload-status.err{background:var(--rl2);color:var(--rd);border:.5px solid #F09595}
+/* WAITING SCREEN */
+.waiting{text-align:center;padding:4rem 1rem}
+.waiting-icon{font-size:52px;margin-bottom:1rem;display:block}
+.waiting-title{font-size:17px;font-weight:500;margin-bottom:.5rem}
+.waiting-sub{font-size:13px;color:var(--text2);line-height:1.6}
 
 /* SYNC BAR */
 .sync-bar{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--bg2);border:.5px solid var(--border);border-radius:var(--rl);margin-bottom:.75rem;font-size:13px}
 .sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .sync-dot.ok{background:var(--green);animation:pulse 2s infinite}
 .sync-dot.off{background:var(--red)}
-.sync-dot.idle{background:var(--text3)}
-.sync-info{flex:1}
-.sync-name{font-weight:500}
-.sync-sub{font-size:11px;color:var(--text2);margin-top:1px}
-.sync-cd{font-size:12px;color:var(--text2);min-width:50px;text-align:right}
-.prog-wrap{width:60px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px}
-.prog-bar{height:100%;background:var(--green);border-radius:2px;transition:width .9s linear}
+.sync-name{font-weight:500;flex:1}
+.sync-sub{font-size:11px;color:var(--text2)}
+.sync-cd{font-size:12px;color:var(--text2)}
 
-/* DEALER GRID */
+/* FORMS */
+input,select,button{font-family:inherit;font-size:14px}
+input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text)}
+.btn{padding:9px 18px;border:.5px solid var(--border2);border-radius:var(--r);font-size:14px;font-weight:500;cursor:pointer;background:var(--bg);color:var(--text);transition:all .15s;display:inline-block}
+.btn:hover{background:var(--bg2)}.btn:active{transform:scale(.98)}
+.btn.danger{background:var(--red);color:#fff;border-color:var(--rd)}.btn.danger:hover{background:var(--rd)}
+.btn.warn{background:var(--amber);color:#fff;border-color:var(--ad)}.btn.warn:hover{background:var(--ad)}
+.card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:1rem 1.25rem}
 .section-label{font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin:.75rem 0 .4rem}
+
+/* DEALER */
 .player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .pc{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:12px;text-align:center;display:flex;flex-direction:column;gap:4px;position:relative;transition:all .15s}
 .pc.tap{cursor:pointer}.pc.tap:hover{border-color:var(--green);background:var(--gl)}
@@ -134,75 +127,48 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
 <div class="app">
 
   <div class="header">
-    <div class="header-title" id="h-title">Poker Tournament Manager</div>
-    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <button id="notif-btn" onclick="toggleNotif()" title="Sound & Vibration" style="background:none;border:.5px solid var(--border2);border-radius:var(--r);padding:5px 10px;cursor:pointer;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:5px">
-        <span id="notif-icon">🔔</span><span id="notif-label" style="font-size:12px">AN</span>
+    <div class="header-left">
+      <div class="header-title" id="h-title">RPR Poker — Tournament Manager</div>
+      <div class="header-sub" id="h-sub">Warte auf Turnierdaten...</div>
+    </div>
+    <div class="header-right">
+      <button class="notif-btn" id="notif-btn" onclick="toggleNotif()" title="Sound & Vibration">
+        <span id="notif-icon">🔔</span><span id="notif-label" style="font-size:11px">AN</span>
       </button>
-      <div style="display:flex;align-items:center;gap:6px">
+      <div class="conn-pill">
         <div class="conn-dot connecting" id="conn-dot"></div>
-        <div class="conn-label" id="conn-label">Verbinde...</div>
+        <span id="conn-label">Verbinde...</span>
       </div>
     </div>
   </div>
 
   <div class="tabs">
-    <div class="tab active" onclick="showTab('upload')">Upload</div>
-    <div class="tab" onclick="showTab('dealer')">Dealer</div>
+    <div class="tab active" onclick="showTab('dealer')">Dealer</div>
     <div class="tab" onclick="showTab('floor')">Floorman</div>
   </div>
 
-  <!-- ══ UPLOAD ══ -->
-  <div id="tab-upload" class="panel active">
-    <div class="drop-zone" id="dz"
-      onclick="document.getElementById('fi').click()"
-      ondragover="event.preventDefault();this.classList.add('drag')"
-      ondragleave="this.classList.remove('drag')"
-      ondrop="onDrop(event)">
-      <span class="drop-icon">🃏</span>
-      <div class="drop-title">.tdt Turnierdatei hochladen</div>
-      <div class="drop-sub">Datei hierher ziehen oder tippen<br>Server aktualisiert alle 10 Sek. automatisch — alle Geräte sync</div>
-    </div>
-    <input type="file" id="fi" accept=".tdt" style="display:none" onchange="uploadFile(this.files[0])">
-    <div id="upload-status" class="upload-status"></div>
-
-    <div id="auto-reload-bar" style="display:none;margin-top:.75rem">
-      <div class="sync-bar">
-        <div class="sync-dot ok"></div>
-        <div class="sync-info">
-          <div class="sync-name">Auto-Reload aktiv</div>
-          <div class="sync-sub">Datei wird alle 10 Sek. automatisch neu hochgeladen</div>
-        </div>
-        <div style="text-align:right">
-          <div class="sync-cd" id="ul-cd">in 10s</div>
-          <div class="prog-wrap"><div class="prog-bar" id="ul-prog" style="width:100%"></div></div>
-        </div>
-      </div>
-      <div style="display:flex;gap:6px;margin-top:6px">
-        <button class="btn sm" onclick="doUploadNow()">↻ Jetzt</button>
-        <button class="btn sm" id="ul-pause-btn" onclick="toggleUploadPause()">⏸ Pause</button>
-        <button class="btn sm" onclick="clearFile()" style="margin-left:auto">✕ Datei entfernen</button>
-      </div>
-    </div>
-
-    <div id="upload-preview" style="margin-top:1rem"></div>
-  </div>
-
   <!-- ══ DEALER ══ -->
-  <div id="tab-dealer" class="panel">
-    <div class="sync-bar">
-      <div class="sync-dot" id="sd-d"></div>
-      <div class="sync-info">
-        <div class="sync-name" id="sn-d">—</div>
-        <div class="sync-sub" id="ss-d"></div>
+  <div id="tab-dealer" class="panel active">
+    <div id="dealer-waiting" class="waiting">
+      <span class="waiting-icon">🃏</span>
+      <div class="waiting-title">Warte auf Turnierdaten</div>
+      <div class="waiting-sub">Die Batch-Datei lädt die .tdt automatisch hoch.<br>Sobald Daten da sind, erscheinen die Spieler hier.</div>
+    </div>
+    <div id="dealer-content" style="display:none">
+      <div class="sync-bar">
+        <div class="sync-dot ok" id="sd-d"></div>
+        <div style="flex:1">
+          <div class="sync-name" id="sn-d">—</div>
+          <div class="sync-sub" id="ss-d"></div>
+        </div>
+        <div class="sync-cd" id="sc-d"></div>
       </div>
-      <div class="sync-cd" id="sc-d"></div>
+      <div style="margin-bottom:.75rem">
+        <div class="section-label">Tisch auswählen</div>
+        <select id="dealer-sel" onchange="renderDealer()" style="width:auto;min-width:200px"></select>
+      </div>
+      <div id="dealer-grid" class="player-grid"></div>
     </div>
-    <div style="margin-bottom:.75rem">
-      <div class="section-label">Tisch auswählen</div>
-      <select id="dealer-sel" onchange="renderDealer()" style="width:auto;min-width:200px"></select>
-    </div>
-    <div id="dealer-grid" class="player-grid"></div>
 
     <div id="elim-ov" style="display:none" class="overlay">
       <div class="dialog">
@@ -228,53 +194,52 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
 
   <!-- ══ FLOORMAN ══ -->
   <div id="tab-floor" class="panel">
-    <div class="sync-bar">
-      <div class="sync-dot" id="sd-f"></div>
-      <div class="sync-info">
-        <div class="sync-name" id="sn-f">—</div>
-        <div class="sync-sub" id="ss-f"></div>
+    <div id="floor-waiting" class="waiting">
+      <span class="waiting-icon">📊</span>
+      <div class="waiting-title">Warte auf Turnierdaten</div>
+      <div class="waiting-sub">Sobald die Batch-Datei die .tdt hochgeladen hat,<br>erscheint hier das Live-Dashboard.</div>
+    </div>
+    <div id="floor-content" style="display:none">
+      <div class="sync-bar">
+        <div class="sync-dot ok" id="sd-f"></div>
+        <div style="flex:1">
+          <div class="sync-name" id="sn-f">—</div>
+          <div class="sync-sub" id="ss-f"></div>
+        </div>
+        <div class="sync-cd" id="sc-f"></div>
       </div>
-      <div class="sync-cd" id="sc-f"></div>
-    </div>
-
-    <div class="stats-row">
-      <div class="stat"><div class="stat-num" id="s-act">—</div><div class="stat-lbl">Aktive Spieler</div></div>
-      <div class="stat"><div class="stat-num" id="s-eli">—</div><div class="stat-lbl">Ausgeschieden</div></div>
-      <div class="stat"><div class="stat-num" id="s-tbl">—</div><div class="stat-lbl">Aktive Tische</div></div>
-    </div>
-
-    <div class="section-label">Tischübersicht</div>
-    <div class="tables-grid" id="f-tables"></div>
-
-    <div class="section-label" style="margin-top:1rem">Ausscheidungen</div>
-    <div class="card">
-      <table class="etable">
-        <thead><tr><th>Pos.</th><th>Spieler</th><th>Tisch</th><th>Uhrzeit</th><th></th></tr></thead>
-        <tbody id="f-elims"></tbody>
-      </table>
-      <div id="f-empty" class="empty">Noch keine Ausscheidungen</div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num" id="s-act">—</div><div class="stat-lbl">Aktive Spieler</div></div>
+        <div class="stat"><div class="stat-num" id="s-eli">—</div><div class="stat-lbl">Ausgeschieden</div></div>
+        <div class="stat"><div class="stat-num" id="s-tbl">—</div><div class="stat-lbl">Aktive Tische</div></div>
+      </div>
+      <div class="section-label">Tischübersicht</div>
+      <div class="tables-grid" id="f-tables"></div>
+      <div class="section-label" style="margin-top:1rem">Ausscheidungen</div>
+      <div class="card">
+        <table class="etable">
+          <thead><tr><th>Pos.</th><th>Spieler</th><th>Tisch</th><th>Uhrzeit</th><th></th></tr></thead>
+          <tbody id="f-elims"></tbody>
+        </table>
+        <div id="f-empty" class="empty">Noch keine Ausscheidungen</div>
+      </div>
     </div>
   </div>
-</div>
 
+</div>
 <div id="toast" class="toast"></div>
 
 <script>
-// ── CONFIG ──
-// WebSocket URL: automatisch vom gleichen Host
-const WS_URL = location.protocol === 'https:' ? 'wss://' : 'ws://' + location.host;
-const API = '';
-
-// ── TABLE COLORS ──
+const WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host;
 const TC = {RED:'#E24B4A',GREEN:'#1D9E75',YELLOW:'#EF9F27',CYAN:'#378ADD',BLUE:'#534AB7',ORANGE:'#D85A30',PURPLE:'#7F77DD',FINAL:'#888780'};
 function tColor(n){const u=n.toUpperCase();for(const k in TC){if(u.includes(k))return TC[k];}return'#888780';}
 function ftime(d){return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
 
-// ── STATE ──
-let S = { tourneyName:'', tables:[], players:[], eliminations:[], lastUpdate:null };
-let prevPlayerIds = new Set();
+let S = {tourneyName:'',tables:[],players:[],eliminations:[],lastUpdate:null};
 let newIds = new Set();
 let pendingElim = null, pendingUndo = null;
+let notifEnabled = true;
+let audioCtx = null;
 
 // ── WEBSOCKET ──
 let ws, wsRetry = 0;
@@ -286,10 +251,10 @@ function connect() {
   ws.onerror = () => ws.close();
   ws.onmessage = e => {
     const msg = JSON.parse(e.data);
-    if (msg.type === 'state') applyState(msg.payload);
+    if(msg.type === 'state') applyState(msg.payload);
   };
 }
-function wsSend(obj) { if(ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
+function wsSend(obj){ if(ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
 
 function applyState(payload) {
   newIds = new Set();
@@ -297,97 +262,53 @@ function applyState(payload) {
   const oldElimIds = new Set(S.eliminations.map(e => e.id));
   S = payload;
   S.players.forEach(p => { if(!oldIds.has(p.id) && oldIds.size > 0) newIds.add(p.id); });
-  prevPlayerIds = new Set(S.players.map(p => p.id));
 
-  // Detect new eliminations → trigger sound + vibration
+  // Detect new eliminations → sound + vibration
   const newElims = S.eliminations.filter(e => !oldElimIds.has(e.id));
-  if(newElims.length > 0 && oldElimIds.size >= 0 && oldIds.size > 0) {
-    newElims.forEach(e => triggerElimFeedback(e.name));
-  }
+  if(newElims.length > 0 && oldIds.size > 0) newElims.forEach(e => triggerFeedback(e.name));
 
-  document.getElementById('h-title').textContent = S.tourneyName || 'Poker Tournament Manager';
-  updateSyncUI();
-  renderUploadPreview();
-  const active = document.querySelector('.tab.active');
-  const tabs = [...document.querySelectorAll('.tab')];
-  const idx = tabs.indexOf(active);
-  if(idx === 1) renderDealer();
-  if(idx === 2) renderFloor();
-}
+  // Show/hide waiting screens
+  const hasData = S.players.length > 0;
+  document.getElementById('dealer-waiting').style.display = hasData ? 'none' : 'block';
+  document.getElementById('dealer-content').style.display = hasData ? 'block' : 'none';
+  document.getElementById('floor-waiting').style.display = hasData ? 'none' : 'block';
+  document.getElementById('floor-content').style.display = hasData ? 'block' : 'none';
 
-// ── SOUND + VIBRATION ──
-let audioCtx = null;
-function getAudioCtx() {
-  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
+  document.getElementById('h-title').textContent = S.tourneyName || 'RPR Poker — Tournament Manager';
+  document.getElementById('h-sub').textContent = hasData
+    ? S.players.length + ' Spieler · ' + S.tables.length + ' Tische · Aktualisiert: ' + (S.lastUpdate ? ftime(new Date(S.lastUpdate)) : '—')
+    : 'Warte auf Turnierdaten...';
 
-function playElimSound() {
-  try {
-    const ctx = getAudioCtx();
-    // Three descending tones — "eliminated" feel
-    const tones = [
-      { freq: 440, start: 0,    dur: 0.15 },
-      { freq: 330, start: 0.18, dur: 0.15 },
-      { freq: 220, start: 0.36, dur: 0.35 }
-    ];
-    tones.forEach(({ freq, start, dur }) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      const t = ctx.currentTime + start;
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.35, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      osc.start(t);
-      osc.stop(t + dur);
-    });
-  } catch(e) { /* AudioContext blocked */ }
-}
+  updateSyncBars();
 
-function vibrateDevice() {
-  if('vibrate' in navigator) {
-    // Two short pulses
-    navigator.vibrate([150, 80, 150]);
-  }
-}
-
-function triggerElimFeedback(playerName) {
-  if(!notifEnabled) return;
-  playElimSound();
-  vibrateDevice();
+  const activeTab = document.querySelector('.tab.active');
+  const idx = [...document.querySelectorAll('.tab')].indexOf(activeTab);
+  if(idx === 0) renderDealerSel();
+  if(idx === 1) renderFloor();
 }
 
 function setConn(s) {
-  const d = document.getElementById('conn-dot');
-  const l = document.getElementById('conn-label');
-  d.className = 'conn-dot ' + s;
-  l.textContent = s === 'on' ? 'Verbunden' : s === 'off' ? 'Getrennt' : 'Verbinde...';
-  ['d','f'].forEach(x => {
-    const dot = document.getElementById('sd-'+x);
-    if(dot) dot.className = 'sync-dot ' + (s === 'on' ? 'ok' : 'off');
-  });
-  updateSyncUI();
+  document.getElementById('conn-dot').className = 'conn-dot ' + s;
+  document.getElementById('conn-label').textContent = s === 'on' ? 'Verbunden' : s === 'off' ? 'Getrennt' : 'Verbinde...';
+  updateSyncBars();
 }
 
-function updateSyncUI() {
-  const connected = ws && ws.readyState === 1;
-  const name = S.tourneyName || 'Kein Turnier geladen';
-  const sub = S.lastUpdate ? 'Aktualisiert: ' + ftime(new Date(S.lastUpdate)) : 'Warte auf Daten...';
+function updateSyncBars() {
+  const on = ws && ws.readyState === 1;
+  const name = S.tourneyName || 'Kein Turnier';
+  const sub = S.lastUpdate ? 'Batch-Upload: ' + ftime(new Date(S.lastUpdate)) : 'Warte auf ersten Upload...';
+  const cd = on ? 'Live' : 'Offline';
   ['d','f'].forEach(x => {
-    const dot = document.getElementById('sd-'+x); if(dot) dot.className = 'sync-dot ' + (connected ? 'ok' : 'off');
+    const dot = document.getElementById('sd-'+x); if(dot) dot.className = 'sync-dot ' + (on ? 'ok' : 'off');
     const sn = document.getElementById('sn-'+x); if(sn) sn.textContent = name;
     const ss = document.getElementById('ss-'+x); if(ss) ss.textContent = sub;
-    const sc = document.getElementById('sc-'+x); if(sc) sc.textContent = connected ? 'Live' : 'Offline';
+    const sc = document.getElementById('sc-'+x); if(sc) sc.textContent = cd;
   });
 }
 
 // ── TABS ──
 function showTab(t) {
-  ['upload','dealer','floor'].forEach((n,i) => {
+  ['dealer','floor'].forEach((n,i) => {
     document.querySelectorAll('.tab')[i].classList.toggle('active', n === t);
     document.getElementById('tab-'+n).classList.toggle('active', n === t);
   });
@@ -395,80 +316,8 @@ function showTab(t) {
   if(t === 'floor') renderFloor();
 }
 
-// ── UPLOAD + AUTO-RELOAD ──
-let uploadFile_ref = null, ulPaused = false, ulCd = 10, ulTimer = null, ulCdTimer = null;
-
-function onDrop(ev) { ev.preventDefault(); document.getElementById('dz').classList.remove('drag'); const f = ev.dataTransfer.files[0]; if(f) startUpload(f); }
-
-function startUpload(file) {
-  uploadFile_ref = file;
-  ulPaused = false;
-  document.getElementById('ul-pause-btn').textContent = '⏸ Pause';
-  document.getElementById('auto-reload-bar').style.display = 'block';
-  doUpload(file);
-  if(ulTimer) clearInterval(ulTimer);
-  ulTimer = setInterval(() => { if(!ulPaused && uploadFile_ref) doUpload(uploadFile_ref); }, 10000);
-  startUlCd();
-}
-
-function doUploadNow() { if(uploadFile_ref) { ulCd = 10; doUpload(uploadFile_ref); } }
-function clearFile() { uploadFile_ref = null; if(ulTimer) clearInterval(ulTimer); if(ulCdTimer) clearInterval(ulCdTimer); document.getElementById('auto-reload-bar').style.display = 'none'; document.getElementById('fi').value = ''; }
-function toggleUploadPause() { ulPaused = !ulPaused; document.getElementById('ul-pause-btn').textContent = ulPaused ? '▶ Fortsetzen' : '⏸ Pause'; }
-
-function startUlCd() {
-  ulCd = 10;
-  if(ulCdTimer) clearInterval(ulCdTimer);
-  ulCdTimer = setInterval(() => {
-    if(!ulPaused) ulCd = Math.max(0, ulCd - 1);
-    const pct = (ulCd / 10) * 100;
-    const pb = document.getElementById('ul-prog'); if(pb) pb.style.width = pct + '%';
-    const cd = document.getElementById('ul-cd'); if(cd) cd.textContent = ulPaused ? 'pausiert' : (ulCd > 0 ? 'in ' + ulCd + 's' : '...');
-    if(ulCd === 0) ulCd = 10;
-  }, 1000);
-}
-
-function uploadFile(file) { if(file) startUpload(file); }
-
-function doUpload(file) {
-  const fd = new FormData();
-  fd.append('tdt', file);
-  const st = document.getElementById('upload-status');
-  fetch('/upload', { method: 'POST', body: fd })
-    .then(r => r.json())
-    .then(d => {
-      if(d.ok) {
-        st.className = 'upload-status ok';
-        st.textContent = `✓ ${d.players} Spieler, ${d.tables} Tische — ${ftime(new Date())}`;
-        st.style.display = 'block';
-        startUlCd();
-      } else { st.className = 'upload-status err'; st.textContent = 'Fehler: ' + d.error; st.style.display = 'block'; }
-    })
-    .catch(e => { st.className = 'upload-status err'; st.textContent = 'Upload fehlgeschlagen: ' + e.message; st.style.display = 'block'; });
-}
-
-function renderUploadPreview() {
-  if(!S.players.length) return;
-  const byT = {};
-  S.players.forEach(p => { (byT[p.table] = byT[p.table] || []).push(p); });
-  const html = S.tables.map(t => {
-    const ps = (byT[t] || []).sort((a,b) => a.seat - b.seat);
-    const col = tColor(t);
-    return `<div class="tcrd">
-      <h4><span class="tbadge" style="background:${col}"></span>${t}<span class="tc-cnt">${ps.length}</span></h4>
-      ${ps.map(p => `<div class="t-row"><span class="t-nm">${p.name}</span><span class="t-st">Sitz ${p.seat}</span></div>`).join('')}
-    </div>`;
-  }).join('');
-  document.getElementById('upload-preview').innerHTML =
-    `<div class="section-label">${S.players.length} Spieler · ${S.tables.length} Tische</div>
-     <div class="tables-grid">${html}</div>
-     <div style="display:flex;gap:8px;margin-top:.75rem">
-       <button class="btn primary" onclick="showTab('dealer')">Dealer →</button>
-       <button class="btn" onclick="showTab('floor')">Floorman →</button>
-     </div>`;
-}
-
 // ── DEALER ──
-function isElim(id) { return S.eliminations.some(e => e.id === id); }
+function isElim(id){ return S.eliminations.some(e => e.id === id); }
 
 function renderDealerSel() {
   const sel = document.getElementById('dealer-sel');
@@ -481,14 +330,14 @@ function renderDealerSel() {
 function renderDealer() {
   const t = document.getElementById('dealer-sel').value;
   const grid = document.getElementById('dealer-grid');
-  if(!t || !S.players.length) { grid.innerHTML = '<div class="empty">Tisch auswählen um Spieler zu sehen.</div>'; return; }
+  if(!t || !S.players.length){ grid.innerHTML = '<div class="empty">Tisch auswählen um Spieler zu sehen.</div>'; return; }
   const ps = S.players.filter(p => p.table === t).sort((a,b) => a.seat - b.seat);
-  if(!ps.length) { grid.innerHTML = '<div class="empty">Keine Spieler an diesem Tisch.</div>'; return; }
+  if(!ps.length){ grid.innerHTML = '<div class="empty">Keine Spieler an diesem Tisch.</div>'; return; }
   grid.innerHTML = ps.map(p => {
     const elim = isElim(p.id);
     const ei = elim ? S.eliminations.find(e => e.id === p.id) : null;
     const isNew = newIds.has(p.id);
-    const sid = encodeId(p.id);
+    const sid = encodeURIComponent(p.id);
     if(elim) return `<div class="pc out">
       <span class="badge out">OUT</span>
       <div class="pc-seat">Sitz ${p.seat}</div>
@@ -507,46 +356,45 @@ function renderDealer() {
   }).join('');
 }
 
-function encodeId(id) { return encodeURIComponent(id); }
-function findById(sid) { const id = decodeURIComponent(sid); return S.players.find(p => p.id === id); }
+function findById(sid){ const id = decodeURIComponent(sid); return S.players.find(p => p.id === id); }
 
-function openElim(sid) {
+function openElim(sid){
   const p = findById(sid); if(!p) return;
   pendingElim = sid;
   document.getElementById('elim-msg').textContent = `"${p.name}" als ausgeschieden markieren?`;
   document.getElementById('elim-ov').style.display = 'flex';
 }
-function cancelElim() { document.getElementById('elim-ov').style.display = 'none'; pendingElim = null; }
-function confirmElim() {
+function cancelElim(){ document.getElementById('elim-ov').style.display = 'none'; pendingElim = null; }
+function confirmElim(){
   if(!pendingElim) return;
   const p = findById(pendingElim);
-  wsSend({ type:'eliminate', playerId:p.id, playerName:p.name, table:p.table, time:ftime(new Date()) });
+  wsSend({type:'eliminate', playerId:p.id, playerName:p.name, table:p.table, time:ftime(new Date())});
   document.getElementById('elim-ov').style.display = 'none';
   pendingElim = null;
 }
 
-function openUndo(sid) {
+function openUndo(sid){
   const p = findById(sid); if(!p) return;
   pendingUndo = sid;
   document.getElementById('undo-msg').textContent = `"${p.name}" wieder als aktiv einsetzen?`;
   document.getElementById('undo-ov').style.display = 'flex';
 }
-function cancelUndo() { document.getElementById('undo-ov').style.display = 'none'; pendingUndo = null; }
-function confirmUndo() {
+function cancelUndo(){ document.getElementById('undo-ov').style.display = 'none'; pendingUndo = null; }
+function confirmUndo(){
   if(!pendingUndo) return;
   const p = findById(pendingUndo);
-  wsSend({ type:'undo', playerId:p.id });
+  wsSend({type:'undo', playerId:p.id});
   document.getElementById('undo-ov').style.display = 'none';
   pendingUndo = null;
 }
 
 // ── FLOOR ──
-function floorUndo(sid) {
+function floorUndo(sid){
   const p = findById(sid); if(!p) return;
-  wsSend({ type:'undo', playerId:p.id });
+  wsSend({type:'undo', playerId:p.id});
 }
 
-function renderFloor() {
+function renderFloor(){
   const total = S.players.length, ec = S.eliminations.length;
   document.getElementById('s-act').textContent = total - ec;
   document.getElementById('s-eli').textContent = ec;
@@ -567,11 +415,11 @@ function renderFloor() {
 
   const tbody = document.getElementById('f-elims');
   const empty = document.getElementById('f-empty');
-  if(!S.eliminations.length) { tbody.innerHTML = ''; empty.style.display = 'block'; }
+  if(!S.eliminations.length){ tbody.innerHTML = ''; empty.style.display = 'block'; }
   else {
     empty.style.display = 'none';
     tbody.innerHTML = [...S.eliminations].reverse().map(e => {
-      const sid = encodeId(e.id);
+      const sid = encodeURIComponent(e.id);
       return `<tr>
         <td><span class="pos-badge">#${e.pos}</span></td>
         <td style="font-weight:500">${e.name}</td>
@@ -583,26 +431,47 @@ function renderFloor() {
   }
 }
 
-// ── TOAST ──
-function toast(msg, color) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast ' + (color||'green') + ' show';
-  setTimeout(() => t.classList.remove('show'), 2500);
+// ── SOUND + VIBRATION ──
+function getAudioCtx(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
+
+function playElimSound(){
+  try {
+    const ctx = getAudioCtx();
+    [{freq:440,start:0,dur:.15},{freq:330,start:.18,dur:.15},{freq:220,start:.36,dur:.35}].forEach(({freq,start,dur}) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.value = freq;
+      const t = ctx.currentTime + start;
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(.35, t+.02);
+      gain.gain.exponentialRampToValueAtTime(.001, t+dur);
+      osc.start(t); osc.stop(t+dur);
+    });
+  } catch(e){}
 }
 
-// ── NOTIFICATION TOGGLE ──
-let notifEnabled = true;
+function triggerFeedback(name){
+  if(!notifEnabled) return;
+  playElimSound();
+  if('vibrate' in navigator) navigator.vibrate([150,80,150]);
+}
 
-function toggleNotif() {
-  try { getAudioCtx().resume(); } catch(e) {}
+function toggleNotif(){
+  try { getAudioCtx().resume(); } catch(e){}
   notifEnabled = !notifEnabled;
   document.getElementById('notif-icon').textContent = notifEnabled ? '🔔' : '🔕';
   document.getElementById('notif-label').textContent = notifEnabled ? 'AN' : 'AUS';
   document.getElementById('notif-btn').style.opacity = notifEnabled ? '1' : '0.5';
-  if(notifEnabled) { playElimSound(); if('vibrate' in navigator) navigator.vibrate(100); }
+  if(notifEnabled){ playElimSound(); if('vibrate' in navigator) navigator.vibrate(100); }
 }
 
-// ── INIT ──
+// ── TOAST ──
+function toast(msg, color){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast '+(color||'green')+' show';
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
 connect();
 </script>
 </body>
