@@ -479,12 +479,17 @@ function renderFloor(){
     const ps = S.players.filter(p => p.table === t).sort((a,b) => a.seat - b.seat);
     const ac = ps.filter(p => !isElim(p.id)).length;
     const col = tColor(t);
+    const seatMap = {};
+    ps.forEach(p => seatMap[p.seat] = p);
+    const rows = Array.from({length: 10}, (_, i) => i + 1).map(seatNum => {
+      const p = seatMap[seatNum];
+      if(!p) return `<div class="t-row" style="opacity:.3"><span class="t-nm" style="color:var(--text2)">—</span><span class="t-st">Seat ${seatNum}</span></div>`;
+      const out = isElim(p.id);
+      return `<div class="t-row ${out?'out':''}"><span class="t-nm">${p.name}</span><span class="t-st">Seat ${seatNum}</span></div>`;
+    }).join('');
     return `<div class="tcrd">
       <h4><span class="tbadge" style="background:${col}"></span>${t}<span class="tc-cnt">${ac} aktiv</span></h4>
-      ${ps.map(p => {
-        const out = isElim(p.id);
-        return `<div class="t-row ${out?'out':''}"><span class="t-nm">${p.name}</span><span class="t-st">Seat ${p.seat}</span></div>`;
-      }).join('')}
+      ${rows}
     </div>`;
   }).join('');
 
