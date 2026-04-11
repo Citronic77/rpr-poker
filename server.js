@@ -88,6 +88,10 @@ function parseTDT(raw) {
   tables.sort((a, b) => {
     if (a.toUpperCase().includes('FINAL')) return 1;
     if (b.toUpperCase().includes('FINAL')) return -1;
+    // Extract leading number for natural sort (Table 2 RED < Table 10 BLUE)
+    const numA = parseInt(a.match(/\d+/) || [0]);
+    const numB = parseInt(b.match(/\d+/) || [0]);
+    if (numA !== numB) return numA - numB;
     return a.localeCompare(b);
   });
 
