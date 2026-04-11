@@ -17,7 +17,10 @@ let state = {
   players: [],      // parsed from .tdt
   eliminations: [], // manually set by dealers
   lastUpdate: null,
-  lastRaw: ''
+  lastRaw: '',
+  currentLevel: null,
+  currentBlind: null,
+  blinds: []
 };
 
 // ── Parse .tdt ──
@@ -100,7 +103,24 @@ function parseTDT(raw) {
     return a.localeCompare(b);
   });
 
-  return { name, players, tables };
+  // ── 3. Parse blind levels and current level ──
+  const blinds = [];
+  const roundRx = /new GameRound\(\{Minutes: (\d+), SmallBlind: (\d+), BigBlind: (\d+), Ante: (\d+)/g;
+  let rm;
+  while ((rm = roundRx.exec(raw)) !== null) {
+    blinds.push({
+      minutes: parseInt(rm[1]),
+      sb: parseInt(rm[2]),
+      bb: parseInt(rm[3]),
+      ante: parseInt(rm[4])
+    });
+  }
+
+  const clm = /CurrentLevel: (\d+)/.exec(raw);
+  const currentLevel = clm ? parseInt(clm[1]) : 1;
+  const currentBlind = blinds[currentLevel - 1] || blinds[blinds.length - 1] || null;
+
+  return { name, players, tables, blinds, currentLevel, currentBlind };
 }
 
 // ── Broadcast to all clients ──
@@ -149,6 +169,9 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
     state.tourneyName = parsed.name;
     state.players = parsed.players;
     state.tables = parsed.tables;
+    state.blinds = parsed.blinds;
+    state.currentLevel = parsed.currentLevel;
+    state.currentBlind = parsed.currentBlind;
     state.lastUpdate = new Date().toISOString();
 
     broadcastState();
