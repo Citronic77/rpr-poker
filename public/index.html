@@ -382,8 +382,15 @@ function renderDealer() {
   }
 
   const ps = S.players.filter(p => p.table === t).sort((a,b) => a.seat - b.seat);
-  if(!ps.length){ grid.innerHTML = '<div class="empty">Keine Spieler an diesem Tisch.</div>'; return; }
-  grid.innerHTML = ps.map(p => {
+  const seatMap = {};
+  ps.forEach(p => seatMap[p.seat] = p);
+  const seats = Array.from({length: 10}, (_, i) => i + 1);
+  grid.innerHTML = seats.map(seatNum => {
+    const p = seatMap[seatNum];
+    if(!p) return `<div class="pc" style="opacity:.35">
+      <div class="pc-seat">Seat ${seatNum}</div>
+      <div class="pc-name" style="color:var(--text2)">—</div>
+    </div>`;
     const elim = isElim(p.id);
     const ei = elim ? S.eliminations.find(e => e.id === p.id) : null;
     const isNew = newIds.has(p.id);
