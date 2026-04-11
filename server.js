@@ -86,11 +86,16 @@ function parseTDT(raw) {
 
   // Sort: Final Table last
   tables.sort((a, b) => {
-    if (a.toUpperCase().includes('FINAL')) return 1;
-    if (b.toUpperCase().includes('FINAL')) return -1;
-    // Extract leading number for natural sort (Table 2 RED < Table 10 BLUE)
-    const numA = parseInt(a.match(/\d+/) || [0]);
-    const numB = parseInt(b.match(/\d+/) || [0]);
+    // Final Table always last
+    const aFinal = a.toUpperCase().includes('FINAL');
+    const bFinal = b.toUpperCase().includes('FINAL');
+    if (aFinal && !bFinal) return 1;
+    if (!aFinal && bFinal) return -1;
+    // Extract number from name for natural numeric sort
+    const aMatch = a.match(/\d+/);
+    const bMatch = b.match(/\d+/);
+    const numA = aMatch ? parseInt(aMatch[0]) : 9999;
+    const numB = bMatch ? parseInt(bMatch[0]) : 9999;
     if (numA !== numB) return numA - numB;
     return a.localeCompare(b);
   });
