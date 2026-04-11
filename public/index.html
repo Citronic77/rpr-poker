@@ -24,7 +24,7 @@
   --amber:#EF9F27;--al:#FAEEDA;--ad:#BA7517;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
-.app{max-width:960px;margin:0 auto;padding:.75rem}
+.app{max-width:960px;margin:0 auto;padding:.4rem}
 
 /* HEADER */
 .header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:var(--rl);border:.5px solid var(--border);margin-bottom:.75rem;gap:10px}
@@ -41,7 +41,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* TABS */
 .tabs{display:flex;gap:6px;margin-bottom:.75rem}
-.tab{flex:1;padding:10px;font-size:14px;font-weight:500;border:.5px solid var(--border);border-radius:var(--r);background:var(--bg2);color:var(--text2);cursor:pointer;text-align:center;transition:all .15s}
+.tab{flex:1;padding:8px;font-size:14px;font-weight:500;border:.5px solid var(--border);border-radius:var(--r);background:var(--bg2);color:var(--text2);cursor:pointer;text-align:center;transition:all .15s}
 .tab.active{background:var(--bg);color:var(--text);border-color:var(--border2)}
 .panel{display:none}.panel.active{display:block}
 
@@ -131,21 +131,20 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
 <body>
 <div class="app">
 
-  <div class="header">
-    <div class="header-left">
-      <div class="header-title" id="h-title">RPR Poker — Tournament Manager</div>
-      <div class="header-sub" id="h-sub">Warte auf Turnierdaten...</div>
-    </div>
-    <div class="header-right">
-      <button class="notif-btn" id="notif-btn" onclick="toggleNotif()" title="Sound & Vibration">
-        <span id="notif-icon">🔔</span><span id="notif-label" style="font-size:11px">AN</span>
+  <div id="top-bar" style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--bg);border-radius:var(--rl);border:.5px solid var(--border);margin-bottom:.5rem;gap:8px">
+    <div style="font-size:12px;font-weight:500;color:var(--text);flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" id="h-title">RPR Poker</div>
+    <div id="h-blind" style="font-size:12px;font-weight:500;color:var(--gd);background:var(--gl);padding:3px 8px;border-radius:99px;display:none"></div>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <button class="notif-btn" id="notif-btn" onclick="toggleNotif()" title="Sound & Vibration" style="padding:4px 7px">
+        <span id="notif-icon">🔔</span>
       </button>
-      <div class="conn-pill">
+      <div style="display:flex;align-items:center;gap:4px">
         <div class="conn-dot connecting" id="conn-dot"></div>
-        <span id="conn-label">Verbinde...</span>
+        <span id="conn-label" style="font-size:11px;color:var(--text2)">...</span>
       </div>
     </div>
   </div>
+  <div id="h-sub" style="display:none"></div>
 
   <div class="tabs">
     <div class="tab active" onclick="showTab('dealer')">Dealer</div>
@@ -160,17 +159,8 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
       <div class="waiting-sub">Die Batch-Datei lädt die .tdt automatisch hoch.<br>Sobald Daten da sind, erscheinen die Spieler hier.</div>
     </div>
     <div id="dealer-content" style="display:none">
-      <div class="sync-bar">
-        <div class="sync-dot ok" id="sd-d"></div>
-        <div style="flex:1">
-          <div class="sync-name" id="sn-d">—</div>
-          <div class="sync-sub" id="ss-d"></div>
-        </div>
-        <div class="sync-cd" id="sc-d"></div>
-      </div>
-      <div style="margin-bottom:.75rem">
-        <div class="section-label">Tisch auswählen</div>
-        <select id="dealer-sel" onchange="renderDealer()" style="width:auto;min-width:200px"></select>
+      <div style="margin-bottom:.5rem">
+        <select id="dealer-sel" onchange="renderDealer()" style="width:100%;font-size:15px;font-weight:500;padding:8px 10px"></select>
       </div>
       <div id="dealer-grid" class="player-grid"></div>
     </div>
@@ -284,16 +274,15 @@ function applyState(payload) {
   document.getElementById('floor-waiting').style.display = hasData ? 'none' : 'block';
   document.getElementById('floor-content').style.display = hasData ? 'block' : 'none';
 
-  document.getElementById('h-title').textContent = S.tourneyName || 'RPR Poker — Tournament Manager';
-  let blindStr = '';
-  if(S.currentBlind) {
+  document.getElementById('h-title').textContent = S.tourneyName || 'RPR Poker';
+  const blindPill = document.getElementById('h-blind');
+  if(S.currentBlind && hasData) {
     const fmtH = n => n >= 1000 ? (n/1000)+'K' : n;
-    blindStr = ' · Level ' + S.currentLevel + ': ' + fmtH(S.currentBlind.sb) + '/' + fmtH(S.currentBlind.bb);
-    if(S.currentBlind.ante) blindStr += ' Ante ' + fmtH(S.currentBlind.ante);
+    blindPill.textContent = 'Level ' + S.currentLevel + ': ' + fmtH(S.currentBlind.sb) + '/' + fmtH(S.currentBlind.bb);
+    blindPill.style.display = 'block';
+  } else {
+    blindPill.style.display = 'none';
   }
-  document.getElementById('h-sub').textContent = hasData
-    ? S.players.length + ' Spieler · ' + S.tables.length + ' Tische' + blindStr + ' · ' + (S.lastUpdate ? ftime(new Date(S.lastUpdate)) : '—')
-    : 'Warte auf Turnierdaten...';
 
   updateSyncBars();
 
