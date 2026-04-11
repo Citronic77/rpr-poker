@@ -356,9 +356,15 @@ function renderDealer() {
     if(!S.tables.length){ grid.innerHTML = '<div class="empty">Keine Tische vorhanden.</div>'; return; }
     grid.innerHTML = S.tables.map(tbl => {
       const ps = S.players.filter(p => p.table === tbl).sort((a,b) => a.seat - b.seat);
-      if(!ps.length) return '';
       const col = tColor(tbl);
-      const cards = ps.map(p => {
+      const seatMap = {};
+      ps.forEach(p => seatMap[p.seat] = p);
+      const cards = Array.from({length: 10}, (_, i) => i + 1).map(seatNum => {
+        const p = seatMap[seatNum];
+        if(!p) return `<div class="pc" style="opacity:.35">
+          <div class="pc-seat">Seat ${seatNum}</div>
+          <div class="pc-name" style="color:var(--text2)">—</div>
+        </div>`;
         const elim = isElim(p.id);
         const ei = elim ? S.eliminations.find(e => e.id === p.id) : null;
         const isNew = newIds.has(p.id);
