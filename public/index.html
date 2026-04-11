@@ -218,7 +218,7 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
       <div class="section-label" style="margin-top:1rem">Ausscheidungen</div>
       <div class="card">
         <table class="etable">
-          <thead><tr><th>Pos.</th><th>Spieler</th><th>Tisch</th><th>Uhrzeit</th><th></th></tr></thead>
+          <thead><tr><th>Platz</th><th>Spieler</th><th>Tisch</th><th>Sitz</th><th>Uhrzeit</th><th></th></tr></thead>
           <tbody id="f-elims"></tbody>
         </table>
         <div id="f-empty" class="empty">Noch keine Ausscheidungen</div>
@@ -420,10 +420,12 @@ function renderFloor(){
     empty.style.display = 'none';
     tbody.innerHTML = [...S.eliminations].reverse().map(e => {
       const sid = encodeURIComponent(e.id);
+      const platz = e.pos; // pos = remaining players when eliminated = their finishing place
       return `<tr>
-        <td><span class="pos-badge">#${e.pos}</span></td>
+        <td><span class="pos-badge">${platz}.</span></td>
         <td style="font-weight:500">${e.name}</td>
         <td>${e.table}</td>
+        <td style="color:var(--text2)">${e.seat != null ? 'Sitz '+e.seat : '—'}</td>
         <td>${e.time}</td>
         <td><button class="undo-row" onclick="floorUndo('${sid}')">↩</button></td>
       </tr>`;
