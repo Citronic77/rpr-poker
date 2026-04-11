@@ -16,7 +16,8 @@ let state = {
   tables: [],
   players: [],      // parsed from .tdt
   eliminations: [], // manually set by dealers
-  lastUpdate: null
+  lastUpdate: null,
+  lastRaw: ''
 };
 
 // ── Parse .tdt ──
@@ -71,7 +72,9 @@ function broadcast(msg) {
 }
 
 function broadcastState() {
-  broadcast({ type: 'state', payload: state });
+  // Don't send lastRaw to clients — it's server-only and large
+  const { lastRaw, ...payload } = state;
+  broadcast({ type: 'state', payload });
 }
 
 // ── File upload (multer, memory storage) ──
@@ -85,21 +88,31 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Keine Datei' });
   try {
     const raw = req.file.buffer.toString('utf-8');
-    const parsed = parseTDT(raw);
 
-    // Merge: keep existing eliminations for known players, clear for new ones
-    const knownIds = new Set(state.players.map(p => p.id));
+    // Skip broadcast if file content unchanged
+    if (raw === state.lastRaw) {
+      return res.json({ ok: true, changed: false, players: state.players.length, tables: state.tables.length });
+    }
+    state.lastRaw = raw;
+
+    const parsed = parseTDT(raw);
     const newPlayerIds = new Set(parsed.players.map(p => p.id));
-    // Remove eliminations for players no longer in file
+
+    // Keep manual eliminations only for players still present in the file.
+    // If a player disappeared (e.g. removed from tournament), drop their elimination.
     state.eliminations = state.eliminations.filter(e => newPlayerIds.has(e.id));
 
+    // Recalculate positions after any drops
+    state.eliminations.forEach((e, i) => e.pos = parsed.players.length - i);
+
+    // Always take fresh player data (seats/tables) from the file
     state.tourneyName = parsed.name;
     state.players = parsed.players;
     state.tables = parsed.tables;
     state.lastUpdate = new Date().toISOString();
 
     broadcastState();
-    res.json({ ok: true, players: parsed.players.length, tables: parsed.tables.length });
+    res.json({ ok: true, changed: true, players: parsed.players.length, tables: parsed.tables.length });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
