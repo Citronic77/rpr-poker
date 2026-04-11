@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Poker Tournament Manager</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f5f4;--bg3:#eeecea;
+  --text:#1a1a1a;--text2:#6b6b6b;--text3:#aaa;
+  --border:#e0ddd6;--border2:#c8c4bc;
+  --r:8px;--rl:12px;
+  --green:#1D9E75;--gl:#E1F5EE;--gd:#0F6E56;
+  --red:#E24B4A;--rl2:#FCEBEB;--rd:#A32D2D;
+  --amber:#EF9F27;--al:#FAEEDA;--ad:#BA7517;
+  --blue:#378ADD;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#1e1e1c;--bg2:#2a2a27;--bg3:#323230;--text:#f0ede8;--text2:#a09d98;--text3:#555;--border:#3a3a37;--border2:#4a4a47;}
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+
+.app{max-width:960px;margin:0 auto;padding:.75rem}
+.header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:var(--rl);border:.5px solid var(--border);margin-bottom:.75rem;gap:10px}
+.header-title{font-size:15px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conn-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.conn-dot.on{background:var(--green);animation:pulse 2s infinite}
+.conn-dot.off{background:var(--red)}
+.conn-dot.connecting{background:var(--amber);animation:blink .7s infinite}
+.conn-label{font-size:12px;color:var(--text2)}
+
+.tabs{display:flex;gap:6px;margin-bottom:.75rem}
+.tab{flex:1;padding:9px;font-size:14px;font-weight:500;border:.5px solid var(--border);border-radius:var(--r);background:var(--bg2);color:var(--text2);cursor:pointer;text-align:center;transition:all .15s}
+.tab.active{background:var(--bg);color:var(--text);border-color:var(--border2)}
+
+.panel{display:none}.panel.active{display:block}
+
+/* FORMS */
+input,select,button{font-family:inherit;font-size:14px}
+input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text)}
+.btn{padding:9px 18px;border:.5px solid var(--border2);border-radius:var(--r);font-size:14px;font-weight:500;cursor:pointer;background:var(--bg);color:var(--text);transition:all .15s;display:inline-block}
+.btn:hover{background:var(--bg2)}.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--green);color:#fff;border-color:var(--gd)}.btn.primary:hover{background:var(--gd)}
+.btn.danger{background:var(--red);color:#fff;border-color:var(--rd)}.btn.danger:hover{background:var(--rd)}
+.btn.warn{background:var(--amber);color:#fff;border-color:var(--ad)}.btn.warn:hover{background:var(--ad)}
+.btn.sm{padding:5px 12px;font-size:12px}
+.btn.full{width:100%}
+.card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:1rem 1.25rem}
+
+/* UPLOAD */
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--rl);padding:2.5rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg2)}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--green);background:var(--gl)}
+.drop-icon{font-size:44px;display:block;margin-bottom:.75rem}
+.drop-title{font-size:15px;font-weight:500;margin-bottom:.3rem}
+.drop-sub{font-size:13px;color:var(--text2);line-height:1.5}
+.upload-status{margin-top:.75rem;padding:10px 14px;border-radius:var(--r);font-size:13px;display:none}
+.upload-status.ok{background:var(--gl);color:var(--gd);border:.5px solid #9FE1CB}
+.upload-status.err{background:var(--rl2);color:var(--rd);border:.5px solid #F09595}
+
+/* SYNC BAR */
+.sync-bar{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--bg2);border:.5px solid var(--border);border-radius:var(--rl);margin-bottom:.75rem;font-size:13px}
+.sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sync-dot.ok{background:var(--green);animation:pulse 2s infinite}
+.sync-dot.off{background:var(--red)}
+.sync-dot.idle{background:var(--text3)}
+.sync-info{flex:1}
+.sync-name{font-weight:500}
+.sync-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.sync-cd{font-size:12px;color:var(--text2);min-width:50px;text-align:right}
+.prog-wrap{width:60px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px}
+.prog-bar{height:100%;background:var(--green);border-radius:2px;transition:width .9s linear}
+
+/* DEALER GRID */
+.section-label{font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin:.75rem 0 .4rem}
+.player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.pc{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:12px;text-align:center;display:flex;flex-direction:column;gap:4px;position:relative;transition:all .15s}
+.pc.tap{cursor:pointer}.pc.tap:hover{border-color:var(--green);background:var(--gl)}
+.pc.out{background:var(--rl2);border-color:#F09595}
+.pc-seat{font-size:10px;color:var(--text2)}
+.pc-name{font-size:13px;font-weight:500;line-height:1.3}
+.pc.out .pc-name{color:var(--rd)}
+.pc-nick{font-size:11px;color:var(--text2)}
+.pc-status{font-size:11px;color:var(--text2)}.pc-status.out{color:var(--rd)}
+.badge{position:absolute;top:5px;right:5px;font-size:9px;border-radius:99px;padding:1px 5px;font-weight:500}
+.badge.out{background:var(--red);color:#fff}
+.badge.new{background:var(--green);color:#fff;animation:fadeout 5s forwards}
+@keyframes fadeout{0%,60%{opacity:1}100%{opacity:0}}
+.undo-btn{margin-top:5px;padding:5px 8px;font-size:11px;border:.5px solid var(--ad);border-radius:var(--r);background:var(--al);color:#633806;cursor:pointer;font-weight:500}
+.undo-btn:hover{background:#FAC775}
+
+/* OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200;padding:1rem}
+.dialog{background:var(--bg);border-radius:var(--rl);padding:1.75rem;width:min(340px,100%);text-align:center;border:.5px solid var(--border2)}
+.dialog h3{font-size:17px;font-weight:500;margin-bottom:.5rem}
+.dialog p{font-size:13px;color:var(--text2);margin-bottom:1.5rem;line-height:1.6}
+.dialog-btns{display:flex;gap:8px;justify-content:center}
+
+/* FLOOR */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.stat{background:var(--bg2);border-radius:var(--r);padding:12px;text-align:center}
+.stat-num{font-size:30px;font-weight:500}
+.stat-lbl{font-size:11px;color:var(--text2);margin-top:2px}
+.tables-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.tcrd{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:10px 14px}
+.tcrd h4{font-size:13px;font-weight:500;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.tc-cnt{font-size:11px;font-weight:400;color:var(--text2)}
+.t-row{font-size:12px;display:flex;justify-content:space-between;padding:2px 0}
+.t-row.out .t-nm{color:var(--rd);text-decoration:line-through}
+.t-st{color:var(--text2);font-size:11px}
+.tbadge{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.etable{width:100%;border-collapse:collapse;font-size:13px}
+.etable th{text-align:left;font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;padding:5px 8px;border-bottom:.5px solid var(--border)}
+.etable td{padding:7px 8px;border-bottom:.5px solid var(--border);color:var(--text)}
+.etable tr:last-child td{border-bottom:none}
+.etable tr:hover td{background:var(--bg2)}
+.pos-badge{display:inline-block;background:var(--rl2);color:var(--rd);border-radius:99px;padding:1px 7px;font-size:11px;font-weight:500}
+.undo-row{padding:3px 10px;font-size:11px;border:.5px solid var(--ad);border-radius:99px;background:var(--al);color:#633806;cursor:pointer;font-weight:500}
+.undo-row:hover{background:#FAC775}
+.empty{text-align:center;padding:2rem;color:var(--text2);font-size:13px}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);padding:10px 22px;border-radius:var(--rl);font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.toast.show{opacity:1}
+.toast.green{background:var(--green);color:#fff}
+.toast.amber{background:var(--amber);color:#fff}
+.toast.red{background:var(--red);color:#fff}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-title" id="h-title">Poker Tournament Manager</div>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <div class="conn-dot connecting" id="conn-dot"></div>
+      <div class="conn-label" id="conn-label">Verbinde...</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('upload')">Upload</div>
+    <div class="tab" onclick="showTab('dealer')">Dealer</div>
+    <div class="tab" onclick="showTab('floor')">Floorman</div>
+  </div>
+
+  <!-- ══ UPLOAD ══ -->
+  <div id="tab-upload" class="panel active">
+    <div class="drop-zone" id="dz"
+      onclick="document.getElementById('fi').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="onDrop(event)">
+      <span class="drop-icon">🃏</span>
+      <div class="drop-title">.tdt Turnierdatei hochladen</div>
+      <div class="drop-sub">Datei hierher ziehen oder tippen<br>Server aktualisiert alle 10 Sek. automatisch — alle Geräte sync</div>
+    </div>
+    <input type="file" id="fi" accept=".tdt" style="display:none" onchange="uploadFile(this.files[0])">
+    <div id="upload-status" class="upload-status"></div>
+
+    <div id="auto-reload-bar" style="display:none;margin-top:.75rem">
+      <div class="sync-bar">
+        <div class="sync-dot ok"></div>
+        <div class="sync-info">
+          <div class="sync-name">Auto-Reload aktiv</div>
+          <div class="sync-sub">Datei wird alle 10 Sek. automatisch neu hochgeladen</div>
+        </div>
+        <div style="text-align:right">
+          <div class="sync-cd" id="ul-cd">in 10s</div>
+          <div class="prog-wrap"><div class="prog-bar" id="ul-prog" style="width:100%"></div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn sm" onclick="doUploadNow()">↻ Jetzt</button>
+        <button class="btn sm" id="ul-pause-btn" onclick="toggleUploadPause()">⏸ Pause</button>
+        <button class="btn sm" onclick="clearFile()" style="margin-left:auto">✕ Datei entfernen</button>
+      </div>
+    </div>
+
+    <div id="upload-preview" style="margin-top:1rem"></div>
+  </div>
+
+  <!-- ══ DEALER ══ -->
+  <div id="tab-dealer" class="panel">
+    <div class="sync-bar">
+      <div class="sync-dot" id="sd-d"></div>
+      <div class="sync-info">
+        <div class="sync-name" id="sn-d">—</div>
+        <div class="sync-sub" id="ss-d"></div>
+      </div>
+      <div class="sync-cd" id="sc-d"></div>
+    </div>
+    <div style="margin-bottom:.75rem">
+      <div class="section-label">Tisch auswählen</div>
+      <select id="dealer-sel" onchange="renderDealer()" style="width:auto;min-width:200px"></select>
+    </div>
+    <div id="dealer-grid" class="player-grid"></div>
+
+    <div id="elim-ov" style="display:none" class="overlay">
+      <div class="dialog">
+        <h3>Spieler eliminieren?</h3>
+        <p id="elim-msg"></p>
+        <div class="dialog-btns">
+          <button class="btn" onclick="cancelElim()">Abbrechen</button>
+          <button class="btn danger" onclick="confirmElim()">Eliminieren</button>
+        </div>
+      </div>
+    </div>
+    <div id="undo-ov" style="display:none" class="overlay">
+      <div class="dialog">
+        <h3>Rückgängig machen?</h3>
+        <p id="undo-msg"></p>
+        <div class="dialog-btns">
+          <button class="btn" onclick="cancelUndo()">Abbrechen</button>
+          <button class="btn warn" onclick="confirmUndo()">Rückgängig</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FLOORMAN ══ -->
+  <div id="tab-floor" class="panel">
+    <div class="sync-bar">
+      <div class="sync-dot" id="sd-f"></div>
+      <div class="sync-info">
+        <div class="sync-name" id="sn-f">—</div>
+        <div class="sync-sub" id="ss-f"></div>
+      </div>
+      <div class="sync-cd" id="sc-f"></div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num" id="s-act">—</div><div class="stat-lbl">Aktive Spieler</div></div>
+      <div class="stat"><div class="stat-num" id="s-eli">—</div><div class="stat-lbl">Ausgeschieden</div></div>
+      <div class="stat"><div class="stat-num" id="s-tbl">—</div><div class="stat-lbl">Aktive Tische</div></div>
+    </div>
+
+    <div class="section-label">Tischübersicht</div>
+    <div class="tables-grid" id="f-tables"></div>
+
+    <div class="section-label" style="margin-top:1rem">Ausscheidungen</div>
+    <div class="card">
+      <table class="etable">
+        <thead><tr><th>Pos.</th><th>Spieler</th><th>Tisch</th><th>Uhrzeit</th><th></th></tr></thead>
+        <tbody id="f-elims"></tbody>
+      </table>
+      <div id="f-empty" class="empty">Noch keine Ausscheidungen</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ── CONFIG ──
+// WebSocket URL: automatisch vom gleichen Host
+const WS_URL = location.protocol === 'https:' ? 'wss://' : 'ws://' + location.host;
+const API = '';
+
+// ── TABLE COLORS ──
+const TC = {RED:'#E24B4A',GREEN:'#1D9E75',YELLOW:'#EF9F27',CYAN:'#378ADD',BLUE:'#534AB7',ORANGE:'#D85A30',PURPLE:'#7F77DD',FINAL:'#888780'};
+function tColor(n){const u=n.toUpperCase();for(const k in TC){if(u.includes(k))return TC[k];}return'#888780';}
+function ftime(d){return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+
+// ── STATE ──
+let S = { tourneyName:'', tables:[], players:[], eliminations:[], lastUpdate:null };
+let prevPlayerIds = new Set();
+let newIds = new Set();
+let pendingElim = null, pendingUndo = null;
+
+// ── WEBSOCKET ──
+let ws, wsRetry = 0;
+function connect() {
+  setConn('connecting');
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => { wsRetry = 0; setConn('on'); };
+  ws.onclose = () => { setConn('off'); setTimeout(connect, Math.min(3000 * ++wsRetry, 15000)); };
+  ws.onerror = () => ws.close();
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'state') applyState(msg.payload);
+  };
+}
+function wsSend(obj) { if(ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
+
+function applyState(payload) {
+  newIds = new Set();
+  const oldIds = new Set(S.players.map(p => p.id));
+  S = payload;
+  S.players.forEach(p => { if(!oldIds.has(p.id) && oldIds.size > 0) newIds.add(p.id); });
+  prevPlayerIds = new Set(S.players.map(p => p.id));
+  document.getElementById('h-title').textContent = S.tourneyName || 'Poker Tournament Manager';
+  updateSyncUI();
+  renderUploadPreview();
+  const active = document.querySelector('.tab.active');
+  const tabs = [...document.querySelectorAll('.tab')];
+  const idx = tabs.indexOf(active);
+  if(idx === 1) renderDealer();
+  if(idx === 2) renderFloor();
+}
+
+function setConn(s) {
+  const d = document.getElementById('conn-dot');
+  const l = document.getElementById('conn-label');
+  d.className = 'conn-dot ' + s;
+  l.textContent = s === 'on' ? 'Verbunden' : s === 'off' ? 'Getrennt' : 'Verbinde...';
+  ['d','f'].forEach(x => {
+    const dot = document.getElementById('sd-'+x);
+    if(dot) dot.className = 'sync-dot ' + (s === 'on' ? 'ok' : 'off');
+  });
+  updateSyncUI();
+}
+
+function updateSyncUI() {
+  const connected = ws && ws.readyState === 1;
+  const name = S.tourneyName || 'Kein Turnier geladen';
+  const sub = S.lastUpdate ? 'Aktualisiert: ' + ftime(new Date(S.lastUpdate)) : 'Warte auf Daten...';
+  ['d','f'].forEach(x => {
+    const dot = document.getElementById('sd-'+x); if(dot) dot.className = 'sync-dot ' + (connected ? 'ok' : 'off');
+    const sn = document.getElementById('sn-'+x); if(sn) sn.textContent = name;
+    const ss = document.getElementById('ss-'+x); if(ss) ss.textContent = sub;
+    const sc = document.getElementById('sc-'+x); if(sc) sc.textContent = connected ? 'Live' : 'Offline';
+  });
+}
+
+// ── TABS ──
+function showTab(t) {
+  ['upload','dealer','floor'].forEach((n,i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', n === t);
+    document.getElementById('tab-'+n).classList.toggle('active', n === t);
+  });
+  if(t === 'dealer') renderDealerSel();
+  if(t === 'floor') renderFloor();
+}
+
+// ── UPLOAD + AUTO-RELOAD ──
+let uploadFile_ref = null, ulPaused = false, ulCd = 10, ulTimer = null, ulCdTimer = null;
+
+function onDrop(ev) { ev.preventDefault(); document.getElementById('dz').classList.remove('drag'); const f = ev.dataTransfer.files[0]; if(f) startUpload(f); }
+
+function startUpload(file) {
+  uploadFile_ref = file;
+  ulPaused = false;
+  document.getElementById('ul-pause-btn').textContent = '⏸ Pause';
+  document.getElementById('auto-reload-bar').style.display = 'block';
+  doUpload(file);
+  if(ulTimer) clearInterval(ulTimer);
+  ulTimer = setInterval(() => { if(!ulPaused && uploadFile_ref) doUpload(uploadFile_ref); }, 10000);
+  startUlCd();
+}
+
+function doUploadNow() { if(uploadFile_ref) { ulCd = 10; doUpload(uploadFile_ref); } }
+function clearFile() { uploadFile_ref = null; if(ulTimer) clearInterval(ulTimer); if(ulCdTimer) clearInterval(ulCdTimer); document.getElementById('auto-reload-bar').style.display = 'none'; document.getElementById('fi').value = ''; }
+function toggleUploadPause() { ulPaused = !ulPaused; document.getElementById('ul-pause-btn').textContent = ulPaused ? '▶ Fortsetzen' : '⏸ Pause'; }
+
+function startUlCd() {
+  ulCd = 10;
+  if(ulCdTimer) clearInterval(ulCdTimer);
+  ulCdTimer = setInterval(() => {
+    if(!ulPaused) ulCd = Math.max(0, ulCd - 1);
+    const pct = (ulCd / 10) * 100;
+    const pb = document.getElementById('ul-prog'); if(pb) pb.style.width = pct + '%';
+    const cd = document.getElementById('ul-cd'); if(cd) cd.textContent = ulPaused ? 'pausiert' : (ulCd > 0 ? 'in ' + ulCd + 's' : '...');
+    if(ulCd === 0) ulCd = 10;
+  }, 1000);
+}
+
+function uploadFile(file) { if(file) startUpload(file); }
+
+function doUpload(file) {
+  const fd = new FormData();
+  fd.append('tdt', file);
+  const st = document.getElementById('upload-status');
+  fetch('/upload', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(d => {
+      if(d.ok) {
+        st.className = 'upload-status ok';
+        st.textContent = `✓ ${d.players} Spieler, ${d.tables} Tische — ${ftime(new Date())}`;
+        st.style.display = 'block';
+        startUlCd();
+      } else { st.className = 'upload-status err'; st.textContent = 'Fehler: ' + d.error; st.style.display = 'block'; }
+    })
+    .catch(e => { st.className = 'upload-status err'; st.textContent = 'Upload fehlgeschlagen: ' + e.message; st.style.display = 'block'; });
+}
+
+function renderUploadPreview() {
+  if(!S.players.length) return;
+  const byT = {};
+  S.players.forEach(p => { (byT[p.table] = byT[p.table] || []).push(p); });
+  const html = S.tables.map(t => {
+    const ps = (byT[t] || []).sort((a,b) => a.seat - b.seat);
+    const col = tColor(t);
+    return `<div class="tcrd">
+      <h4><span class="tbadge" style="background:${col}"></span>${t}<span class="tc-cnt">${ps.length}</span></h4>
+      ${ps.map(p => `<div class="t-row"><span class="t-nm">${p.name}</span><span class="t-st">Sitz ${p.seat}</span></div>`).join('')}
+    </div>`;
+  }).join('');
+  document.getElementById('upload-preview').innerHTML =
+    `<div class="section-label">${S.players.length} Spieler · ${S.tables.length} Tische</div>
+     <div class="tables-grid">${html}</div>
+     <div style="display:flex;gap:8px;margin-top:.75rem">
+       <button class="btn primary" onclick="showTab('dealer')">Dealer →</button>
+       <button class="btn" onclick="showTab('floor')">Floorman →</button>
+     </div>`;
+}
+
+// ── DEALER ──
+function isElim(id) { return S.eliminations.some(e => e.id === id); }
+
+function renderDealerSel() {
+  const sel = document.getElementById('dealer-sel');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- Tisch wählen --</option>' + S.tables.map(t => `<option value="${t}">${t}</option>`).join('');
+  if(cur && S.tables.includes(cur)) sel.value = cur;
+  renderDealer();
+}
+
+function renderDealer() {
+  const t = document.getElementById('dealer-sel').value;
+  const grid = document.getElementById('dealer-grid');
+  if(!t || !S.players.length) { grid.innerHTML = '<div class="empty">Tisch auswählen um Spieler zu sehen.</div>'; return; }
+  const ps = S.players.filter(p => p.table === t).sort((a,b) => a.seat - b.seat);
+  if(!ps.length) { grid.innerHTML = '<div class="empty">Keine Spieler an diesem Tisch.</div>'; return; }
+  grid.innerHTML = ps.map(p => {
+    const elim = isElim(p.id);
+    const ei = elim ? S.eliminations.find(e => e.id === p.id) : null;
+    const isNew = newIds.has(p.id);
+    const sid = encodeId(p.id);
+    if(elim) return `<div class="pc out">
+      <span class="badge out">OUT</span>
+      <div class="pc-seat">Sitz ${p.seat}</div>
+      <div class="pc-name">${p.name}</div>
+      <div class="pc-nick">${p.nick}</div>
+      <div class="pc-status out">Ausgeschieden ${ei.time}</div>
+      <button class="undo-btn" onclick="openUndo('${sid}')">↩ Rückgängig</button>
+    </div>`;
+    return `<div class="pc tap" onclick="openElim('${sid}')">
+      ${isNew ? '<span class="badge new">Neu</span>' : ''}
+      <div class="pc-seat">Sitz ${p.seat}</div>
+      <div class="pc-name">${p.name}</div>
+      <div class="pc-nick">${p.nick}</div>
+      <div class="pc-status">Aktiv</div>
+    </div>`;
+  }).join('');
+}
+
+function encodeId(id) { return encodeURIComponent(id); }
+function findById(sid) { const id = decodeURIComponent(sid); return S.players.find(p => p.id === id); }
+
+function openElim(sid) {
+  const p = findById(sid); if(!p) return;
+  pendingElim = sid;
+  document.getElementById('elim-msg').textContent = `"${p.name}" als ausgeschieden markieren?`;
+  document.getElementById('elim-ov').style.display = 'flex';
+}
+function cancelElim() { document.getElementById('elim-ov').style.display = 'none'; pendingElim = null; }
+function confirmElim() {
+  if(!pendingElim) return;
+  const p = findById(pendingElim);
+  wsSend({ type:'eliminate', playerId:p.id, playerName:p.name, table:p.table, time:ftime(new Date()) });
+  document.getElementById('elim-ov').style.display = 'none';
+  pendingElim = null;
+}
+
+function openUndo(sid) {
+  const p = findById(sid); if(!p) return;
+  pendingUndo = sid;
+  document.getElementById('undo-msg').textContent = `"${p.name}" wieder als aktiv einsetzen?`;
+  document.getElementById('undo-ov').style.display = 'flex';
+}
+function cancelUndo() { document.getElementById('undo-ov').style.display = 'none'; pendingUndo = null; }
+function confirmUndo() {
+  if(!pendingUndo) return;
+  const p = findById(pendingUndo);
+  wsSend({ type:'undo', playerId:p.id });
+  document.getElementById('undo-ov').style.display = 'none';
+  pendingUndo = null;
+}
+
+// ── FLOOR ──
+function floorUndo(sid) {
+  const p = findById(sid); if(!p) return;
+  wsSend({ type:'undo', playerId:p.id });
+}
+
+function renderFloor() {
+  const total = S.players.length, ec = S.eliminations.length;
+  document.getElementById('s-act').textContent = total - ec;
+  document.getElementById('s-eli').textContent = ec;
+  document.getElementById('s-tbl').textContent = S.tables.filter(t => S.players.filter(p => p.table === t).some(p => !isElim(p.id))).length;
+
+  document.getElementById('f-tables').innerHTML = S.tables.map(t => {
+    const ps = S.players.filter(p => p.table === t).sort((a,b) => a.seat - b.seat);
+    const ac = ps.filter(p => !isElim(p.id)).length;
+    const col = tColor(t);
+    return `<div class="tcrd">
+      <h4><span class="tbadge" style="background:${col}"></span>${t}<span class="tc-cnt">${ac} aktiv</span></h4>
+      ${ps.map(p => {
+        const out = isElim(p.id);
+        return `<div class="t-row ${out?'out':''}"><span class="t-nm">${p.name}</span><span class="t-st">Sitz ${p.seat}</span></div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+
+  const tbody = document.getElementById('f-elims');
+  const empty = document.getElementById('f-empty');
+  if(!S.eliminations.length) { tbody.innerHTML = ''; empty.style.display = 'block'; }
+  else {
+    empty.style.display = 'none';
+    tbody.innerHTML = [...S.eliminations].reverse().map(e => {
+      const sid = encodeId(e.id);
+      return `<tr>
+        <td><span class="pos-badge">#${e.pos}</span></td>
+        <td style="font-weight:500">${e.name}</td>
+        <td>${e.table}</td>
+        <td>${e.time}</td>
+        <td><button class="undo-row" onclick="floorUndo('${sid}')">↩</button></td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+// ── TOAST ──
+function toast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + (color||'green') + ' show';
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── INIT ──
+connect();
+</script>
+</body>
+</html>
