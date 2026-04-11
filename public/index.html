@@ -70,7 +70,7 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
 .pc{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:12px;text-align:center;display:flex;flex-direction:column;gap:4px;position:relative;transition:all .15s}
 .pc.tap{cursor:pointer}.pc.tap:hover{border-color:var(--green);background:var(--gl)}
 .pc.out{background:var(--rl2);border-color:#F09595}
-.pc-seat{font-size:13px;font-weight:500;color:var(--text);}
+.pc-seat{font-size:18px;font-weight:500;color:var(--text);}
 .pc-name{font-size:13px;font-weight:500;line-height:1.3}
 .pc.out .pc-name{color:var(--rd)}
 .pc-nick{font-size:11px;color:var(--text2)}
@@ -346,7 +346,7 @@ function renderDealer() {
         const sid = encodeURIComponent(p.id);
         if(elim) return `<div class="pc out">
           <span class="badge out">OUT</span>
-          <div class="pc-seat">Sitz ${p.seat}</div>
+          <div class="pc-seat">Seat ${p.seat}</div>
           <div class="pc-name">${p.name}</div>
           <div class="pc-nick">${p.nick}</div>
           <div class="pc-status out">Ausgeschieden ${ei.time}</div>
@@ -354,7 +354,7 @@ function renderDealer() {
         </div>`;
         return `<div class="pc tap" onclick="openElim('${sid}')">
           ${isNew ? '<span class="badge new">Neu</span>' : ''}
-          <div class="pc-seat">Sitz ${p.seat}</div>
+          <div class="pc-seat">Seat ${p.seat}</div>
           <div class="pc-name">${p.name}</div>
           <div class="pc-nick">${p.nick}</div>
           <div class="pc-status">Aktiv</div>
@@ -379,7 +379,7 @@ function renderDealer() {
     const sid = encodeURIComponent(p.id);
     if(elim) return `<div class="pc out">
       <span class="badge out">OUT</span>
-      <div class="pc-seat">Sitz ${p.seat}</div>
+      <div class="pc-seat">Seat ${p.seat}</div>
       <div class="pc-name">${p.name}</div>
       <div class="pc-nick">${p.nick}</div>
       <div class="pc-status out">Ausgeschieden ${ei.time}</div>
@@ -387,7 +387,7 @@ function renderDealer() {
     </div>`;
     return `<div class="pc tap" onclick="openElim('${sid}')">
       ${isNew ? '<span class="badge new">Neu</span>' : ''}
-      <div class="pc-seat">Sitz ${p.seat}</div>
+      <div class="pc-seat">Seat ${p.seat}</div>
       <div class="pc-name">${p.name}</div>
       <div class="pc-nick">${p.nick}</div>
       <div class="pc-status">Aktiv</div>
@@ -447,7 +447,7 @@ function renderFloor(){
       <h4><span class="tbadge" style="background:${col}"></span>${t}<span class="tc-cnt">${ac} aktiv</span></h4>
       ${ps.map(p => {
         const out = isElim(p.id);
-        return `<div class="t-row ${out?'out':''}"><span class="t-nm">${p.name}</span><span class="t-st">Sitz ${p.seat}</span></div>`;
+        return `<div class="t-row ${out?'out':''}"><span class="t-nm">${p.name}</span><span class="t-st">Seat ${p.seat}</span></div>`;
       }).join('')}
     </div>`;
   }).join('');
