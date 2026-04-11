@@ -322,7 +322,7 @@ function isElim(id){ return S.eliminations.some(e => e.id === id); }
 function renderDealerSel() {
   const sel = document.getElementById('dealer-sel');
   const cur = sel.value;
-  sel.innerHTML = '<option value="">-- Tisch wählen --</option>' + S.tables.map(t => `<option value="${t}">${t}</option>`).join('');
+  sel.innerHTML = '<option value="">-- Tisch wählen --</option>' + S.tables.map(t => `<option value="${t}">${t}</option>`).join('') + (S.tables.length ? '<option value="__ALL__">── Alle Tische ──</option>' : '');
   if(cur && S.tables.includes(cur)) sel.value = cur;
   renderDealer();
 }
@@ -331,6 +331,45 @@ function renderDealer() {
   const t = document.getElementById('dealer-sel').value;
   const grid = document.getElementById('dealer-grid');
   if(!t || !S.players.length){ grid.innerHTML = '<div class="empty">Tisch auswählen um Spieler zu sehen.</div>'; return; }
+
+  if(t === '__ALL__') {
+    // Show all tables grouped
+    if(!S.tables.length){ grid.innerHTML = '<div class="empty">Keine Tische vorhanden.</div>'; return; }
+    grid.innerHTML = S.tables.map(tbl => {
+      const ps = S.players.filter(p => p.table === tbl).sort((a,b) => a.seat - b.seat);
+      if(!ps.length) return '';
+      const col = tColor(tbl);
+      const cards = ps.map(p => {
+        const elim = isElim(p.id);
+        const ei = elim ? S.eliminations.find(e => e.id === p.id) : null;
+        const isNew = newIds.has(p.id);
+        const sid = encodeURIComponent(p.id);
+        if(elim) return `<div class="pc out">
+          <span class="badge out">OUT</span>
+          <div class="pc-seat">Sitz ${p.seat}</div>
+          <div class="pc-name">${p.name}</div>
+          <div class="pc-nick">${p.nick}</div>
+          <div class="pc-status out">Ausgeschieden ${ei.time}</div>
+          <button class="undo-btn" onclick="openUndo('${sid}')">↩ Rückgängig</button>
+        </div>`;
+        return `<div class="pc tap" onclick="openElim('${sid}')">
+          ${isNew ? '<span class="badge new">Neu</span>' : ''}
+          <div class="pc-seat">Sitz ${p.seat}</div>
+          <div class="pc-name">${p.name}</div>
+          <div class="pc-nick">${p.nick}</div>
+          <div class="pc-status">Aktiv</div>
+        </div>`;
+      }).join('');
+      return `<div style="grid-column:1/-1;margin-top:.5rem">
+        <div style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;display:flex;align-items:center;gap:6px">
+          <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${col}"></span>${tbl}
+        </div>
+        <div class="player-grid">${cards}</div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
   const ps = S.players.filter(p => p.table === t).sort((a,b) => a.seat - b.seat);
   if(!ps.length){ grid.innerHTML = '<div class="empty">Keine Spieler an diesem Tisch.</div>'; return; }
   grid.innerHTML = ps.map(p => {
