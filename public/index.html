@@ -212,6 +212,11 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
         <div class="stat"><div class="stat-num" id="s-act">—</div><div class="stat-lbl">Aktive Spieler</div></div>
         <div class="stat"><div class="stat-num" id="s-eli">—</div><div class="stat-lbl">Ausgeschieden</div></div>
         <div class="stat"><div class="stat-num" id="s-tbl">—</div><div class="stat-lbl">Aktive Tische</div></div>
+        <div class="stat" style="grid-column:1/-1;background:var(--gl);border:.5px solid #9FE1CB">
+          <div style="font-size:11px;color:var(--gd);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Aktuelle Blindstufe</div>
+          <div id="s-blind" style="font-size:22px;font-weight:500;color:var(--gd)">—</div>
+          <div id="s-blind-sub" style="font-size:11px;color:var(--gd);margin-top:2px"></div>
+        </div>
       </div>
       <div class="section-label">Tischübersicht</div>
       <div class="tables-grid" id="f-tables"></div>
@@ -275,8 +280,14 @@ function applyState(payload) {
   document.getElementById('floor-content').style.display = hasData ? 'block' : 'none';
 
   document.getElementById('h-title').textContent = S.tourneyName || 'RPR Poker — Tournament Manager';
+  let blindStr = '';
+  if(S.currentBlind) {
+    const fmtH = n => n >= 1000 ? (n/1000)+'K' : n;
+    blindStr = ' · Level ' + S.currentLevel + ': ' + fmtH(S.currentBlind.sb) + '/' + fmtH(S.currentBlind.bb);
+    if(S.currentBlind.ante) blindStr += ' Ante ' + fmtH(S.currentBlind.ante);
+  }
   document.getElementById('h-sub').textContent = hasData
-    ? S.players.length + ' Spieler · ' + S.tables.length + ' Tische · Aktualisiert: ' + (S.lastUpdate ? ftime(new Date(S.lastUpdate)) : '—')
+    ? S.players.length + ' Spieler · ' + S.tables.length + ' Tische' + blindStr + ' · ' + (S.lastUpdate ? ftime(new Date(S.lastUpdate)) : '—')
     : 'Warte auf Turnierdaten...';
 
   updateSyncBars();
@@ -438,6 +449,16 @@ function renderFloor(){
   document.getElementById('s-act').textContent = total - ec;
   document.getElementById('s-eli').textContent = ec;
   document.getElementById('s-tbl').textContent = S.tables.filter(t => S.players.filter(p => p.table === t).some(p => !isElim(p.id))).length;
+  if(S.currentBlind) {
+    const fmt = n => n >= 1000 ? (n/1000)+'K' : n;
+    document.getElementById('s-blind').textContent = fmt(S.currentBlind.sb) + ' / ' + fmt(S.currentBlind.bb);
+    let bsub = 'Level ' + S.currentLevel + (S.blinds ? ' von ' + S.blinds.length : '') + ' · ' + S.currentBlind.minutes + ' Min';
+    if(S.currentBlind.ante) bsub += ' · Ante ' + fmt(S.currentBlind.ante);
+    document.getElementById('s-blind-sub').textContent = bsub;
+  } else {
+    document.getElementById('s-blind').textContent = '—';
+    document.getElementById('s-blind-sub').textContent = '';
+  }
 
   document.getElementById('f-tables').innerHTML = S.tables.map(t => {
     const ps = S.players.filter(p => p.table === t).sort((a,b) => a.seat - b.seat);
