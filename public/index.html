@@ -135,9 +135,14 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
 
   <div class="header">
     <div class="header-title" id="h-title">Poker Tournament Manager</div>
-    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-      <div class="conn-dot connecting" id="conn-dot"></div>
-      <div class="conn-label" id="conn-label">Verbinde...</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <button id="notif-btn" onclick="toggleNotif()" title="Sound & Vibration" style="background:none;border:.5px solid var(--border2);border-radius:var(--r);padding:5px 10px;cursor:pointer;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:5px">
+        <span id="notif-icon">🔔</span><span id="notif-label" style="font-size:12px">AN</span>
+      </button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="conn-dot connecting" id="conn-dot"></div>
+        <div class="conn-label" id="conn-label">Verbinde...</div>
+      </div>
     </div>
   </div>
 
@@ -289,9 +294,17 @@ function wsSend(obj) { if(ws && ws.readyState === 1) ws.send(JSON.stringify(obj)
 function applyState(payload) {
   newIds = new Set();
   const oldIds = new Set(S.players.map(p => p.id));
+  const oldElimIds = new Set(S.eliminations.map(e => e.id));
   S = payload;
   S.players.forEach(p => { if(!oldIds.has(p.id) && oldIds.size > 0) newIds.add(p.id); });
   prevPlayerIds = new Set(S.players.map(p => p.id));
+
+  // Detect new eliminations → trigger sound + vibration
+  const newElims = S.eliminations.filter(e => !oldElimIds.has(e.id));
+  if(newElims.length > 0 && oldElimIds.size >= 0 && oldIds.size > 0) {
+    newElims.forEach(e => triggerElimFeedback(e.name));
+  }
+
   document.getElementById('h-title').textContent = S.tourneyName || 'Poker Tournament Manager';
   updateSyncUI();
   renderUploadPreview();
@@ -300,6 +313,52 @@ function applyState(payload) {
   const idx = tabs.indexOf(active);
   if(idx === 1) renderDealer();
   if(idx === 2) renderFloor();
+}
+
+// ── SOUND + VIBRATION ──
+let audioCtx = null;
+function getAudioCtx() {
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playElimSound() {
+  try {
+    const ctx = getAudioCtx();
+    // Three descending tones — "eliminated" feel
+    const tones = [
+      { freq: 440, start: 0,    dur: 0.15 },
+      { freq: 330, start: 0.18, dur: 0.15 },
+      { freq: 220, start: 0.36, dur: 0.35 }
+    ];
+    tones.forEach(({ freq, start, dur }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + start;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.35, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.start(t);
+      osc.stop(t + dur);
+    });
+  } catch(e) { /* AudioContext blocked */ }
+}
+
+function vibrateDevice() {
+  if('vibrate' in navigator) {
+    // Two short pulses
+    navigator.vibrate([150, 80, 150]);
+  }
+}
+
+function triggerElimFeedback(playerName) {
+  if(!notifEnabled) return;
+  playElimSound();
+  vibrateDevice();
 }
 
 function setConn(s) {
@@ -529,6 +588,18 @@ function toast(msg, color) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = 'toast ' + (color||'green') + ' show';
   setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── NOTIFICATION TOGGLE ──
+let notifEnabled = true;
+
+function toggleNotif() {
+  try { getAudioCtx().resume(); } catch(e) {}
+  notifEnabled = !notifEnabled;
+  document.getElementById('notif-icon').textContent = notifEnabled ? '🔔' : '🔕';
+  document.getElementById('notif-label').textContent = notifEnabled ? 'AN' : 'AUS';
+  document.getElementById('notif-btn').style.opacity = notifEnabled ? '1' : '0.5';
+  if(notifEnabled) { playElimSound(); if('vibrate' in navigator) navigator.vibrate(100); }
 }
 
 // ── INIT ──
