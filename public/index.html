@@ -138,6 +138,9 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
       <button class="notif-btn" id="notif-btn" onclick="toggleNotif()" title="Sound & Vibration" style="padding:4px 7px">
         <span id="notif-icon">🔔</span>
       </button>
+      <button class="notif-btn" id="speech-btn" onclick="toggleSpeech()" title="Sprachausgabe" style="padding:4px 7px">
+        <span id="speech-icon">🔊</span>
+      </button>
       <div style="display:flex;align-items:center;gap:4px">
         <div class="conn-dot connecting" id="conn-dot"></div>
         <span id="conn-label" style="font-size:11px;color:var(--text2)">...</span>
@@ -252,6 +255,7 @@ let S = {tourneyName:'',tables:[],players:[],eliminations:[],lastUpdate:null};
 let newIds = new Set();
 let pendingElim = null, pendingUndo = null;
 let notifEnabled = true;
+let speechEnabled = true;
 let audioCtx = null;
 
 // ── WEBSOCKET ──
@@ -284,7 +288,7 @@ function applyState(payload) {
 
   // Detect new eliminations → sound + vibration
   const newElims = S.eliminations.filter(e => !oldElimIds.has(e.id));
-  if(newElims.length > 0 && oldIds.size > 0) newElims.forEach(e => triggerFeedback(e.name));
+  if(newElims.length > 0 && oldIds.size > 0) newElims.forEach(e => triggerFeedback(e.name, 'elim'));
 
   // Show/hide waiting screens
   const hasData = S.players.length > 0;
@@ -534,6 +538,18 @@ function renderFloor(){
   }
 }
 
+// ── SPRACHE ──
+function speak(text) {
+  if(!speechEnabled || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'de-DE';
+  u.rate = 0.95;
+  u.pitch = 1;
+  u.volume = 1;
+  window.speechSynthesis.speak(u);
+}
+
 // ── SOUND + VIBRATION ──
 function getAudioCtx(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
 
@@ -553,10 +569,12 @@ function playElimSound(){
   } catch(e){}
 }
 
-function triggerFeedback(name){
+function triggerFeedback(name, type){
   if(!notifEnabled) return;
   playElimSound();
   if('vibrate' in navigator) navigator.vibrate([150,80,150]);
+  if(type === 'elim') speak(name + ' ist ausgeschieden.');
+  else if(type === 'floor') speak('Floor bitte zu ' + name + '.');
 }
 
 function toggleNotif(){
@@ -566,6 +584,13 @@ function toggleNotif(){
   document.getElementById('notif-label').textContent = notifEnabled ? 'AN' : 'AUS';
   document.getElementById('notif-btn').style.opacity = notifEnabled ? '1' : '0.5';
   if(notifEnabled){ playElimSound(); if('vibrate' in navigator) navigator.vibrate(100); }
+}
+
+function toggleSpeech(){
+  speechEnabled = !speechEnabled;
+  document.getElementById('speech-icon').textContent = speechEnabled ? '🔊' : '🔇';
+  document.getElementById('speech-btn').style.opacity = speechEnabled ? '1' : '0.5';
+  if(speechEnabled) speak('Sprachausgabe aktiviert.');
 }
 
 // ── TOAST ──
@@ -583,7 +608,7 @@ function showFloorAlert(table, time) {
   const id = table + '_' + Date.now();
   floorCalls.push({id, table, time});
   renderFloorCalls();
-  triggerFeedback('Floor');
+  triggerFeedback(table, 'floor');
   if('vibrate' in navigator) navigator.vibrate([200,100,200,100,400]);
 }
 
