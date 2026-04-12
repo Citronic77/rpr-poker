@@ -288,7 +288,11 @@ function applyState(payload) {
 
   // Detect new eliminations → sound + vibration
   const newElims = S.eliminations.filter(e => !oldElimIds.has(e.id));
-  if(newElims.length > 0 && oldIds.size > 0) newElims.forEach(e => triggerFeedback(e.name, 'elim'));
+  if(newElims.length > 0 && oldIds.size > 0) newElims.forEach(e => {
+    const tableNum = (e.table.match(/\d+/) || [''])[0];
+    const tableName = tableNum ? 'Tisch ' + tableNum : e.table;
+    triggerFeedback(e.name + ', ' + tableName + ', Platz ' + e.pos, 'elim');
+  });
 
   // Show/hide waiting screens
   const hasData = S.players.length > 0;
@@ -573,8 +577,8 @@ function triggerFeedback(name, type){
   if(!notifEnabled) return;
   playElimSound();
   if('vibrate' in navigator) navigator.vibrate([150,80,150]);
-  if(type === 'elim') speak(name + ' ist ausgeschieden.');
-  else if(type === 'floor') speak('Floor bitte zu ' + name + '.');
+  if(type === 'elim') speak(name + '.');
+  else if(type === 'floor') speak('Floor bitte zum ' + name + '.');
 }
 
 function toggleNotif(){
@@ -608,7 +612,9 @@ function showFloorAlert(table, time) {
   const id = table + '_' + Date.now();
   floorCalls.push({id, table, time});
   renderFloorCalls();
-  triggerFeedback(table, 'floor');
+  const tNum = (table.match(/\d+/) || [''])[0];
+  const tLabel = tNum ? 'Tisch ' + tNum : table;
+  triggerFeedback(tLabel, 'floor');
   if('vibrate' in navigator) navigator.vibrate([200,100,200,100,400]);
 }
 
