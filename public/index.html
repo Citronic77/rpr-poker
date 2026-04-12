@@ -387,7 +387,7 @@ function renderDealerSel() {
   function tblRank(n){ const u=n.toUpperCase(); const i=TABLE_ORDER.findIndex(k=>u.includes(k)); return i===-1?99:i; }
   const sorted = [...S.tables].sort((a,b) => tblRank(a) - tblRank(b));
   sel.innerHTML = '<option value="">-- Tisch wählen --</option>' + sorted.map(t => `<option value="${t}">${t}</option>`).join('') + (sorted.length ? '<option value="__ALL__">── Alle Tische ──</option>' : '');
-  if(cur && S.tables.includes(cur)) sel.value = cur;
+  if(cur === '__ALL__' || (cur && S.tables.includes(cur))) sel.value = cur;
   renderDealer();
 }
 
