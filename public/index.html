@@ -259,32 +259,29 @@ let speechEnabled = true;
 let audioCtx = null;
 
 // ── WEBSOCKET ──
-let ws, wsRetry = 0, wsHeartbeat = null;
+let ws, wsRetry = 0;
 
 function connect() {
   setConn('connecting');
-  try { if(ws) ws.close(); } catch(e) {}
+  try { if(ws) { ws.onclose = null; ws.close(); } } catch(e) {}
   ws = new WebSocket(WS_URL);
 
   ws.onopen = () => {
     wsRetry = 0;
     setConn('on');
-    // Request fresh state on (re)connect
     wsSend({ type: 'getState' });
-    // Client-side heartbeat: if no message in 45s, reconnect
-    resetHeartbeat();
   };
 
   ws.onclose = () => {
     setConn('off');
-    clearTimeout(wsHeartbeat);
-    setTimeout(connect, Math.min(2000 * ++wsRetry, 10000));
+    const delay = Math.min(1000 + wsRetry * 2000, 10000);
+    setTimeout(connect, delay);
+    wsRetry++;
   };
 
-  ws.onerror = () => { try { ws.close(); } catch(e) {} };
+  ws.onerror = () => {};
 
   ws.onmessage = e => {
-    resetHeartbeat(); // any message = connection alive
     try {
       const msg = JSON.parse(e.data);
       if(msg.type === 'state') applyState(msg.payload);
@@ -298,35 +295,17 @@ function connect() {
   };
 }
 
-function resetHeartbeat() {
-  clearTimeout(wsHeartbeat);
-  wsHeartbeat = setTimeout(() => {
-    // No message for 45s — connection probably dead, reconnect
-    if(ws) try { ws.close(); } catch(e) {}
-    connect();
-  }, 45000);
-}
-
 function wsSend(obj) { if(ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
 
-// ── VISIBILITY: reconnect when phone wakes up ──
+// ── VISIBILITY: refresh state when phone wakes up ──
 document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState === 'visible') {
-    if(!ws || ws.readyState !== 1) {
-      wsRetry = 0;
-      connect();
-    } else {
-      // Force state refresh even if connected
-      wsSend({ type: 'getState' });
-    }
-  }
+  if(document.visibilityState !== 'visible') return;
+  if(!ws || ws.readyState === 3) { wsRetry = 0; connect(); }
+  else if(ws.readyState === 1) wsSend({ type: 'getState' });
 });
 
 // ── ONLINE: reconnect when network comes back ──
-window.addEventListener('online', () => {
-  wsRetry = 0;
-  connect();
-});
+window.addEventListener('online', () => { wsRetry = 0; connect(); });
 
 function applyState(payload) {
   newIds = new Set();
