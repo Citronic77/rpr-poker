@@ -228,16 +228,7 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
   </div>
 
 </div>
-<div id="floor-call-ov" style="display:none" class="overlay">
-  <div class="dialog">
-    <div style="font-size:40px;margin-bottom:.5rem">🚨</div>
-    <h3>Floor wurde gerufen!</h3>
-    <p id="floor-call-msg"></p>
-    <div class="dialog-btns">
-      <button class="btn" onclick="dismissFloorCall()">OK</button>
-    </div>
-  </div>
-</div>
+
 <div id="toast" class="toast"></div>
 
 <script>
@@ -604,12 +595,8 @@ function renderFloorCalls() {
 // ── FLOOR CALL ──
 function callFloor(tableName) {
   wsSend({ type: 'floorCall', table: tableName, time: ftime(new Date()) });
-  document.getElementById('floor-call-msg').textContent = 'Dein Ruf wurde an den Floorman gesendet. (' + tableName + ')';
-  document.getElementById('floor-call-ov').style.display = 'flex';
+  toast('🚨 Floor gerufen — ' + tableName, 'amber');
   if('vibrate' in navigator) navigator.vibrate([100, 50, 100, 50, 200]);
-}
-function dismissFloorCall() {
-  document.getElementById('floor-call-ov').style.display = 'none';
 }
 
 connect();
