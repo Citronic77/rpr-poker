@@ -266,6 +266,11 @@ function connect() {
     const msg = JSON.parse(e.data);
     if(msg.type === 'state') applyState(msg.payload);
     else if(msg.type === 'floorCall') showFloorAlert(msg.table, msg.time);
+    else if(msg.type === 'floorCallDone') {
+      activeFloorCalls.delete(msg.table);
+      renderDealer();
+      toast('✓ Floor quittiert — ' + msg.table, 'green');
+    }
   };
 }
 function wsSend(obj){ if(ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
@@ -393,8 +398,8 @@ function renderDealer() {
           <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${col}"></span>${tbl}
         </div>
         <div class="player-grid">${cards}</div>
-        <button onclick="openFloorCall('${tbl}')" style="width:100%;margin-top:6px;padding:12px;font-size:15px;font-weight:500;border:none;border-radius:var(--rl);background:#EF9F27;color:#fff;cursor:pointer">
-          🚨 Floor rufen — ${tbl}
+        <button onclick="openFloorCall('${tbl}')" style="width:100%;margin-top:6px;padding:12px;font-size:15px;font-weight:500;border:none;border-radius:var(--rl);background:${activeFloorCalls.has(tbl)?'#E24B4A':'#EF9F27'};color:#fff;cursor:pointer">
+          ${activeFloorCalls.has(tbl)?'🚨 Floor gerufen — warte...':'🚨 Floor rufen — '+tbl}
         </button>
       </div>`;
     }).join('');
@@ -431,8 +436,8 @@ function renderDealer() {
       <div class="pc-status">Aktiv</div>
     </div>`;
   }).join('') + `<div style="grid-column:1/-1;margin-top:.75rem">
-    <button onclick="openFloorCall('${t}')" style="width:100%;padding:14px;font-size:16px;font-weight:500;border:none;border-radius:var(--rl);background:#EF9F27;color:#fff;cursor:pointer;letter-spacing:.03em">
-      🚨 Floor rufen — ${t}
+    <button onclick="openFloorCall('${t}')" style="width:100%;padding:14px;font-size:16px;font-weight:500;border:none;border-radius:var(--rl);background:${activeFloorCalls.has(t)?'#E24B4A':'#EF9F27'};color:#fff;cursor:pointer;letter-spacing:.03em">
+      ${activeFloorCalls.has(t)?'🚨 Floor gerufen — warte...':'🚨 Floor rufen — '+t}
     </button>
   </div>`;
 }
@@ -583,6 +588,8 @@ function showFloorAlert(table, time) {
 }
 
 function dismissFloorCall(id) {
+  const call = floorCalls.find(f => f.id === id);
+  if(call) wsSend({ type: 'floorCallDone', table: call.table });
   floorCalls = floorCalls.filter(f => f.id !== id);
   renderFloorCalls();
 }
@@ -605,6 +612,7 @@ function renderFloorCalls() {
 }
 // ── FLOOR CALL ──
 let pendingFloorTable = null;
+let activeFloorCalls = new Set(); // tables currently calling floor
 
 function openFloorCall(tableName) {
   pendingFloorTable = tableName;
@@ -618,10 +626,12 @@ function cancelFloorCall() {
 function confirmFloorCall() {
   if(!pendingFloorTable) return;
   wsSend({ type: 'floorCall', table: pendingFloorTable, time: ftime(new Date()) });
+  activeFloorCalls.add(pendingFloorTable);
   toast('🚨 Floor gerufen — ' + pendingFloorTable, 'amber');
   if('vibrate' in navigator) navigator.vibrate([100, 50, 100, 50, 200]);
   document.getElementById('floor-ov').style.display = 'none';
   pendingFloorTable = null;
+  renderDealer();
 }
 
 connect();
