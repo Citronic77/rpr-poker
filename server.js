@@ -200,6 +200,9 @@ wss.on('connection', ws => {
         state.eliminations = state.eliminations.filter(e => e.id !== playerId);
         state.eliminations.forEach((e, i) => e.pos = state.players.length - i);
         broadcastState();
+      } else if (msg.type === 'floorCall') {
+        // Broadcast floor call to all clients (especially floorman)
+        broadcast({ type: 'floorCall', table: msg.table, time: msg.time });
       }
     } catch (e) { /* ignore */ }
   });
