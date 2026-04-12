@@ -203,6 +203,7 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
         </div>
         <div class="sync-cd" id="sc-f"></div>
       </div>
+      <div id="floor-calls-container"></div>
       <div class="stats-row">
         <div class="stat"><div class="stat-num" id="s-act">—</div><div class="stat-lbl">Aktive Spieler</div></div>
         <div class="stat"><div class="stat-num" id="s-eli">—</div><div class="stat-lbl">Ausgeschieden</div></div>
@@ -226,12 +227,6 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
     </div>
   </div>
 
-</div>
-<div id="floor-alert-ov" style="display:none;position:fixed;inset:0;background:rgba(239,159,39,.92);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:500;text-align:center;padding:2rem">
-  <div style="font-size:64px;margin-bottom:1rem;animation:pulse 1s infinite">🚨</div>
-  <div style="font-size:28px;font-weight:500;color:#fff;margin-bottom:.5rem">FLOOR GERUFEN!</div>
-  <div id="floor-alert-msg" style="font-size:18px;color:#fff;margin-bottom:2rem"></div>
-  <button onclick="dismissFloorAlert()" style="padding:14px 32px;font-size:16px;font-weight:500;border:none;border-radius:var(--rl);background:#fff;color:#BA7517;cursor:pointer">OK — Bin auf dem Weg</button>
 </div>
 <div id="floor-call-ov" style="display:none" class="overlay">
   <div class="dialog">
@@ -574,19 +569,37 @@ function toast(msg, color){
 }
 
 // ── FLOOR CALL ──
+// floor calls: {table, time, id}
+let floorCalls = [];
+
 function showFloorAlert(table, time) {
-  // Only show full-screen alert on Floorman tab
-  const activeTab = document.querySelector('.tab.active');
-  const idx = [...document.querySelectorAll('.tab')].indexOf(activeTab);
-  const el = document.getElementById('floor-alert-ov');
-  document.getElementById('floor-alert-msg').textContent = table + ' — ' + time;
-  el.style.display = 'flex';
-  // Sound + vibration
+  const id = table + '_' + Date.now();
+  floorCalls.push({id, table, time});
+  renderFloorCalls();
   triggerFeedback('Floor');
   if('vibrate' in navigator) navigator.vibrate([200,100,200,100,400]);
 }
-function dismissFloorAlert() {
-  document.getElementById('floor-alert-ov').style.display = 'none';
+
+function dismissFloorCall(id) {
+  floorCalls = floorCalls.filter(f => f.id !== id);
+  renderFloorCalls();
+}
+
+function renderFloorCalls() {
+  const container = document.getElementById('floor-calls-container');
+  if(!container) return;
+  if(!floorCalls.length) { container.innerHTML = ''; return; }
+  container.innerHTML = floorCalls.map(f => `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:#EF9F27;border-radius:var(--rl);margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:20px">🚨</span>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#fff">${f.table}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.8)">Floor gerufen — ${f.time}</div>
+        </div>
+      </div>
+      <button onclick="dismissFloorCall('${f.id}')" style="padding:6px 14px;font-size:12px;font-weight:500;border:none;border-radius:var(--r);background:#fff;color:#BA7517;cursor:pointer;white-space:nowrap">✓ Erledigt</button>
+    </div>`).join('');
 }
 // ── FLOOR CALL ──
 function callFloor(tableName) {
