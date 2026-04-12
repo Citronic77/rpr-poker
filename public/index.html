@@ -219,7 +219,24 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
       </div>
       <div id="floor-calls-container"></div>
       <div class="stats-row">
-        <div class="stat"><div class="stat-num" id="s-act">—</div><div class="stat-lbl">Aktive Spieler</div></div>
+        <div class="stat" style="text-align:left;padding:10px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:.5px solid var(--border);margin-bottom:3px">
+            <span style="font-size:12px;color:var(--text2)">Verschiedene Spieler</span>
+            <span style="font-size:14px;font-weight:500" id="s-unique">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:.5px solid var(--border);margin-bottom:3px">
+            <span style="font-size:12px;color:var(--text2)">Total Re-Entry</span>
+            <span style="font-size:14px;font-weight:500" id="s-reentry">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:.5px solid var(--border);margin-bottom:3px">
+            <span style="font-size:12px;color:var(--text2)">Total Buyins</span>
+            <span style="font-size:14px;font-weight:500" id="s-buyins">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0">
+            <span style="font-size:12px;color:var(--text2)">Aktive Spieler</span>
+            <span style="font-size:14px;font-weight:500" id="s-act">—</span>
+          </div>
+        </div>
         <div class="stat"><div class="stat-num" id="s-eli">—</div><div class="stat-lbl">Ausgeschieden</div></div>
         <div class="stat"><div class="stat-num" id="s-tbl">—</div><div class="stat-lbl">Aktive Tische</div></div>
         <div class="stat" style="grid-column:1/-1;background:var(--gl);border:.5px solid #9FE1CB">
@@ -520,6 +537,9 @@ function floorUndo(sid){
 function renderFloor(){
   const total = S.players.length, ec = S.eliminations.length;
   document.getElementById('s-act').textContent = total - ec;
+  document.getElementById('s-unique').textContent = S.uniquePlayers || '—';
+  document.getElementById('s-reentry').textContent = S.reentries || 0;
+  document.getElementById('s-buyins').textContent = S.totalBuyins || '—';
   document.getElementById('s-eli').textContent = ec;
   document.getElementById('s-tbl').textContent = S.tables.filter(t => S.players.filter(p => p.table === t).some(p => !isElim(p.id))).length;
   if(S.currentBlind) {
