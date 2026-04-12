@@ -165,7 +165,18 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
       <div id="dealer-grid" class="player-grid"></div>
     </div>
 
-    <div id="elim-ov" style="display:none" class="overlay">
+    <div id="floor-ov" style="display:none" class="overlay">
+    <div class="dialog">
+      <div style="font-size:36px;margin-bottom:.5rem">🚨</div>
+      <h3>Floor rufen?</h3>
+      <p id="floor-ov-msg">Soll der Floorman gerufen werden?</p>
+      <div class="dialog-btns">
+        <button class="btn" onclick="cancelFloorCall()">Abbrechen</button>
+        <button class="btn" style="background:#EF9F27;color:#fff;border-color:#BA7517" onclick="confirmFloorCall()">Floor rufen</button>
+      </div>
+    </div>
+  </div>
+  <div id="elim-ov" style="display:none" class="overlay">
       <div class="dialog">
         <h3>Spieler eliminieren?</h3>
         <p id="elim-msg"></p>
@@ -382,7 +393,7 @@ function renderDealer() {
           <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${col}"></span>${tbl}
         </div>
         <div class="player-grid">${cards}</div>
-        <button onclick="callFloor('${tbl}')" style="width:100%;margin-top:6px;padding:12px;font-size:15px;font-weight:500;border:none;border-radius:var(--rl);background:#EF9F27;color:#fff;cursor:pointer">
+        <button onclick="openFloorCall('${tbl}')" style="width:100%;margin-top:6px;padding:12px;font-size:15px;font-weight:500;border:none;border-radius:var(--rl);background:#EF9F27;color:#fff;cursor:pointer">
           🚨 Floor rufen — ${tbl}
         </button>
       </div>`;
@@ -420,7 +431,7 @@ function renderDealer() {
       <div class="pc-status">Aktiv</div>
     </div>`;
   }).join('') + `<div style="grid-column:1/-1;margin-top:.75rem">
-    <button onclick="callFloor(t)" style="width:100%;padding:14px;font-size:16px;font-weight:500;border:none;border-radius:var(--rl);background:#EF9F27;color:#fff;cursor:pointer;letter-spacing:.03em">
+    <button onclick="openFloorCall('${t}')" style="width:100%;padding:14px;font-size:16px;font-weight:500;border:none;border-radius:var(--rl);background:#EF9F27;color:#fff;cursor:pointer;letter-spacing:.03em">
       🚨 Floor rufen — ${t}
     </button>
   </div>`;
@@ -593,10 +604,24 @@ function renderFloorCalls() {
     </div>`).join('');
 }
 // ── FLOOR CALL ──
-function callFloor(tableName) {
-  wsSend({ type: 'floorCall', table: tableName, time: ftime(new Date()) });
-  toast('🚨 Floor gerufen — ' + tableName, 'amber');
+let pendingFloorTable = null;
+
+function openFloorCall(tableName) {
+  pendingFloorTable = tableName;
+  document.getElementById('floor-ov-msg').textContent = 'Floor für ' + tableName + ' rufen?';
+  document.getElementById('floor-ov').style.display = 'flex';
+}
+function cancelFloorCall() {
+  document.getElementById('floor-ov').style.display = 'none';
+  pendingFloorTable = null;
+}
+function confirmFloorCall() {
+  if(!pendingFloorTable) return;
+  wsSend({ type: 'floorCall', table: pendingFloorTable, time: ftime(new Date()) });
+  toast('🚨 Floor gerufen — ' + pendingFloorTable, 'amber');
   if('vibrate' in navigator) navigator.vibrate([100, 50, 100, 50, 200]);
+  document.getElementById('floor-ov').style.display = 'none';
+  pendingFloorTable = null;
 }
 
 connect();
