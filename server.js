@@ -20,7 +20,13 @@ let state = {
   lastRaw: '',
   currentLevel: null,
   currentBlind: null,
-  blinds: []
+  blinds: [],
+  totalBuyins: 0,
+  reentries: 0,
+  uniquePlayers: 0,
+  totalBuyins: 0,
+  totalUniquePlayers: 0,
+  totalReentries: 0
 };
 
 // ── Parse .tdt ──
@@ -113,7 +119,15 @@ function parseTDT(raw) {
   const currentLevel = clm ? parseInt(clm[1]) : 1;
   const currentBlind = blinds[currentLevel - 1] || blinds[blinds.length - 1] || null;
 
-  return { name, players, tables, blinds, currentLevel, currentBlind };
+  // ── 4. Count buyins and reentries per player ──
+  const buyinRx2 = /new GameBuyin\(\{/g;
+  const totalBuyins = (raw.match(buyinRx2) || []).length;
+  const totalPlayers = players.length; // unique players currently seated — use uuid count
+  // Total unique registered players from uuidPositions
+  const totalUniquePlayers = uuidPositions.length;
+  const totalReentries = totalBuyins - totalUniquePlayers;
+
+  return { name, players, tables, blinds, currentLevel, currentBlind, totalBuyins, totalUniquePlayers, totalReentries };
 }
 
 // ── Broadcast to all clients ──
@@ -165,6 +179,12 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
     state.blinds = parsed.blinds;
     state.currentLevel = parsed.currentLevel;
     state.currentBlind = parsed.currentBlind;
+    state.totalBuyins = parsed.totalBuyins;
+    state.reentries = parsed.totalReentries;
+    state.uniquePlayers = parsed.totalUniquePlayers;
+    state.totalBuyins = parsed.totalBuyins;
+    state.totalUniquePlayers = parsed.totalUniquePlayers;
+    state.totalReentries = parsed.totalReentries;
     state.lastUpdate = new Date().toISOString();
 
     broadcastState();
