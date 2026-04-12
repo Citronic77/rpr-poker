@@ -179,6 +179,8 @@ app.get('/state', (req, res) => res.json(state));
 
 // ── WebSocket ──
 wss.on('connection', ws => {
+  ws.isAlive = true;
+  ws.on('pong', () => { ws.isAlive = true; });
   // Send current state on connect
   ws.send(JSON.stringify({ type: 'state', payload: state }));
 
@@ -204,10 +206,25 @@ wss.on('connection', ws => {
         broadcast({ type: 'floorCall', table: msg.table, time: msg.time });
       } else if (msg.type === 'floorCallDone') {
         broadcast({ type: 'floorCallDone', table: msg.table });
+      } else if (msg.type === 'getState') {
+        // Client requesting fresh state (e.g. after reconnect)
+        const { lastRaw, ...payload } = state;
+        ws.send(JSON.stringify({ type: 'state', payload }));
       }
     } catch (e) { /* ignore */ }
   });
 });
+
+// ── Heartbeat: ping all clients every 30s ──
+setInterval(() => {
+  wss.clients.forEach(ws => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.ping();
+    } else if (ws.readyState !== WebSocket.CONNECTING) {
+      ws.terminate();
+    }
+  });
+}, 30000);
 
 server.listen(PORT, () => {
   console.log(`Poker Tournament Manager läuft auf http://localhost:${PORT}`);
