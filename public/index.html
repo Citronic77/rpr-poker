@@ -290,8 +290,9 @@ function applyState(payload) {
   const newElims = S.eliminations.filter(e => !oldElimIds.has(e.id));
   if(newElims.length > 0 && oldIds.size > 0) newElims.forEach(e => {
     const tableNum = (e.table.match(/\d+/) || [''])[0];
-    const tableName = tableNum ? 'Tisch ' + tableNum : e.table;
-    triggerFeedback('Spieler ausgeschieden. ' + e.name + '. ' + tableName + '. Platz ' + (e.seat || ''), 'elim');
+    const tableName = tableNum ? 'Tisch ' + numToWord(tableNum) : e.table;
+    const seatWord = e.seat ? numToWord(e.seat) : '';
+    triggerFeedback('Spieler ausgeschieden. ' + e.name + '. ' + tableName + '. Platz ' + seatWord, 'elim');
   });
 
   // Show/hide waiting screens
@@ -543,6 +544,12 @@ function renderFloor(){
 }
 
 // ── SPRACHE ──
+function numToWord(n) {
+  const words = ['','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn',
+                 'elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'];
+  return words[parseInt(n)] || n;
+}
+
 function speak(text) {
   if(!speechEnabled || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -613,7 +620,7 @@ function showFloorAlert(table, time) {
   floorCalls.push({id, table, time});
   renderFloorCalls();
   const tNum = (table.match(/\d+/) || [''])[0];
-  const tLabel = tNum ? 'Tisch ' + tNum : table;
+  const tLabel = tNum ? 'Tisch ' + numToWord(tNum) : table;
   triggerFeedback(tLabel, 'floor');
   if('vibrate' in navigator) navigator.vibrate([200,100,200,100,400]);
 }
