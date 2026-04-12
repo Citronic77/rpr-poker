@@ -291,7 +291,7 @@ function applyState(payload) {
   if(newElims.length > 0 && oldIds.size > 0) newElims.forEach(e => {
     const tableNum = (e.table.match(/\d+/) || [''])[0];
     const tableName = tableNum ? 'Tisch ' + tableNum : e.table;
-    triggerFeedback(e.name + ', ' + tableName + ', Platz ' + e.pos, 'elim');
+    triggerFeedback('Spieler ausgeschieden. ' + e.name + '. ' + tableName + '. Platz ' + (e.seat || ''), 'elim');
   });
 
   // Show/hide waiting screens
