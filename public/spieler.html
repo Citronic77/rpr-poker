@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPR Poker — Live Info</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: transparent;
+  color: #1a1a1a;
+}
+
+.widget {
+  background: #1a1a18;
+  border-radius: 14px;
+  padding: 1.25rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.widget-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1D9E75;
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+.tourney-name {
+  font-size: 17px;
+  font-weight: 500;
+  color: #f0ede8;
+  margin-bottom: 1rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stat {
+  background: #2a2a27;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.stat-num {
+  font-size: 28px;
+  font-weight: 500;
+  color: #f0ede8;
+  line-height: 1;
+}
+
+.stat-lbl {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.pot-box {
+  background: #0F6E56;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.pot-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9FE1CB;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.pot-amount {
+  font-size: 28px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.blind-box {
+  background: #2a2a27;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.blind-label {
+  font-size: 11px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.blind-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: #f0ede8;
+}
+
+.blind-level {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 2px;
+  text-align: right;
+}
+
+.offline {
+  text-align: center;
+  padding: 2rem;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="widget-title">
+    <div class="live-dot" id="dot"></div>
+    <span id="status-txt">Verbinde...</span>
+  </div>
+
+  <div id="content" style="display:none">
+    <div class="tourney-name" id="tourney-name">—</div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num" id="s-players">—</div>
+        <div class="stat-lbl">Aktive Spieler</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="s-unique">—</div>
+        <div class="stat-lbl">Verschiedene Spieler</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="s-rebuys">—</div>
+        <div class="stat-lbl">Rebuys</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="s-elim">—</div>
+        <div class="stat-lbl">Ausgeschieden</div>
+      </div>
+    </div>
+
+    <div class="pot-box">
+      <div class="pot-label">Pot</div>
+      <div class="pot-amount" id="s-pot">CHF —</div>
+    </div>
+
+    <div class="blind-box">
+      <div>
+        <div class="blind-label">Aktuelle Blindstufe</div>
+        <div class="blind-level" id="s-blind-level"></div>
+      </div>
+      <div style="text-align:right">
+        <div class="blind-value" id="s-blind">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="offline" class="offline" style="display:none">
+    Keine Verbindung zum Server
+  </div>
+</div>
+
+<script>
+// ── Automatically detect server URL ──
+// If embedded via iframe from same server, use same host
+// Otherwise falls back to the Railway URL
+const SERVER = (function() {
+  try {
+    const ref = document.referrer || window.location.href;
+    const url = new URL(ref);
+    return (url.protocol === 'https:' ? 'wss://' : 'ws://') + url.host;
+  } catch(e) {
+    return 'wss://rpr-poker-production.up.railway.app';
+  }
+})();
+
+let ws, retry = 0;
+
+function fmt(n) { return n >= 1000 ? (n/1000).toFixed(0)+'K' : n; }
+
+function applyState(S) {
+  document.getElementById('content').style.display = 'block';
+  document.getElementById('offline').style.display = 'none';
+
+  const ec = S.eliminations ? S.eliminations.length : 0;
+  const active = (S.players ? S.players.length : 0) - ec;
+
+  document.getElementById('tourney-name').textContent = S.tourneyName || 'Turnier';
+  document.getElementById('s-players').textContent = active;
+  document.getElementById('s-unique').textContent = S.uniquePlayers || S.players?.length || '—';
+  document.getElementById('s-rebuys').textContent = S.reentries || 0;
+  document.getElementById('s-elim').textContent = ec;
+  document.getElementById('s-pot').textContent = S.pot ? 'CHF ' + S.pot.toLocaleString('de-CH') : '—';
+
+  if(S.currentBlind) {
+    document.getElementById('s-blind').textContent = fmt(S.currentBlind.sb) + ' / ' + fmt(S.currentBlind.bb);
+    document.getElementById('s-blind-level').textContent = 'Level ' + S.currentLevel + (S.blinds ? ' / ' + S.blinds.length : '');
+  }
+}
+
+function connect() {
+  const dot = document.getElementById('dot');
+  const txt = document.getElementById('status-txt');
+  dot.style.background = '#EF9F27';
+  txt.textContent = 'Verbinde...';
+
+  ws = new WebSocket(SERVER);
+
+  ws.onopen = () => {
+    retry = 0;
+    dot.style.background = '#1D9E75';
+    txt.textContent = 'Live';
+  };
+
+  ws.onclose = () => {
+    dot.style.background = '#E24B4A';
+    txt.textContent = 'Getrennt';
+    document.getElementById('offline').style.display = 'block';
+    setTimeout(connect, Math.min(2000 + retry * 2000, 15000));
+    retry++;
+  };
+
+  ws.onerror = () => {};
+
+  ws.onmessage = e => {
+    try {
+      const msg = JSON.parse(e.data);
+      if(msg.type === 'state') applyState(msg.payload);
+    } catch(e) {}
+  };
+}
+
+// Reconnect on visibility change
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && (!ws || ws.readyState !== 1)) {
+    retry = 0;
+    connect();
+  }
+});
+
+connect();
+</script>
+</body>
+</html>
