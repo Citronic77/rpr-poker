@@ -13,19 +13,27 @@ const PORT = process.env.PORT || 3000;
 // ── Home Assistant Webhooks ──
 const WEBHOOKS = {
   floorCall: {
-    'Table 3 GREEN': 'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-4yfflO_MdRIZfPxyreGPsT4y',
-    // 'Table 2 RED': 'https://...',
-    // 'Table 4 YELLOW': 'https://...',
+    'Table 2 RED':    'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-6xJj0fF-pnIcfeOFPmHKZBdU',
+    'Table 3 GREEN':  'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-4yfflO_MdRIZfPxyreGPsT4y',
+    'Table 4 YELLOW': 'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-U-rWT5MKiWn8bjF5sVZDYs72',
+    'Table 5 CYAN':   'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-8sJpf_gpyfU9Dw-QckGNyvnk',
+    'Table 6 BLUE':   'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-VAuFEZfZ_9B2auXp_O_12LJ-',
+    'Table 7':        'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-eOttVlpSiQvKYNPrN-PWQLqJ',
   },
   floorDone: {
-    'Table 3 GREEN': 'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-wmPBtMOzISV5fPYi0LZQ1WSi',
-    // 'Table 2 RED': 'https://...',
-    // 'Table 4 YELLOW': 'https://...',
+    'Table 2 RED':    'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-_2dGOzeJrIVlr_62pilkVegO',
+    'Table 3 GREEN':  'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-wmPBtMOzISV5fPYi0LZQ1WSi',
+    'Table 4 YELLOW': 'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-ltsISZ5MfdUmm7vz8mJMj_lx',
+    'Table 5 CYAN':   'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-pEZDQtJ0IwhxlurCQ4PQvO_U',
+    'Table 6 BLUE':   'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-Zn733ytfjEW23-UZ2h3SaAgp',
+    'Table 7':        'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-eOttVlpSiQvKYNPrN-PWQLqJ',
   }
 };
 
 async function triggerWebhook(type, table) {
-  const url = WEBHOOKS[type] && WEBHOOKS[type][table];
+  // Try exact match first, then case-insensitive
+  const map = WEBHOOKS[type] || {};
+  const url = map[table] || Object.entries(map).find(([k]) => k.toUpperCase() === table.toUpperCase())?.[1];
   if (!url) return;
   try {
     const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ table, time: new Date().toISOString() }) });
