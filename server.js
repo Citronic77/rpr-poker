@@ -152,8 +152,10 @@ function parseTDT(raw) {
   }
 
   const clm = /CurrentLevel: (\d+)/.exec(raw);
-  const currentLevel = clm ? parseInt(clm[1]) : 1;
-  const currentBlind = blinds[currentLevel - 1] || blinds[blinds.length - 1] || null;
+  // CurrentLevel is 0-based in the file, display as 1-based
+  const currentLevelIndex = clm ? parseInt(clm[1]) : 0;
+  const currentLevel = currentLevelIndex + 1;
+  const currentBlind = blinds[currentLevelIndex] || blinds[blinds.length - 1] || null;
 
   // ── 4. Count buyins and reentries per player ──
   const buyinRx2 = /new GameBuyin\(\{/g;
