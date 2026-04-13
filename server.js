@@ -10,6 +10,31 @@ const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
 
+// ── Home Assistant Webhooks ──
+const WEBHOOKS = {
+  floorCall: {
+    'Table 3 GREEN': 'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-4yfflO_MdRIZfPxyreGPsT4y',
+    // 'Table 2 RED': 'https://...',
+    // 'Table 4 YELLOW': 'https://...',
+  },
+  floorDone: {
+    'Table 3 GREEN': 'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-wmPBtMOzISV5fPYi0LZQ1WSi',
+    // 'Table 2 RED': 'https://...',
+    // 'Table 4 YELLOW': 'https://...',
+  }
+};
+
+async function triggerWebhook(type, table) {
+  const url = WEBHOOKS[type] && WEBHOOKS[type][table];
+  if (!url) return;
+  try {
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ table, time: new Date().toISOString() }) });
+    console.log(`Webhook ${type} [${table}]: ${res.status}`);
+  } catch (e) {
+    console.error(`Webhook ${type} [${table}] failed:`, e.message);
+  }
+}
+
 // ── In-memory state ──
 let state = {
   tourneyName: '',
@@ -224,8 +249,10 @@ wss.on('connection', ws => {
         broadcastState();
       } else if (msg.type === 'floorCall') {
         broadcast({ type: 'floorCall', table: msg.table, time: msg.time });
+        triggerWebhook('floorCall', msg.table);
       } else if (msg.type === 'floorCallDone') {
         broadcast({ type: 'floorCallDone', table: msg.table });
+        triggerWebhook('floorDone', msg.table);
       } else if (msg.type === 'getState') {
         // Client requesting fresh state (e.g. after reconnect)
         const { lastRaw, ...payload } = state;
