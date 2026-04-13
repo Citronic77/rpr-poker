@@ -194,6 +194,10 @@ function broadcastState() {
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
 app.use(express.json());
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Upload .tdt
