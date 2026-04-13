@@ -19,6 +19,7 @@ const WEBHOOKS = {
     'Table 5 CYAN':   'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-8sJpf_gpyfU9Dw-QckGNyvnk',
     'Table 6 BLUE':   'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-VAuFEZfZ_9B2auXp_O_12LJ-',
     'Table 7':        'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-eOttVlpSiQvKYNPrN-PWQLqJ',
+    'Table 7 PURPLE': 'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-eOttVlpSiQvKYNPrN-PWQLqJ',
   },
   floorDone: {
     'Table 2 RED':    'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-_2dGOzeJrIVlr_62pilkVegO',
@@ -26,7 +27,8 @@ const WEBHOOKS = {
     'Table 4 YELLOW': 'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-ltsISZ5MfdUmm7vz8mJMj_lx',
     'Table 5 CYAN':   'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-pEZDQtJ0IwhxlurCQ4PQvO_U',
     'Table 6 BLUE':   'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-Zn733ytfjEW23-UZ2h3SaAgp',
-    'Table 7':        'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-eOttVlpSiQvKYNPrN-PWQLqJ',
+    'Table 7':        'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-JDc-xh3x3HMjonoobMNwcTEc',
+    'Table 7 PURPLE': 'https://m27m0w68gru0ervrm8suzkbir5jjnt87.ui.nabu.casa/api/webhook/-JDc-xh3x3HMjonoobMNwcTEc',
   }
 };
 
