@@ -59,6 +59,7 @@ let state = {
   totalBuyins: 0,
   reentries: 0,
   uniquePlayers: 0,
+  pot: 0,
   totalBuyins: 0,
   totalUniquePlayers: 0,
   totalReentries: 0
@@ -162,7 +163,17 @@ function parseTDT(raw) {
   const totalUniquePlayers = uuidPositions.length;
   const totalReentries = totalBuyins - totalUniquePlayers;
 
-  return { name, players, tables, blinds, currentLevel, currentBlind, totalBuyins, totalUniquePlayers, totalReentries };
+  // ── 5. Calculate pot ──
+  const potRx = /new GameBuyin\(\{Time: \d+, Round: \d+, Amount: ([\d.]+), PersonalBounty: \d+, Rake: new PerPlayerRake\(\[([\d., ]+)\]\)/g;
+  let totalAmount = 0, totalRake = 0;
+  let pm;
+  while ((pm = potRx.exec(raw)) !== null) {
+    totalAmount += parseFloat(pm[1]);
+    pm[2].split(',').forEach(r => totalRake += parseFloat(r.trim()));
+  }
+  const pot = Math.round(totalAmount - totalRake);
+
+  return { name, players, tables, blinds, currentLevel, currentBlind, totalBuyins, totalUniquePlayers, totalReentries, pot };
 }
 
 // ── Broadcast to all clients ──
@@ -217,6 +228,7 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
     state.totalBuyins = parsed.totalBuyins;
     state.reentries = parsed.totalReentries;
     state.uniquePlayers = parsed.totalUniquePlayers;
+    state.pot = parsed.pot;
     state.totalBuyins = parsed.totalBuyins;
     state.totalUniquePlayers = parsed.totalUniquePlayers;
     state.totalReentries = parsed.totalReentries;
