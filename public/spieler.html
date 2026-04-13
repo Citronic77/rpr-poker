@@ -189,26 +189,15 @@ body {
 </div>
 
 <script>
-// ── Automatically detect server URL ──
-// If embedded via iframe from same server, use same host
-// Otherwise falls back to the Railway URL
-const SERVER = (function() {
-  try {
-    const ref = document.referrer || window.location.href;
-    const url = new URL(ref);
-    return (url.protocol === 'https:' ? 'wss://' : 'ws://') + url.host;
-  } catch(e) {
-    return 'wss://rpr-poker-production.up.railway.app';
-  }
-})();
-
-let ws, retry = 0;
+const API = 'https://rpr-poker-production.up.railway.app/state';
 
 function fmt(n) { return n >= 1000 ? (n/1000).toFixed(0)+'K' : n; }
 
 function applyState(S) {
   document.getElementById('content').style.display = 'block';
   document.getElementById('offline').style.display = 'none';
+  document.getElementById('dot').style.background = '#1D9E75';
+  document.getElementById('status-txt').textContent = 'Live';
 
   const ec = S.eliminations ? S.eliminations.length : 0;
   const active = (S.players ? S.players.length : 0) - ec;
@@ -226,47 +215,27 @@ function applyState(S) {
   }
 }
 
-function connect() {
-  const dot = document.getElementById('dot');
-  const txt = document.getElementById('status-txt');
-  dot.style.background = '#EF9F27';
-  txt.textContent = 'Verbinde...';
-
-  ws = new WebSocket(SERVER);
-
-  ws.onopen = () => {
-    retry = 0;
-    dot.style.background = '#1D9E75';
-    txt.textContent = 'Live';
-  };
-
-  ws.onclose = () => {
-    dot.style.background = '#E24B4A';
-    txt.textContent = 'Getrennt';
-    document.getElementById('offline').style.display = 'block';
-    setTimeout(connect, Math.min(2000 + retry * 2000, 15000));
-    retry++;
-  };
-
-  ws.onerror = () => {};
-
-  ws.onmessage = e => {
-    try {
-      const msg = JSON.parse(e.data);
-      if(msg.type === 'state') applyState(msg.payload);
-    } catch(e) {}
-  };
+function fetchState() {
+  fetch(API)
+    .then(r => r.json())
+    .then(S => {
+      if(S.players) applyState(S);
+    })
+    .catch(() => {
+      document.getElementById('dot').style.background = '#E24B4A';
+      document.getElementById('status-txt').textContent = 'Getrennt';
+      document.getElementById('offline').style.display = 'block';
+    });
 }
 
-// Reconnect on visibility change
-document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState === 'visible' && (!ws || ws.readyState !== 1)) {
-    retry = 0;
-    connect();
-  }
-});
+// Fetch immediately, then every 30 seconds
+fetchState();
+setInterval(fetchState, 30000);
 
-connect();
+// Refresh when page becomes visible again
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible') fetchState();
+});
 </script>
 </body>
 </html>
