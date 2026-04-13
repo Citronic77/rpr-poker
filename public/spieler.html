@@ -162,8 +162,8 @@ body {
         <div class="stat-lbl">Rebuys</div>
       </div>
       <div class="stat">
-        <div class="stat-num" id="s-elim">—</div>
-        <div class="stat-lbl">Ausgeschieden</div>
+        <div class="stat-num" id="s-total">—</div>
+        <div class="stat-lbl">Total Spieler</div>
       </div>
     </div>
 
@@ -217,7 +217,7 @@ function applyState(S) {
   document.getElementById('s-players').textContent = active;
   document.getElementById('s-unique').textContent = S.uniquePlayers || S.players?.length || '—';
   document.getElementById('s-rebuys').textContent = S.reentries || 0;
-  document.getElementById('s-elim').textContent = ec;
+  document.getElementById('s-total').textContent = (S.uniquePlayers || 0) + (S.reentries || 0);
   document.getElementById('s-pot').textContent = S.pot ? 'CHF ' + S.pot.toLocaleString('de-CH') : '—';
 
   if(S.currentBlind) {
