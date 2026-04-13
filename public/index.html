@@ -350,8 +350,7 @@ function applyState(payload) {
   document.getElementById('h-title').textContent = S.tourneyName || 'RPR Poker';
   const blindPill = document.getElementById('h-blind');
   if(S.currentBlind && hasData) {
-    const fmtH = n => n >= 1000 ? (n/1000)+'K' : n;
-    blindPill.textContent = 'Level ' + S.currentLevel + ': ' + fmtH(S.currentBlind.sb) + '/' + fmtH(S.currentBlind.bb);
+    blindPill.textContent = 'Level ' + S.currentLevel + ': ' + S.currentBlind.sb.toLocaleString('de-CH') + '/' + S.currentBlind.bb.toLocaleString('de-CH');
     blindPill.style.display = 'block';
   } else {
     blindPill.style.display = 'none';
@@ -543,10 +542,10 @@ function renderFloor(){
   document.getElementById('s-eli').textContent = ec;
   document.getElementById('s-tbl').textContent = S.tables.filter(t => S.players.filter(p => p.table === t).some(p => !isElim(p.id))).length;
   if(S.currentBlind) {
-    const fmt = n => n >= 1000 ? (n/1000)+'K' : n;
-    document.getElementById('s-blind').textContent = fmt(S.currentBlind.sb) + ' / ' + fmt(S.currentBlind.bb);
+    const fmtN = n => n.toLocaleString('de-CH');
+    document.getElementById('s-blind').textContent = fmtN(S.currentBlind.sb) + ' / ' + fmtN(S.currentBlind.bb);
     let bsub = 'Level ' + S.currentLevel + (S.blinds ? ' von ' + S.blinds.length : '') + ' · ' + S.currentBlind.minutes + ' Min';
-    if(S.currentBlind.ante) bsub += ' · Ante ' + fmt(S.currentBlind.ante);
+    if(S.currentBlind.ante) bsub += ' · Ante ' + fmtN(S.currentBlind.ante);
     document.getElementById('s-blind-sub').textContent = bsub;
   } else {
     document.getElementById('s-blind').textContent = '—';
