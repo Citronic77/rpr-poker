@@ -136,6 +136,27 @@ body {
 }
 
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.game-over {
+  display: none;
+  background: #A32D2D;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.game-over-text {
+  font-size: 22px;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.game-over-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,.7);
+  margin-top: 3px;
+}
 </style>
 </head>
 <body>
@@ -148,6 +169,10 @@ body {
   <div id="content" style="display:none">
     <div class="tourney-name" id="tourney-name">—</div>
 
+    <div class="game-over" id="game-over">
+      <div class="game-over-text">🏆 Game Over</div>
+      <div class="game-over-sub" id="game-over-winner"></div>
+    </div>
     <div class="stats">
       <div class="stat">
         <div class="stat-num" id="s-players">—</div>
@@ -203,6 +228,21 @@ function applyState(S) {
   const active = (S.players ? S.players.length : 0) - ec;
 
   document.getElementById('tourney-name').textContent = S.tourneyName || 'Turnier';
+
+  // Game Over wenn nur noch 1 aktiver Spieler
+  const gameOverEl = document.getElementById('game-over');
+  const winnerEl = document.getElementById('game-over-winner');
+  if(active <= 1 && S.players && S.players.length > 0) {
+    gameOverEl.style.display = 'block';
+    if(active === 1) {
+      const winner = S.players.find(p => !S.eliminations.some(e => e.id === p.id));
+      winnerEl.textContent = winner ? 'Gewinner: ' + winner.name : '';
+    } else {
+      winnerEl.textContent = '';
+    }
+  } else {
+    gameOverEl.style.display = 'none';
+  }
   document.getElementById('s-players').textContent = active;
   document.getElementById('s-unique').textContent = S.uniquePlayers || S.players?.length || '—';
   document.getElementById('s-rebuys').textContent = S.reentries || 0;
