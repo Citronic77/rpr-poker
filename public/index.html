@@ -347,6 +347,12 @@ function applyState(payload) {
   document.getElementById('floor-waiting').style.display = hasData ? 'none' : 'block';
   document.getElementById('floor-content').style.display = hasData ? 'block' : 'none';
 
+  // Recalculate blindLevelNumber client-side if missing from server
+  if(S.blindLevelNumber == null && S.blinds && S.currentLevel) {
+    // blinds array = only real rounds; currentLevel counts breaks too
+    // We can't recalc without full schedule, so use blinds.length as max
+    S.blindLevelNumber = Math.min(S.currentLevel, S.blinds.length);
+  }
   document.getElementById('h-title').textContent = S.tourneyName || 'RPR Poker';
   const blindPill = document.getElementById('h-blind');
   if(!hasData) {
@@ -355,7 +361,7 @@ function applyState(payload) {
     blindPill.textContent = '☕ PAUSE';
     blindPill.style.display = 'block';
   } else if(S.currentBlind) {
-    const lvl = S.blindLevelNumber || S.currentLevel;
+    const lvl = (S.blindLevelNumber != null) ? S.blindLevelNumber : S.currentLevel;
     const fmtP = n => n >= 1000 ? (n/1000)+'K' : n;
     blindPill.textContent = 'Level ' + lvl + ': ' + fmtP(S.currentBlind.sb) + '/' + fmtP(S.currentBlind.bb);
     blindPill.style.display = 'block';
@@ -549,7 +555,7 @@ function renderFloor(){
   document.getElementById('s-eli').textContent = ec;
   document.getElementById('s-tbl').textContent = S.tables.filter(t => S.players.filter(p => p.table === t).some(p => !isElim(p.id))).length;
   const fmtN = n => n >= 1000 ? (n/1000).toLocaleString('de-CH')+'K' : n;
-  const lvlNum = S.blindLevelNumber || S.currentLevel;
+  const lvlNum = (S.blindLevelNumber != null) ? S.blindLevelNumber : S.currentLevel;
   if(S.currentBreak) {
     document.getElementById('s-blind').textContent = '☕ PAUSE';
     document.getElementById('s-blind-sub').textContent = S.currentBreak.minutes + ' Min · Nächste Stufe: Level ' + (lvlNum + 1);
