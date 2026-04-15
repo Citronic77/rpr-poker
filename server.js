@@ -61,6 +61,7 @@ let state = {
   totalBuyins: 0,
   reentries: 0,
   uniquePlayers: 0,
+  totalBonus: 0,
   pot: 0,
   totalBuyins: 0,
   totalUniquePlayers: 0,
@@ -177,6 +178,7 @@ function parseTDT(raw) {
   const buyinRx2 = /new GameBuyin\(\{/g;
   let totalBuyins = 0;
   let totalUniquePlayers = 0;
+  let totalBonus = 0;
   for (let i = 0; i < uuidPositions.length; i++) {
     const { pos } = uuidPositions[i];
     const nextPos = i + 1 < uuidPositions.length ? uuidPositions[i + 1].pos : raw.length;
@@ -185,6 +187,9 @@ function parseTDT(raw) {
     if (playerBuyins > 0) {
       totalBuyins += playerBuyins;
       totalUniquePlayers++;
+      // Count bonus buyins: ProfileName contains "Bonus"
+      const bonusMatches = (block.match(/ProfileName: "[^"]*Bonus[^"]*"/g) || []).length;
+      totalBonus += bonusMatches;
     }
   }
   const totalReentries = totalBuyins - totalUniquePlayers;
@@ -199,7 +204,7 @@ function parseTDT(raw) {
   }
   const pot = Math.round(totalAmount - totalRake);
 
-  return { name, players, tables, blinds, currentLevel, currentBlind, currentBreak, blindLevelNumber, totalBuyins, totalUniquePlayers, totalReentries, pot };
+  return { name, players, tables, blinds, currentLevel, currentBlind, currentBreak, blindLevelNumber, totalBuyins, totalUniquePlayers, totalReentries, totalBonus, pot };
 }
 
 // ── Broadcast to all clients ──
@@ -260,6 +265,7 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
     state.totalBuyins = parsed.totalBuyins;
     state.reentries = parsed.totalReentries;
     state.uniquePlayers = parsed.totalUniquePlayers;
+    state.totalBonus = parsed.totalBonus;
     state.pot = parsed.pot;
     state.totalBuyins = parsed.totalBuyins;
     state.totalUniquePlayers = parsed.totalUniquePlayers;
