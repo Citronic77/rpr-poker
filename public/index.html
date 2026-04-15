@@ -356,7 +356,8 @@ function applyState(payload) {
     blindPill.style.display = 'block';
   } else if(S.currentBlind) {
     const lvl = S.blindLevelNumber || S.currentLevel;
-    blindPill.textContent = 'Level ' + lvl + ': ' + (S.currentBlind.sb/1000) + 'K/' + (S.currentBlind.bb/1000) + 'K';
+    const fmtP = n => n >= 1000 ? (n/1000)+'K' : n;
+    blindPill.textContent = 'Level ' + lvl + ': ' + fmtP(S.currentBlind.sb) + '/' + fmtP(S.currentBlind.bb);
     blindPill.style.display = 'block';
   } else {
     blindPill.style.display = 'none';
