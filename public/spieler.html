@@ -249,9 +249,14 @@ function applyState(S) {
   document.getElementById('s-total').textContent = (S.uniquePlayers || 0) + (S.reentries || 0);
   document.getElementById('s-pot').textContent = S.pot ? 'CHF ' + S.pot.toLocaleString('de-CH') : '—';
 
-  if(S.currentBlind) {
+  if(S.currentBreak) {
+    document.getElementById('s-blind').textContent = '☕ PAUSE';
+    const nextLvl = (S.blindLevelNumber || 0) + 1;
+    document.getElementById('s-blind-level').textContent = S.currentBreak.minutes + ' Min · Nächste Stufe: Level ' + nextLvl;
+  } else if(S.currentBlind) {
+    const lvl = (S.blindLevelNumber != null) ? S.blindLevelNumber : S.currentLevel;
     document.getElementById('s-blind').textContent = S.currentBlind.sb.toLocaleString('de-CH') + ' / ' + S.currentBlind.bb.toLocaleString('de-CH');
-    document.getElementById('s-blind-level').textContent = 'Level ' + S.currentLevel + (S.blinds ? ' / ' + S.blinds.length : '');
+    document.getElementById('s-blind-level').textContent = 'Level ' + lvl + (S.blinds ? ' / ' + S.blinds.length : '');
   }
 }
 
