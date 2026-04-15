@@ -141,9 +141,9 @@ function parseTDT(raw) {
   tables.sort((a, b) => tableRank(a) - tableRank(b));
 
   // ── 3. Parse blind levels (rounds + breaks) and current level ──
-  // Schedule is after Players section
-  const playersIdx = raw.indexOf('Players: new GamePlayers');
-  const schedRaw = playersIdx > -1 ? raw.slice(playersIdx) : raw;
+  // Schedule is in GameLevels section
+  const gameLevelsIdx = raw.indexOf('GameLevels(');
+  const schedRaw = gameLevelsIdx > -1 ? raw.slice(gameLevelsIdx) : raw;
 
   const roundRx = /new GameRound\(\{Minutes: (\d+), SmallBlind: (\d+), BigBlind: (\d+), Ante: (\d+)/g;
   const breakRx = /new GameBreak\(\{Minutes: (\d+)/g;
