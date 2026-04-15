@@ -263,7 +263,10 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
 });
 
 // Get full state (for reconnecting clients)
-app.get('/state', (req, res) => res.json(state));
+app.get('/state', (req, res) => {
+  const { lastRaw, ...payload } = state;
+  res.json(payload);
+});
 
 // ── WebSocket ──
 wss.on('connection', ws => {
