@@ -88,6 +88,9 @@ function parseTDT(raw) {
   for (let i = 0; i < uuidPositions.length; i++) {
     const { uuid, pos } = uuidPositions[i];
     const nextPos = i + 1 < uuidPositions.length ? uuidPositions[i + 1].pos : raw.length;
+    const block = raw.slice(pos, nextPos);
+    // Skip players who have not bought in yet
+    if (!block.includes('new GameBuyin({')) continue;
     const n = namePositions.find(x => x.pos > pos && x.pos < nextPos);
     if (n) {
       playersByUuid[uuid] = {
@@ -170,12 +173,20 @@ function parseTDT(raw) {
   const blindLevelNumber = schedEntries.slice(0, currentLevelIndex + 1).filter(e => e.type === 'round').length;
   const currentLevel = currentLevelIndex + 1; // keep for compatibility
 
-  // ── 4. Count buyins and reentries per player ──
+  // ── 4. Count buyins and reentries — only bought-in players ──
   const buyinRx2 = /new GameBuyin\(\{/g;
-  const totalBuyins = (raw.match(buyinRx2) || []).length;
-  const totalPlayers = players.length; // unique players currently seated — use uuid count
-  // Total unique registered players from uuidPositions
-  const totalUniquePlayers = uuidPositions.length;
+  let totalBuyins = 0;
+  let totalUniquePlayers = 0;
+  for (let i = 0; i < uuidPositions.length; i++) {
+    const { pos } = uuidPositions[i];
+    const nextPos = i + 1 < uuidPositions.length ? uuidPositions[i + 1].pos : raw.length;
+    const block = raw.slice(pos, nextPos);
+    const playerBuyins = (block.match(/new GameBuyin\(\{/g) || []).length;
+    if (playerBuyins > 0) {
+      totalBuyins += playerBuyins;
+      totalUniquePlayers++;
+    }
+  }
   const totalReentries = totalBuyins - totalUniquePlayers;
 
   // ── 5. Calculate pot ──
