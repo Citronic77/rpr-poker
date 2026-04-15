@@ -349,8 +349,14 @@ function applyState(payload) {
 
   document.getElementById('h-title').textContent = S.tourneyName || 'RPR Poker';
   const blindPill = document.getElementById('h-blind');
-  if(S.currentBlind && hasData) {
-    blindPill.textContent = 'Level ' + S.currentLevel + ': ' + S.currentBlind.sb.toLocaleString('de-CH') + '/' + S.currentBlind.bb.toLocaleString('de-CH');
+  if(!hasData) {
+    blindPill.style.display = 'none';
+  } else if(S.currentBreak) {
+    blindPill.textContent = '☕ PAUSE';
+    blindPill.style.display = 'block';
+  } else if(S.currentBlind) {
+    const lvl = S.blindLevelNumber || S.currentLevel;
+    blindPill.textContent = 'Level ' + lvl + ': ' + (S.currentBlind.sb/1000) + 'K/' + (S.currentBlind.bb/1000) + 'K';
     blindPill.style.display = 'block';
   } else {
     blindPill.style.display = 'none';
@@ -541,10 +547,14 @@ function renderFloor(){
   document.getElementById('s-buyins').textContent = S.totalBuyins || '—';
   document.getElementById('s-eli').textContent = ec;
   document.getElementById('s-tbl').textContent = S.tables.filter(t => S.players.filter(p => p.table === t).some(p => !isElim(p.id))).length;
-  if(S.currentBlind) {
-    const fmtN = n => n.toLocaleString('de-CH');
+  const fmtN = n => n >= 1000 ? (n/1000).toLocaleString('de-CH')+'K' : n;
+  const lvlNum = S.blindLevelNumber || S.currentLevel;
+  if(S.currentBreak) {
+    document.getElementById('s-blind').textContent = '☕ PAUSE';
+    document.getElementById('s-blind-sub').textContent = S.currentBreak.minutes + ' Min · Nächste Stufe: Level ' + (lvlNum + 1);
+  } else if(S.currentBlind) {
     document.getElementById('s-blind').textContent = fmtN(S.currentBlind.sb) + ' / ' + fmtN(S.currentBlind.bb);
-    let bsub = 'Level ' + S.currentLevel + (S.blinds ? ' von ' + S.blinds.length : '') + ' · ' + S.currentBlind.minutes + ' Min';
+    let bsub = 'Level ' + lvlNum + (S.blinds ? ' von ' + S.blinds.length : '') + ' · ' + S.currentBlind.minutes + ' Min';
     if(S.currentBlind.ante) bsub += ' · Ante ' + fmtN(S.currentBlind.ante);
     document.getElementById('s-blind-sub').textContent = bsub;
   } else {
