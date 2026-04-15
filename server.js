@@ -57,8 +57,6 @@ let state = {
   currentBlind: null,
   currentBreak: null,
   blindLevelNumber: null,
-  currentBreak: null,
-  blindLevelNumber: null,
   blinds: [],
   totalBuyins: 0,
   reentries: 0,
@@ -246,8 +244,6 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
     state.blinds = parsed.blinds;
     state.currentLevel = parsed.currentLevel;
     state.currentBlind = parsed.currentBlind;
-    state.currentBreak = parsed.currentBreak;
-    state.blindLevelNumber = parsed.blindLevelNumber;
     state.currentBreak = parsed.currentBreak;
     state.blindLevelNumber = parsed.blindLevelNumber;
     state.totalBuyins = parsed.totalBuyins;
