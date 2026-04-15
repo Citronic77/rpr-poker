@@ -55,6 +55,10 @@ let state = {
   lastRaw: '',
   currentLevel: null,
   currentBlind: null,
+  currentBreak: null,
+  blindLevelNumber: null,
+  currentBreak: null,
+  blindLevelNumber: null,
   blinds: [],
   totalBuyins: 0,
   reentries: 0,
@@ -138,24 +142,35 @@ function parseTDT(raw) {
   }
   tables.sort((a, b) => tableRank(a) - tableRank(b));
 
-  // ── 3. Parse blind levels and current level ──
-  const blinds = [];
+  // ── 3. Parse blind levels (rounds + breaks) and current level ──
+  // Schedule is after Players section
+  const playersIdx = raw.indexOf('Players: new GamePlayers');
+  const schedRaw = playersIdx > -1 ? raw.slice(playersIdx) : raw;
+
   const roundRx = /new GameRound\(\{Minutes: (\d+), SmallBlind: (\d+), BigBlind: (\d+), Ante: (\d+)/g;
+  const breakRx = /new GameBreak\(\{Minutes: (\d+)/g;
+  const schedEntries = [];
   let rm;
-  while ((rm = roundRx.exec(raw)) !== null) {
-    blinds.push({
-      minutes: parseInt(rm[1]),
-      sb: parseInt(rm[2]),
-      bb: parseInt(rm[3]),
-      ante: parseInt(rm[4])
-    });
-  }
+  while ((rm = roundRx.exec(schedRaw)) !== null)
+    schedEntries.push({ pos: rm.index, type: 'round', minutes: parseInt(rm[1]), sb: parseInt(rm[2]), bb: parseInt(rm[3]), ante: parseInt(rm[4]) });
+  while ((rm = breakRx.exec(schedRaw)) !== null)
+    schedEntries.push({ pos: rm.index, type: 'break', minutes: parseInt(rm[1]) });
+  schedEntries.sort((a, b) => a.pos - b.pos);
+
+  // blinds list = only real rounds (for reference)
+  const blinds = schedEntries.filter(e => e.type === 'round');
 
   const clm = /CurrentLevel: (\d+)/.exec(raw);
-  // CurrentLevel is 0-based in the file, display as 1-based
   const currentLevelIndex = clm ? parseInt(clm[1]) : 0;
-  const currentLevel = currentLevelIndex + 1;
-  const currentBlind = blinds[currentLevelIndex] || blinds[blinds.length - 1] || null;
+
+  // currentEntry = what is actually happening now (round or break)
+  const currentEntry = schedEntries[currentLevelIndex] || null;
+  const currentBlind = currentEntry && currentEntry.type === 'round' ? currentEntry : null;
+  const currentBreak = currentEntry && currentEntry.type === 'break' ? currentEntry : null;
+
+  // blindLevelNumber = count only non-break rounds up to currentLevel
+  const blindLevelNumber = schedEntries.slice(0, currentLevelIndex + 1).filter(e => e.type === 'round').length;
+  const currentLevel = currentLevelIndex + 1; // keep for compatibility
 
   // ── 4. Count buyins and reentries per player ──
   const buyinRx2 = /new GameBuyin\(\{/g;
@@ -175,7 +190,7 @@ function parseTDT(raw) {
   }
   const pot = Math.round(totalAmount - totalRake);
 
-  return { name, players, tables, blinds, currentLevel, currentBlind, totalBuyins, totalUniquePlayers, totalReentries, pot };
+  return { name, players, tables, blinds, currentLevel, currentBlind, currentBreak, blindLevelNumber, totalBuyins, totalUniquePlayers, totalReentries, pot };
 }
 
 // ── Broadcast to all clients ──
@@ -231,6 +246,10 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
     state.blinds = parsed.blinds;
     state.currentLevel = parsed.currentLevel;
     state.currentBlind = parsed.currentBlind;
+    state.currentBreak = parsed.currentBreak;
+    state.blindLevelNumber = parsed.blindLevelNumber;
+    state.currentBreak = parsed.currentBreak;
+    state.blindLevelNumber = parsed.blindLevelNumber;
     state.totalBuyins = parsed.totalBuyins;
     state.reentries = parsed.totalReentries;
     state.uniquePlayers = parsed.totalUniquePlayers;
