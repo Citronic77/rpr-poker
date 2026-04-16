@@ -554,7 +554,7 @@ function renderFloor(){
   const total = S.players.length, ec = S.eliminations.length;
   document.getElementById('s-act').textContent = total - ec;
   document.getElementById('s-unique').textContent = S.uniquePlayers || '—';
-  document.getElementById('s-bonus').textContent = S.totalBonus != null ? 'CHF ' + (S.totalBonus * 5) : '—';
+  document.getElementById('s-bonus').textContent = S.totalBonus != null ? S.totalBonus : '—';
   document.getElementById('s-reentry').textContent = S.reentries || 0;
   document.getElementById('s-buyins').textContent = S.totalBuyins || '—';
   document.getElementById('s-eli').textContent = ec;
