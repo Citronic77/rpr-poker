@@ -306,6 +306,16 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
       </button>
     </div>
 
+    <!-- Countdown stop/resume -->
+    <div style="margin-top:6px;display:flex;gap:8px">
+      <button id="ft-cd-pause" onclick="ftCountdownPause()" style="flex:1;padding:12px;font-size:15px;font-weight:500;border:none;border-radius:var(--rl);background:#5F5E5A;color:#fff;cursor:pointer">
+        ⏸ Pausieren
+      </button>
+      <button onclick="ftCountdownStop()" style="flex:1;padding:12px;font-size:15px;font-weight:500;border:none;border-radius:var(--rl);background:#A32D2D;color:#fff;cursor:pointer">
+        ✕ Stoppen
+      </button>
+    </div>
+
     <!-- Pot size -->
     <div style="margin-top:1rem;display:flex;align-items:center;gap:8px">
       <div style="font-size:13px;color:var(--text2);white-space:nowrap">Pot-Size:</div>
@@ -737,6 +747,26 @@ function ftCountdown() {
     .then(r => r.json())
     .then(d => toast('Countdown gestartet', 'amber'))
     .catch(() => toast('FT Server nicht erreichbar', 'red'));
+}
+
+function ftCountdownPause() {
+  fetch('/ft/countdown?command=pause')
+    .catch(() => toast('FT Server nicht erreichbar', 'red'));
+  const btn = document.getElementById('ft-cd-pause');
+  if(btn.textContent.includes('Pausieren')) {
+    btn.textContent = '▶ Fortsetzen';
+    btn.style.background = '#1D9E75';
+  } else {
+    btn.textContent = '⏸ Pausieren';
+    btn.style.background = '#5F5E5A';
+  }
+}
+function ftCountdownStop() {
+  fetch('/ft/countdown?command=stop')
+    .catch(() => toast('FT Server nicht erreichbar', 'red'));
+  const btn = document.getElementById('ft-cd-pause');
+  btn.textContent = '⏸ Pausieren';
+  btn.style.background = '#5F5E5A';
 }
 
 function ftSetPotFromTDT() {
