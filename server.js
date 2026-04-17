@@ -1,8 +1,11 @@
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const WebSocket = require('ws');
 const multer = require('multer');
 const path = require('path');
+
+const FT_SERVER = 'http://167.172.169.206:3000'; // Final Table server
 
 const app = express();
 const server = http.createServer(app);
@@ -273,6 +276,8 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
     state.lastUpdate = new Date().toISOString();
 
     broadcastState();
+    // Update Final Table projection with real player names
+    updateFinalTablePlayers(state.players, state.tables);
     res.json({ ok: true, changed: true, players: parsed.players.length, tables: parsed.tables.length });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -324,6 +329,66 @@ wss.on('connection', ws => {
     } catch (e) { /* ignore */ }
   });
 });
+
+// ── Final Table Proxy ──
+// Forward commands to Final Table server (avoids CORS issues from browser)
+app.get('/ft/remote', async (req, res) => {
+  const command = req.query.command || '';
+  try {
+    const ftRes = await fetch(FT_SERVER + '/remote?command=' + command);
+    res.json({ ok: true, command });
+  } catch (e) {
+    res.status(502).json({ error: 'Final Table server not reachable', detail: e.message });
+  }
+});
+
+app.get('/ft/getPotSize', async (req, res) => {
+  try {
+    const ftRes = await fetch(FT_SERVER + '/getPotSize');
+    const data = await ftRes.text();
+    res.send(data);
+  } catch (e) {
+    res.status(502).json({ error: 'Final Table server not reachable' });
+  }
+});
+
+app.post('/ft/setPotSize', express.json(), async (req, res) => {
+  try {
+    await fetch(FT_SERVER + '/setPotSize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(502).json({ error: 'Final Table server not reachable' });
+  }
+});
+
+// Send player names to Final Table server via HTTP
+async function updateFinalTablePlayers(players, tables) {
+  try {
+    // Build players array [null, name1, name2, ...] indexed by seat
+    const ftPlayers = [null];
+    const ftTable = tables.find(t => t.toUpperCase().includes('FINAL'));
+    if (ftTable) {
+      const ftSeats = players.filter(p => p.table === ftTable).sort((a, b) => a.seat - b.seat);
+      // Fill seats 1-10
+      for (let i = 1; i <= 10; i++) {
+        const p = ftSeats.find(x => x.seat === i);
+        ftPlayers.push(p ? p.name : null);
+      }
+    }
+    await fetch(FT_SERVER + '/playerUpdate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ players: ftPlayers })
+    });
+    console.log('Final Table player update sent');
+  } catch (e) {
+    console.log('Final Table player update failed (server may be offline):', e.message);
+  }
+}
 
 // ── Heartbeat: ping all clients every 30s ──
 setInterval(() => {
