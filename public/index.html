@@ -706,6 +706,52 @@ function triggerFeedback(name, type){
   else if(type === 'floor') speak('Floor bitte zum ' + name + '.');
 }
 
+// ── FINAL TABLE ──
+function ftCmd(cmd) {
+  fetch('/ft/remote?command=' + cmd)
+    .then(r => r.json())
+    .catch(() => toast('FT Server nicht erreichbar', 'red'));
+}
+function ftShowdown() { ftCmd('ss'); }
+function ftReset()    { ftCmd('rr'); }
+function ftHardReset(){ ftCmd('zz'); }
+function ftAllin(seat){ ftCmd('a' + (seat === 10 ? '0' : seat)); }
+function ftCall(seat) { ftCmd('c' + (seat === 10 ? '0' : seat)); }
+
+function ftSetPot() {
+  const pot = document.getElementById('ft-pot').value;
+  fetch('/ft/setPotSize', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({potSize: pot}) })
+    .catch(() => toast('FT Server nicht erreichbar', 'red'));
+  toast('Pot gespeichert: ' + pot, 'green');
+}
+
+function ftSetPotFromTDT() {
+  if(S.pot) { document.getElementById('ft-pot').value = S.pot; ftSetPot(); }
+  else toast('Kein Pot in .tdt', 'amber');
+}
+
+function renderFT() {
+  const ftTable = S.tables ? S.tables.find(t => t.toUpperCase().includes('FINAL')) : null;
+  const ftPlayers = ftTable && S.players ? S.players.filter(p => p.table === ftTable) : [];
+  const hasPlayers = ftPlayers.length > 0;
+  document.getElementById('ft-waiting').style.display = hasPlayers ? 'none' : 'block';
+  document.getElementById('ft-content').style.display = hasPlayers ? 'block' : 'none';
+  if(!hasPlayers) return;
+  const seatMap = {};
+  ftPlayers.forEach(p => seatMap[p.seat] = p);
+  document.getElementById('ft-seats').innerHTML = Array.from({length:10},(_,i)=>i+1).map(seat => {
+    const p = seatMap[seat];
+    return `<div class="ft-seat" style="${!p?'opacity:.35':''}">
+      <div class="ft-seat-num">Seat ${seat}</div>
+      <div class="ft-seat-name">${p ? p.name : '—'}</div>
+      ${p ? `<div class="ft-btns">
+        <button class="ft-btn-allin" onclick="ftAllin(${seat})">ALL-IN</button>
+        <button class="ft-btn-call" onclick="ftCall(${seat})">CALL</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
 function toggleNotif(){
   try { getAudioCtx().resume(); } catch(e){}
   notifEnabled = !notifEnabled;
