@@ -299,6 +299,13 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
       <button onclick="ftReset()" style="flex:1;padding:12px;font-size:15px;font-weight:500;border:none;border-radius:var(--rl);background:#888780;color:#fff;cursor:pointer">↺ Reset</button>
     </div>
 
+    <!-- Countdown -->
+    <div style="margin-top:.75rem">
+      <button onclick="ftCountdown()" style="width:100%;padding:16px;font-size:18px;font-weight:500;border:none;border-radius:var(--rl);background:#BA7517;color:#fff;cursor:pointer;letter-spacing:.04em">
+        ⏱ Countdown 20 Sek
+      </button>
+    </div>
+
     <!-- Pot size -->
     <div style="margin-top:1rem;display:flex;align-items:center;gap:8px">
       <div style="font-size:13px;color:var(--text2);white-space:nowrap">Pot-Size:</div>
@@ -723,6 +730,13 @@ function ftSetPot() {
   fetch('/ft/setPotSize', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({potSize: pot}) })
     .catch(() => toast('FT Server nicht erreichbar', 'red'));
   toast('Pot gespeichert: ' + pot, 'green');
+}
+
+function ftCountdown() {
+  fetch('/ft/countdown?seconds=20')
+    .then(r => r.json())
+    .then(d => toast('Countdown gestartet', 'amber'))
+    .catch(() => toast('FT Server nicht erreichbar', 'red'));
 }
 
 function ftSetPotFromTDT() {
