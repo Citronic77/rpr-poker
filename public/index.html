@@ -874,6 +874,11 @@ let pendingFloorTable = null;
 let activeFloorCalls = new Set(); // tables currently calling floor
 
 function openFloorCall(tableName) {
+  // Block if floor already called for this table
+  if(activeFloorCalls.has(tableName)) {
+    toast('Floor bereits gerufen — warte auf Bestätigung', 'amber');
+    return;
+  }
   pendingFloorTable = tableName;
   document.getElementById('floor-ov-msg').textContent = 'Floor für ' + tableName + ' rufen?';
   document.getElementById('floor-ov').style.display = 'flex';
