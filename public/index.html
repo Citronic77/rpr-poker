@@ -126,6 +126,14 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
 
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.ft-seat{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:10px;display:flex;flex-direction:column;gap:6px}
+.ft-seat-num{font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase}
+.ft-seat-name{font-size:14px;font-weight:500;color:var(--text);min-height:20px}
+.ft-btns{display:flex;gap:5px}
+.ft-btn-allin{flex:1;padding:7px 4px;font-size:12px;font-weight:500;border:none;border-radius:var(--r);background:#E24B4A;color:#fff;cursor:pointer}
+.ft-btn-call{flex:1;padding:7px 4px;font-size:12px;font-weight:500;border:none;border-radius:var(--r);background:#1D9E75;color:#fff;cursor:pointer}
+.ft-btn-allin:hover{background:#A32D2D}
+.ft-btn-call:hover{background:#0F6E56}
 </style>
 </head>
 <body>
@@ -152,6 +160,7 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
   <div class="tabs">
     <div class="tab active" onclick="showTab('dealer')">Dealer</div>
     <div class="tab" onclick="showTab('floor')">Floorman</div>
+    <div class="tab" onclick="showTab('ft')">Final Table</div>
   </div>
 
   <!-- ══ DEALER ══ -->
@@ -262,6 +271,43 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
     </div>
   </div>
 
+</div>
+
+<!-- ══ FINAL TABLE ══ -->
+<div id="tab-ft" class="panel">
+  <div id="ft-waiting" class="waiting">
+    <span class="waiting-icon">♠</span>
+    <div class="waiting-title">Kein Final Table</div>
+    <div class="waiting-sub">Sobald Spieler am Final Table sitzen, erscheint die Steuerung hier.</div>
+  </div>
+  <div id="ft-content" style="display:none">
+
+    <div class="sync-bar" style="margin-bottom:.75rem">
+      <div class="sync-dot" id="sd-ft"></div>
+      <div style="flex:1">
+        <div style="font-weight:500;font-size:13px" id="ft-status">Final Table Projektion</div>
+        <div style="font-size:11px;color:var(--text2)" id="ft-sub">167.172.169.206:3000</div>
+      </div>
+      <button onclick="ftHardReset()" style="padding:4px 10px;font-size:11px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text2);cursor:pointer">Hard Reset</button>
+    </div>
+
+    <!-- Player seats grid -->
+    <div id="ft-seats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:1rem"></div>
+
+    <!-- Control buttons -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.5rem">
+      <button onclick="ftShowdown()" style="flex:1;padding:12px;font-size:15px;font-weight:500;border:none;border-radius:var(--rl);background:#534AB7;color:#fff;cursor:pointer">♠ Showdown</button>
+      <button onclick="ftReset()" style="flex:1;padding:12px;font-size:15px;font-weight:500;border:none;border-radius:var(--rl);background:#888780;color:#fff;cursor:pointer">↺ Reset</button>
+    </div>
+
+    <!-- Pot size -->
+    <div style="margin-top:1rem;display:flex;align-items:center;gap:8px">
+      <div style="font-size:13px;color:var(--text2);white-space:nowrap">Pot-Size:</div>
+      <input type="number" id="ft-pot" style="width:120px;font-size:15px" placeholder="0">
+      <button onclick="ftSetPot()" style="padding:8px 16px;font-size:13px;font-weight:500;border:none;border-radius:var(--r);background:var(--green);color:#fff;cursor:pointer">Speichern</button>
+      <button onclick="ftSetPotFromTDT()" style="padding:8px 16px;font-size:13px;font-weight:500;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);cursor:pointer">Aus .tdt</button>
+    </div>
+  </div>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -379,6 +425,7 @@ function applyState(payload) {
   const idx = [...document.querySelectorAll('.tab')].indexOf(activeTab);
   if(idx === 0) renderDealerSel();
   if(idx === 1) renderFloor();
+  if(idx === 2) renderFT();
 }
 
 function setConn(s) {
@@ -402,12 +449,13 @@ function updateSyncBars() {
 
 // ── TABS ──
 function showTab(t) {
-  ['dealer','floor'].forEach((n,i) => {
+  ['dealer','floor','ft'].forEach((n,i) => {
     document.querySelectorAll('.tab')[i].classList.toggle('active', n === t);
     document.getElementById('tab-'+n).classList.toggle('active', n === t);
   });
   if(t === 'dealer') renderDealerSel();
   if(t === 'floor') renderFloor();
+  if(t === 'ft') renderFT();
 }
 
 // ── DEALER ──
