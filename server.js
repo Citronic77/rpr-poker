@@ -344,9 +344,10 @@ app.get('/ft/remote', async (req, res) => {
 
 app.get('/ft/countdown', async (req, res) => {
   const seconds = parseInt(req.query.seconds) || 20;
+  const command = req.query.command || 'start';
   try {
-    await fetch(FT_SERVER + '/countdown?seconds=' + seconds);
-    res.json({ ok: true, seconds });
+    await fetch(FT_SERVER + '/countdown?seconds=' + seconds + '&command=' + command);
+    res.json({ ok: true });
   } catch (e) {
     res.status(502).json({ error: 'Final Table server not reachable' });
   }
