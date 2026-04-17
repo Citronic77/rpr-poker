@@ -35,6 +35,65 @@ const WEBHOOKS = {
   }
 };
 
+// ── FRIBOURG SCORE POLLING ──
+const FRIBOURG_TEAM_ID = 3690; // Fribourg-Gottéron SofaScore ID
+let lastFribourgScore = null;
+let fribourgPollTimer = null;
+
+async function pollFribourgScore() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const res = await fetch(
+      `https://api.sofascore.com/api/v1/sport/ice-hockey/scheduled-events/${today}`,
+      { headers: { 'User-Agent': 'Mozilla/5.0' } }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // Find Fribourg game
+    const game = (data.events || []).find(e =>
+      (e.homeTeam && e.homeTeam.id === FRIBOURG_TEAM_ID) ||
+      (e.awayTeam && e.awayTeam.id === FRIBOURG_TEAM_ID)
+    );
+
+    if (!game) return;
+
+    // Only track live games
+    const statusCode = game.status.code;
+    if (statusCode === 0 || statusCode >= 100) return;
+
+    const homeScore = game.homeScore?.current ?? 0;
+    const awayScore = game.awayScore?.current ?? 0;
+    const scoreKey = `${homeScore}:${awayScore}`;
+
+    if (lastFribourgScore !== null && lastFribourgScore !== scoreKey) {
+      console.log(`Fribourg goal! ${scoreKey}`);
+      broadcast({
+        type: 'fribourg-goal',
+        payload: {
+          homeTeam: game.homeTeam.shortName || game.homeTeam.name,
+          awayTeam: game.awayTeam.shortName || game.awayTeam.name,
+          homeScore,
+          awayScore
+        }
+      });
+      // Also send to FT server
+      fetch(FT_SERVER + '/fribourg-goal?' +
+        `home=${encodeURIComponent(game.homeTeam.shortName || game.homeTeam.name)}` +
+        `&away=${encodeURIComponent(game.awayTeam.shortName || game.awayTeam.name)}` +
+        `&hs=${homeScore}&as=${awayScore}`
+      ).catch(() => {});
+    }
+    lastFribourgScore = scoreKey;
+  } catch (e) {
+    // Silent fail — don't crash server
+  }
+}
+
+// Poll every 30 seconds
+setInterval(pollFribourgScore, 30000);
+pollFribourgScore(); // initial check
+
 async function triggerWebhook(type, table) {
   // Try exact match first, then case-insensitive
   const map = WEBHOOKS[type] || {};
