@@ -401,6 +401,16 @@ app.get('/ft/remote', async (req, res) => {
   }
 });
 
+app.get('/ft/fribourg-goal', async (req, res) => {
+  const { home, away, hs, as: as_ } = req.query;
+  try {
+    await fetch(`${FT_SERVER}/fribourg-goal?home=${encodeURIComponent(home||'FRI')}&away=${encodeURIComponent(away||'DAV')}&hs=${hs||2}&as=${as_||1}`);
+    res.json({ ok: true });
+  } catch(e) {
+    res.status(502).json({ error: 'FT server not reachable' });
+  }
+});
+
 app.get('/ft/countdown', async (req, res) => {
   const seconds = parseInt(req.query.seconds) || 20;
   const command = req.query.command || 'start';
