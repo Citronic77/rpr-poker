@@ -6,6 +6,8 @@
 <title>Gastro-Abrechnung — UNIQUE</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('4laI9xZsiK1acmVxt');</script>
 <style>
 :root {
   --navy:#0d1e3d; --navy-light:#1a3060; --gold:#f5a623; --gold-dark:#d4891a;
@@ -164,6 +166,7 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
     <div class="toolbar-left">&#9993; E-Mail wird automatisch als PDF-Anhang versendet</div>
     <div class="toolbar-right">
       <button class="btn btn-ghost" onclick="resetForm()">&#8635; Zurücksetzen</button>
+      <button class="btn btn-ghost" onclick="printLocal()">&#128438; Lokal drucken</button>
       <button class="btn btn-primary" id="sendBtn" onclick="generateAndSend()">&#9993; PDF senden</button>
     </div>
   </div>
@@ -647,34 +650,58 @@ function buildPDF(){
   return doc;
 }
 
-// ── SEND ──
-async function generateAndSend(){
-  const serverUrl=document.getElementById('cfgServer').value.trim();
-  if(!serverUrl){showNotif('error','Fehler','Bitte Server-URL eingeben.');return;}
+// ── LOKAL DRUCKEN ──
+function printLocal() {
+  const btn = document.querySelector('[onclick="printLocal()"]');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generiere PDF…';
+  setTimeout(() => {
+    try {
+      const doc = buildPDF();
+      // Open PDF in new tab and trigger print
+      const pdfUrl = doc.output('bloburl');
+      const win = window.open(pdfUrl, '_blank');
+      if(win) {
+        win.addEventListener('load', () => {
+          win.print();
+        });
+      } else {
+        // Fallback: download
+        const datum = document.getElementById('datum').value || new Date().toISOString().split('T')[0];
+        doc.save('Gastro-Abrechnung-UNIQUE-' + datum + '.pdf');
+      }
+    } catch(e) {
+      alert('Fehler: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '&#128438; Lokal drucken';
+    }
+  }, 60);
+}
 
-  const btn=document.getElementById('sendBtn');
-  btn.disabled=true;
-  setLoader(true,'PDF wird generiert…','');
-  await new Promise(r=>setTimeout(r,60));
+// ── SEND via EmailJS ──
+async function generateAndSend(){
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  setLoader(true, 'PDF wird generiert…', '');
+  await new Promise(r => setTimeout(r, 60));
 
   try {
-    const doc=buildPDF();
-    const datum=getV('datum')||today();
-    const filename=`Gastro-Abrechnung-UNIQUE-${datum}.pdf`;
-    setLoader(true,'PDF wird gesendet…',`An: ${document.getElementById('cfgRecipient').value||serverUrl}`);
+    const doc = buildPDF();
+    const datum = getV('datum') || today();
+    const filename = `Gastro-Abrechnung-UNIQUE-${datum}.pdf`;
 
-    // Build summary text for email body
-    let staffLines='';
-    for(let i=1;i<=ROWS;i++){
-      const name=document.getElementById('name'+i).value;if(!name)continue;
-      const von=document.getElementById('von'+i).value||'—';
-      const bis=document.getElementById('bis'+i).value||'—';
-      const std=document.getElementById('std'+i).textContent;
-      const tot=document.getElementById('tot'+i).textContent;
-      staffLines+=`  ${i}. ${name.padEnd(20)} ${von}–${bis}   ${std.padStart(7)}   ${tot}\n`;
+    // Build summary
+    let staffLines = '';
+    for(let i = 1; i <= ROWS; i++){
+      const name = document.getElementById('name'+i).value; if(!name) continue;
+      const von = document.getElementById('von'+i).value || '—';
+      const bis = document.getElementById('bis'+i).value || '—';
+      const std = document.getElementById('std'+i).textContent;
+      const tot = document.getElementById('tot'+i).textContent;
+      staffLines += `  ${i}. ${name.padEnd(20)} ${von}–${bis}   ${std.padStart(7)}   ${tot}\n`;
     }
-
-    const summary=
+    const summary =
 `Datum:           ${fmtDate(datum)}
 Verantwortlich:  ${getV('verantw')||'—'}
 
@@ -688,40 +715,36 @@ Löhne (CHF 25.–/Std, aufgerundet):
 ${staffLines}
   Total Löhne: CHF ${document.getElementById('totalLoehne').textContent}`;
 
-    const pdfBase64=doc.output('datauristring').split(',')[1];
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
 
-    const resp=await fetch(serverUrl+'/api/gastro/send',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ pdfBase64, filename, datum:fmtDate(datum), verantw:getV('verantw'), summary }),
+    setLoader(true, 'E-Mail wird gesendet…', 'An: roger@lehmanncomputer.ch');
+
+    await emailjs.send('service_8eqgfmq', 'template_xwfnid3', {
+      datum: fmtDate(datum),
+      verantw: getV('verantw') || '—',
+      summary: summary,
+      filename: filename,
+      pdf_attachment: pdfBase64,
     });
 
-    if(!resp.ok && resp.status !== 207){
-      const err=await resp.json().catch(()=>({error:'Unbekannter Fehler'}));
-      throw new Error(err.error||'Server-Fehler '+resp.status);
+    // Also save to server archive
+    const serverUrl = document.getElementById('cfgServer').value.trim();
+    if(serverUrl) {
+      fetch(serverUrl + '/api/gastro/send', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ pdfBase64, filename, datum: fmtDate(datum), summary, emailOnly: false }),
+      }).catch(() => {}); // Silent — just for archiving
     }
 
-    const data = await resp.json();
-    const r = data.results || {};
-    const lines = [
-      r.email  ? '✓ E-Mail gesendet'       : '✗ E-Mail fehlgeschlagen',
-      r.archiv ? '✓ Archiv gespeichert'    : '✗ Archivieren fehlgeschlagen',
-      r.druck  ? '✓ Druckauftrag gesendet' : '✗ Drucken fehlgeschlagen',
-    ];
-    const allGood = r.email && r.archiv && r.druck;
     setLoader(false);
-    showNotif(
-      allGood ? 'success' : 'error',
-      allGood ? '✓ Abrechnung abgeschlossen' : 'Teilweise erfolgreich',
-      lines.join('  ·  '),
-      7000
-    );
+    showNotif('success', '✓ E-Mail gesendet', `Gastro-Abrechnung ${fmtDate(datum)} wurde an roger@lehmanncomputer.ch gesendet.`, 7000);
 
-  } catch(err){
+  } catch(err) {
     setLoader(false);
-    showNotif('error','Fehler beim Senden',err.message,8000);
+    showNotif('error', 'Fehler beim Senden', err.message || 'Unbekannter Fehler', 8000);
   } finally {
-    btn.disabled=false;
+    btn.disabled = false;
   }
 }
 
