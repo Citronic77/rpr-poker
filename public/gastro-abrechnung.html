@@ -269,7 +269,7 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
             <input type="number" class="ci blue result" id="kasseProgrBU" readonly placeholder="0.00">
           </div>
           <div class="calc-vrow">
-            <span class="lbl">&#8722; 500.– Anfangsbestand</span>
+            <span class="lbl">&#8722; Anfangsbestand (500.–)</span>
             <input type="number" class="ci result" value="500.00" readonly style="color:var(--text-mid)">
           </div>
           <div class="calc-vrow" style="border-top:1.5px solid var(--border);padding-top:6px;margin-top:4px">
@@ -286,7 +286,7 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
             <input type="number" class="ci red result" id="kasseGerPP" readonly placeholder="0.00">
           </div>
           <div class="calc-vrow">
-            <span class="lbl">&#8722; 500.– Anfangsbestand</span>
+            <span class="lbl">&#8722; Anfangsbestand (500.–)</span>
             <input type="number" class="ci result" value="500.00" readonly style="color:var(--text-mid)">
           </div>
           <div class="calc-vrow" style="border-top:1.5px solid var(--border);padding-top:6px;margin-top:4px">
@@ -596,23 +596,24 @@ function buildPDF(){
     fc(...OFFWH); doc.rect(bx, by, bw, bh, 'F');
     fc(...borderCol); doc.rect(bx, by, 2.5, bh, 'F');
     tc(...borderCol); fnt(8, 'bold'); doc.text(title, bx + 6, by + 5.5);
-    const vw = 24;
-    const maxLabelW = bw - vw - 14; // max width for label text
+    const vw = 22;
+    const maxLabelW = bw - vw - 16;
     let ry = by + 5.5;
     rows.forEach((row, i) => {
       ry += lineH;
       const isLast = i === rows.length - 1;
       if(isLast) { dc(...GRAYL); lw(0.3); doc.line(bx+6, ry-4.5, bx+bw-2, ry-4.5); }
-      // Truncate label if too wide
-      tc(...TXTM); fnt(6.5);
-      let label = row.label;
-      while(doc.getTextWidth(label) > maxLabelW && label.length > 5) label = label.slice(0,-1);
-      if(label !== row.label) label = label.slice(0,-1) + '…';
-      doc.text(label, bx + 6, ry);
+      // Draw label — never stretch, always fixed font size
+      tc(...TXTM);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.5);
+      doc.text(row.label, bx + 6, ry, {maxWidth: maxLabelW});
       // Value box
       dc(...(row.c || NAVY)); lw(isLast ? 0.8 : 0.4);
       doc.rect(bx + bw - vw - 2, ry - 4, vw, 5.2);
-      tc(...(row.c || NAVY)); fnt(isLast ? 8 : 7, isLast ? 'bold' : 'normal');
+      tc(...(row.c || NAVY));
+      doc.setFont('helvetica', isLast ? 'bold' : 'normal');
+      doc.setFontSize(isLast ? 8 : 7);
       doc.text(row.v || '—', bx + bw - 3, ry, {align: 'right'});
     });
     return bh;
@@ -622,23 +623,23 @@ function buildPDF(){
   const halfW = (CW - 5) / 2;
   const h1 = calcBox('KASSE', BLUE, [
     {label: 'Kasse Programm', v: fmtChf(getV('kasseProgr')), c: BLUE},
-    {label: '− Löhne', v: fmtChf(getV('loehneVal')), c: YELL},
+    {label: '- Löhne', v: fmtChf(getV('loehneVal')), c: YELL},
     {label: '= Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
   ], ML, y, halfW);
   const h2 = calcBox('TRINKGELD', GOLD, [
     {label: 'Kasse gezählt', v: fmtChf(getV('kasseGez')), c: BLUE},
-    {label: '− Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
+    {label: '- Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
     {label: '= Trinkgeld', v: fmtChf(getV('trinkgeld')), c: NAVY},
   ], ML + halfW + 5, y, halfW);
   const row1H = Math.max(h1, h2) + 3;
   const h3 = calcBox('BARUMSATZ', BLUE, [
     {label: 'Kasse Programm', v: fmtChf(getV('kasseProgr')), c: BLUE},
-    {label: '− Anfangsbestand', v: 'CHF 500.00', c: TXTM},
+    {label: '- Anfangsbestand', v: '500.00', c: TXTM},
     {label: '= Barumsatz', v: fmtChf(getV('barumsatz')), c: NAVY},
   ], ML, y + row1H, halfW);
   const h4 = calcBox('PREPOST', RED, [
     {label: 'Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
-    {label: '− Anfangsbestand', v: 'CHF 500.00', c: TXTM},
+    {label: '- Anfangsbestand', v: '500.00', c: TXTM},
     {label: '= an Prepost', v: fmtChf(getV('prepost')), c: NAVY},
   ], ML + halfW + 5, y + row1H, halfW);
   y += row1H + Math.max(h3, h4) + 5;
