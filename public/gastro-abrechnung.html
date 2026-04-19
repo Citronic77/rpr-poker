@@ -596,16 +596,23 @@ function buildPDF(){
     fc(...OFFWH); doc.rect(bx, by, bw, bh, 'F');
     fc(...borderCol); doc.rect(bx, by, 2.5, bh, 'F');
     tc(...borderCol); fnt(8, 'bold'); doc.text(title, bx + 6, by + 5.5);
+    const vw = 24;
+    const maxLabelW = bw - vw - 14; // max width for label text
     let ry = by + 5.5;
     rows.forEach((row, i) => {
       ry += lineH;
       const isLast = i === rows.length - 1;
       if(isLast) { dc(...GRAYL); lw(0.3); doc.line(bx+6, ry-4.5, bx+bw-2, ry-4.5); }
-      tc(...TXTM); fnt(7); doc.text(row.label, bx + 6, ry);
-      const vw = 26;
+      // Truncate label if too wide
+      tc(...TXTM); fnt(6.5);
+      let label = row.label;
+      while(doc.getTextWidth(label) > maxLabelW && label.length > 5) label = label.slice(0,-1);
+      if(label !== row.label) label = label.slice(0,-1) + '…';
+      doc.text(label, bx + 6, ry);
+      // Value box
       dc(...(row.c || NAVY)); lw(isLast ? 0.8 : 0.4);
       doc.rect(bx + bw - vw - 2, ry - 4, vw, 5.2);
-      tc(...(row.c || NAVY)); fnt(isLast ? 8.5 : 7.5, isLast ? 'bold' : 'normal');
+      tc(...(row.c || NAVY)); fnt(isLast ? 8 : 7, isLast ? 'bold' : 'normal');
       doc.text(row.v || '—', bx + bw - 3, ry, {align: 'right'});
     });
     return bh;
