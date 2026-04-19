@@ -4,8 +4,41 @@ const https = require('https');
 const WebSocket = require('ws');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
+const { exec } = require('child_process');
+const nodemailer = require('nodemailer');
 
 const FT_SERVER = 'http://167.172.169.206:3000'; // Final Table server
+
+// ── Gastro-Abrechnung Konfiguration ──
+const GASTRO_CFG_PATH = path.join(__dirname, 'gastro-config.json');
+let gastroCfg = null;
+if (fs.existsSync(GASTRO_CFG_PATH)) {
+  gastroCfg = JSON.parse(fs.readFileSync(GASTRO_CFG_PATH, 'utf8'));
+  console.log('✅  Gastro-Config geladen → Empfänger:', gastroCfg.recipient);
+} else {
+  console.warn('⚠️  gastro-config.json nicht gefunden — Gastro-Abrechnung deaktiviert.');
+}
+
+const ARCHIV_DIR = path.join(__dirname, 'Archiv_Abrechnungen');
+if (gastroCfg && !fs.existsSync(ARCHIV_DIR)) {
+  fs.mkdirSync(ARCHIV_DIR, { recursive: true });
+}
+
+let mailer = null;
+if (gastroCfg) {
+  mailer = nodemailer.createTransport({
+    host: gastroCfg.smtp.host, port: gastroCfg.smtp.port,
+    secure: gastroCfg.smtp.port === 465,
+    auth: { user: gastroCfg.smtp.user, pass: gastroCfg.smtp.pass },
+    tls: { rejectUnauthorized: false },
+  });
+  mailer.verify(err => {
+    if (err) console.warn('⚠️  Gastro SMTP:', err.message);
+    else console.log('✅  Gastro SMTP OK');
+  });
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -480,6 +513,57 @@ setInterval(() => {
     }
   });
 }, 30000);
+
+// ── Gastro-Abrechnung API ──
+app.get('/api/gastro/health', (req, res) => {
+  if (!gastroCfg) return res.status(503).json({ ok: false, error: 'gastro-config.json fehlt' });
+  res.json({ ok: true, recipient: gastroCfg.recipient, smtpHost: gastroCfg.smtp.host });
+});
+
+app.post('/api/gastro/send', express.json({ limit: '20mb' }), async (req, res) => {
+  if (!gastroCfg) return res.status(503).json({ ok: false, error: 'gastro-config.json fehlt' });
+  const { pdfBase64, filename, datum, summary } = req.body;
+  if (!pdfBase64) return res.status(400).json({ ok: false, error: 'Kein PDF erhalten.' });
+
+  const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+  const archivPath = path.join(ARCHIV_DIR, filename);
+  const results = { email: false, archiv: false, druck: false, errors: [] };
+
+  // Archivieren
+  try {
+    fs.writeFileSync(archivPath, pdfBuffer);
+    results.archiv = true;
+  } catch (err) { results.errors.push('Archivieren: ' + err.message); }
+
+  // E-Mail
+  try {
+    const htmlBody = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto">
+      <div style="background:#0d1e3d;padding:18px 24px;border-radius:6px 6px 0 0">
+        <span style="font-size:22px;font-weight:900;color:#fff;letter-spacing:3px">UNIQUE</span>
+        <span style="font-size:11px;color:#f5a623;margin-left:10px">Poker & Sport Lounge</span>
+      </div>
+      <div style="background:#f8f7f4;padding:24px;border:1px solid #e8e6e0;border-top:none;border-radius:0 0 6px 6px">
+        <h2 style="color:#0d1e3d;margin:0 0 16px">Gastro-Abrechnung ${datum || ''}</h2>
+        <pre style="background:#fff;border:1px solid #e8e6e0;border-radius:4px;padding:16px;font-size:13px;line-height:1.7;white-space:pre-wrap">${summary || ''}</pre>
+      </div>
+    </div>`;
+    await mailer.sendMail({
+      from: `"UNIQUE Gastro" <${gastroCfg.smtp.user}>`,
+      to: gastroCfg.recipient,
+      subject: `Gastro-Abrechnung UNIQUE — ${datum || ''}`.trim(),
+      text: summary || '', html: htmlBody,
+      attachments: [{ filename, content: pdfBuffer, contentType: 'application/pdf' }],
+    });
+    results.email = true;
+  } catch (err) { results.errors.push('E-Mail: ' + err.message); }
+
+  // Drucken (nur auf lokalem System, nicht Railway)
+  results.druck = false;
+  results.errors.push('Drucken: nicht verfügbar auf Cloud-Server');
+
+  const allOk = results.email && results.archiv;
+  res.status(allOk ? 200 : 207).json({ ok: results.email, results, errors: results.errors });
+});
 
 server.listen(PORT, () => {
   console.log(`Poker Tournament Manager läuft auf http://localhost:${PORT}`);
