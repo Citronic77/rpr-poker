@@ -389,6 +389,15 @@ function saveForm(){
         bis: document.getElementById('bis'+i)?.value || '',
       });
     }
+    // Save signatures
+    const sigs = {};
+    for(let i=1;i<=ROWS;i++){
+      const d = getStaffSigDataUrl(i);
+      if(d) sigs['staff'+i] = d;
+    }
+    const floorSig = getSigDataUrl();
+    if(floorSig) sigs['floor'] = floorSig;
+    localStorage.setItem('uq_sigs', JSON.stringify(sigs));
     localStorage.setItem('uq_form', JSON.stringify(form));
   } catch(e){}
 }
@@ -411,11 +420,42 @@ function loadForm(){
       });
     }
     calcAll(); syncLoehne();
+
+    // Restore signatures
+    try {
+      const sigsRaw = localStorage.getItem('uq_sigs');
+      if(sigsRaw) {
+        const sigs = JSON.parse(sigsRaw);
+        // Staff sigs
+        for(let i=1;i<=ROWS;i++){
+          if(sigs['staff'+i]) {
+            const canvas = document.getElementById('sigCanvas'+i);
+            if(canvas) {
+              const img = new Image();
+              img.onload = (function(cv){ return function(){ cv.getContext('2d').drawImage(this,0,0); }; })(canvas);
+              img.src = sigs['staff'+i];
+            }
+          }
+        }
+        // Floor sig
+        if(sigs['floor']) {
+          const canvas = document.getElementById('sigCanvas');
+          if(canvas) {
+            const img = new Image();
+            img.onload = function(){ canvas.getContext('2d').drawImage(this,0,0); };
+            img.src = sigs['floor'];
+          }
+        }
+      }
+    } catch(e){}
   } catch(e){}
 }
 
 function clearFormStorage(){
-  try{ localStorage.removeItem('uq_form'); } catch(e){}
+  try{
+    localStorage.removeItem('uq_form');
+    localStorage.removeItem('uq_sigs');
+  } catch(e){}
 }
 
 function load(){try{const d=localStorage.getItem('uq_emp');if(d)employees=JSON.parse(d);}catch(e){}}
@@ -797,7 +837,7 @@ function initStaffSig(i) {
   }
   function start(e) { e.preventDefault(); drawing=true; const p=getPos(e); lx=p.x; ly=p.y; ctx.beginPath(); ctx.moveTo(lx,ly); }
   function draw(e) { if(!drawing) return; e.preventDefault(); const p=getPos(e); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(p.x,p.y); ctx.stroke(); lx=p.x; ly=p.y; }
-  function stop() { drawing=false; }
+  function stop() { drawing=false; saveForm(); }
 
   canvas.addEventListener('mousedown',start);
   canvas.addEventListener('mousemove',draw);
