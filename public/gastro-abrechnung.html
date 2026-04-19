@@ -426,10 +426,17 @@ function buildTable(){
       <td class="std-cell" id="std${i}">—</td>
       <td class="r" style="color:var(--text-mid);font-weight:600;">25.00</td>
       <td class="tot-cell" id="tot${i}">—</td>
-      <td><input class="ttime" type="text" id="sig${i}" placeholder="Unterschrift" style="width:100%;text-align:left;"></td>`;
+      <td style="padding:2px 4px">
+        <div style="position:relative;border:1px solid var(--border);border-radius:3px;background:#fff;">
+          <canvas id="sigCanvas${i}" width="240" height="44" style="display:block;touch-action:none;cursor:crosshair;width:100%;height:44px"></canvas>
+          <button onclick="clearStaffSig(${i})" style="position:absolute;top:1px;right:1px;background:none;border:none;font-size:10px;padding:1px 4px;cursor:pointer;color:var(--text-mid);opacity:.5" title="Löschen">✕</button>
+        </div>
+      </td>\``;
     tbody.appendChild(tr);
   }
   refreshSelects();
+  // Init signature pads for all rows
+  setTimeout(() => { for(let i=1;i<=ROWS;i++) initStaffSig(i); }, 0);
 }
 function refreshSelects(){
   // Staff table selects
@@ -522,6 +529,7 @@ function resetForm(){
   }
   document.getElementById('totalLoehne').textContent='0.00';
   document.getElementById('loehneVal').value='';
+  for(let i=1;i<=ROWS;i++) clearStaffSig(i);
 }
 
 // ── NOTIFICATION ──
@@ -665,8 +673,12 @@ function buildPDF(){
       else if(j===5||j===6){tc(...NAVY);fnt(8.5,j===6?'bold':'normal');doc.text(v,cx+cw-1.5,mid,{align:'right'});}
       else if(j===2||j===3||j===4){tc(...NAVY);fnt(8.5);doc.text(v,cx+cw/2,mid,{align:'center'});}
       else{tc(...NAVY);fnt(8.5);doc.text(v,cx+2,mid);}
-      // sig line for last col
-      if(j===7){lw(0.3);dc(...GRAYL);doc.line(cx+2,y+rH-2.5,cx+cw-2,y+rH-2.5);}
+      // sig image or line for last col
+      if(j===7){
+        const sd = getStaffSigDataUrl(i);
+        if(sd) { doc.addImage(sd,'PNG',cx+1,y+1,cw-2,rH-2); }
+        else { lw(0.3);dc(...GRAYL);doc.line(cx+2,y+rH-2.5,cx+cw-2,y+rH-2.5); }
+      }
       cx+=cw;
     });
     y+=rH;
@@ -705,6 +717,50 @@ function buildPDF(){
   doc.text(doc.splitTextToSize(legal,CW),ML,y+5.5);
 
   return doc;
+}
+
+// ── STAFF SIGNATURE PADS ──
+function initStaffSig(i) {
+  const canvas = document.getElementById('sigCanvas' + i);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#0d1e3d';
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  let drawing = false, lx = 0, ly = 0;
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const sx = canvas.width / r.width, sy = canvas.height / r.height;
+    if(e.touches) return { x:(e.touches[0].clientX-r.left)*sx, y:(e.touches[0].clientY-r.top)*sy };
+    return { x:(e.clientX-r.left)*sx, y:(e.clientY-r.top)*sy };
+  }
+  function start(e) { e.preventDefault(); drawing=true; const p=getPos(e); lx=p.x; ly=p.y; ctx.beginPath(); ctx.moveTo(lx,ly); }
+  function draw(e) { if(!drawing) return; e.preventDefault(); const p=getPos(e); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(p.x,p.y); ctx.stroke(); lx=p.x; ly=p.y; }
+  function stop() { drawing=false; }
+
+  canvas.addEventListener('mousedown',start);
+  canvas.addEventListener('mousemove',draw);
+  canvas.addEventListener('mouseup',stop);
+  canvas.addEventListener('mouseleave',stop);
+  canvas.addEventListener('touchstart',start,{passive:false});
+  canvas.addEventListener('touchmove',draw,{passive:false});
+  canvas.addEventListener('touchend',stop);
+}
+
+function clearStaffSig(i) {
+  const canvas = document.getElementById('sigCanvas' + i);
+  if(!canvas) return;
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function getStaffSigDataUrl(i) {
+  const canvas = document.getElementById('sigCanvas' + i);
+  if(!canvas) return null;
+  const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+  if(!data.some(v => v !== 0)) return null;
+  return canvas.toDataURL('image/png');
 }
 
 // ── SIGNATURE PAD ──
