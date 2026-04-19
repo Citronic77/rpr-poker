@@ -87,6 +87,9 @@ body{font-family:'Barlow',sans-serif;background:#e5e3dd;color:var(--text-dark);m
 .calc-section{margin-bottom:1rem;padding:13px 1.25rem;border-radius:4px;background:var(--off-white);border-left:4px solid var(--gold)}
 .calc-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;letter-spacing:.1em;margin-bottom:9px;text-transform:uppercase;color:var(--gold)}
 .calc-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.calc-vrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0}
+.calc-vrow .lbl{flex:1;font-size:13px}
+.calc-vrow .ci{width:100px;flex-shrink:0}
 .lbl{font-size:13px;font-weight:500;color:var(--text-mid);white-space:nowrap}
 .op{font-size:16px;font-weight:700;color:var(--text-mid)}
 .eq{font-size:16px;font-weight:700;color:var(--navy)}
@@ -221,47 +224,76 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
         <div class="field-group"><label>Datum</label><input type="date" id="datum"></div>
         <div class="field-group"><label>Verantwortlich</label><select id="verantw" style="border:none;border-bottom:2px solid var(--navy);padding:6px 0;font-family:'Barlow',sans-serif;font-size:15px;font-weight:500;color:var(--text-dark);background:transparent;outline:none;width:100%;-webkit-appearance:none;appearance:none;cursor:pointer"><option value="">— wählen —</option></select></div>
       </div>
-      <div class="calc-section" style="border-left-color:var(--blue-box)">
-        <div class="calc-title">Kasse</div>
-        <div class="calc-row">
-          <span class="lbl">Kasse gemäss Programm</span>
-          <input type="number" class="ci blue" id="kasseProgr" placeholder="0.00" step="0.05" oninput="calcAll()" tabindex="1">
-          <span class="op">&#8722;</span><span class="lbl">Löhne</span>
-          <input type="number" class="ci yellow" id="loehneVal" placeholder="0.00" step="0.05" oninput="calcAll()">
-          <span class="eq">=</span><span class="lbl">Kasse gerechnet</span>
-          <input type="number" class="ci red result" id="kasseGer" readonly placeholder="0.00">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+
+        <!-- Kasse -->
+        <div class="calc-section" style="border-left-color:var(--blue-box);margin:0">
+          <div class="calc-title">Kasse</div>
+          <div class="calc-vrow">
+            <span class="lbl">Kasse gemäss Programm</span>
+            <input type="number" class="ci blue" id="kasseProgr" placeholder="0.00" step="0.05" oninput="calcAll()" tabindex="1">
+          </div>
+          <div class="calc-vrow">
+            <span class="lbl">&#8722; Löhne</span>
+            <input type="number" class="ci yellow" id="loehneVal" placeholder="0.00" step="0.05" oninput="calcAll()" readonly>
+          </div>
+          <div class="calc-vrow" style="border-top:1.5px solid var(--border);padding-top:6px;margin-top:4px">
+            <span class="lbl" style="font-weight:700">= Kasse gerechnet</span>
+            <input type="number" class="ci red result" id="kasseGer" readonly placeholder="0.00">
+          </div>
         </div>
-      </div>
-      <div class="calc-section" style="border-left-color:var(--gold)">
-        <div class="calc-title">Trinkgeld</div>
-        <div class="calc-row">
-          <span class="lbl">Kasse gezählt</span>
-          <input type="number" class="ci blue" id="kasseGez" placeholder="0.00" step="0.05" oninput="calcAll()" tabindex="2">
-          <span class="op">&#8722;</span><span class="lbl">Kasse gerechnet</span>
-          <input type="number" class="ci red result" id="kasseGerTG" readonly placeholder="0.00">
-          <span class="eq">=</span><span class="lbl">Trinkgeld</span>
-          <input type="number" class="ci result" id="trinkgeld" readonly placeholder="0.00">
+
+        <!-- Trinkgeld -->
+        <div class="calc-section" style="border-left-color:var(--gold);margin:0">
+          <div class="calc-title">Trinkgeld</div>
+          <div class="calc-vrow">
+            <span class="lbl">Kasse gezählt</span>
+            <input type="number" class="ci blue" id="kasseGez" placeholder="0.00" step="0.05" oninput="calcAll()" tabindex="2">
+          </div>
+          <div class="calc-vrow">
+            <span class="lbl">&#8722; Kasse gerechnet</span>
+            <input type="number" class="ci red result" id="kasseGerTG" readonly placeholder="0.00">
+          </div>
+          <div class="calc-vrow" style="border-top:1.5px solid var(--border);padding-top:6px;margin-top:4px">
+            <span class="lbl" style="font-weight:700">= Trinkgeld</span>
+            <input type="number" class="ci result" id="trinkgeld" readonly placeholder="0.00">
+          </div>
         </div>
-      </div>
-      <div class="calc-section" style="border-left-color:var(--blue-box)">
-        <div class="calc-title">Barumsatz</div>
-        <div class="calc-row">
-          <span class="lbl">Kasse gemäss Programm</span>
-          <input type="number" class="ci blue result" id="kasseProgrBU" readonly placeholder="0.00">
-          <span class="op">&#8722;</span><span class="lbl">500.&#8211; Anfangsbestand</span>
-          <span class="eq">=</span><span class="lbl">Barumsatz</span>
-          <input type="number" class="ci result" id="barumsatz" readonly placeholder="0.00">
+
+        <!-- Barumsatz -->
+        <div class="calc-section" style="border-left-color:var(--blue-box);margin:0">
+          <div class="calc-title">Barumsatz</div>
+          <div class="calc-vrow">
+            <span class="lbl">Kasse gemäss Programm</span>
+            <input type="number" class="ci blue result" id="kasseProgrBU" readonly placeholder="0.00">
+          </div>
+          <div class="calc-vrow">
+            <span class="lbl">&#8722; 500.– Anfangsbestand</span>
+            <input type="number" class="ci result" value="500.00" readonly style="color:var(--text-mid)">
+          </div>
+          <div class="calc-vrow" style="border-top:1.5px solid var(--border);padding-top:6px;margin-top:4px">
+            <span class="lbl" style="font-weight:700">= Barumsatz</span>
+            <input type="number" class="ci result" id="barumsatz" readonly placeholder="0.00">
+          </div>
         </div>
-      </div>
-      <div class="calc-section" style="border-left-color:var(--red-box)">
-        <div class="calc-title">Prepost</div>
-        <div class="calc-row">
-          <span class="lbl">Kasse gerechnet</span>
-          <input type="number" class="ci red result" id="kasseGerPP" readonly placeholder="0.00">
-          <span class="op">&#8722;</span><span class="lbl">500.&#8211; Anfangsbestand</span>
-          <span class="eq">=</span><span class="lbl">an Prepost</span>
-          <input type="number" class="ci result" id="prepost" readonly placeholder="0.00">
+
+        <!-- Prepost -->
+        <div class="calc-section" style="border-left-color:var(--red-box);margin:0">
+          <div class="calc-title">Prepost</div>
+          <div class="calc-vrow">
+            <span class="lbl">Kasse gerechnet</span>
+            <input type="number" class="ci red result" id="kasseGerPP" readonly placeholder="0.00">
+          </div>
+          <div class="calc-vrow">
+            <span class="lbl">&#8722; 500.– Anfangsbestand</span>
+            <input type="number" class="ci result" value="500.00" readonly style="color:var(--text-mid)">
+          </div>
+          <div class="calc-vrow" style="border-top:1.5px solid var(--border);padding-top:6px;margin-top:4px">
+            <span class="lbl" style="font-weight:700">= an Prepost</span>
+            <input type="number" class="ci result" id="prepost" readonly placeholder="0.00">
+          </div>
         </div>
+
       </div>
       <div class="divider"></div>
     </div>
@@ -544,46 +576,52 @@ function buildPDF(){
   doc.line(ML+CW/2+4,y+7.5,ML+CW,y+7.5);
   y+=13;
 
-  // Calc section helper
-  function calcSection(title,borderCol,items){
-    const h=20;
-    fc(...OFFWH);doc.rect(ML,y,CW,h,'F');
-    fc(...borderCol);doc.rect(ML,y,2.5,h,'F');
-    tc(...GOLD);fnt(10,'bold');doc.text(title,ML+6,y+5.5);
-    let rx=ML+6,ry=y+13;
-    items.forEach(it=>{
-      if(it.t==='label'){tc(...TXTM);fnt(7.5);doc.text(it.v,rx,ry);rx+=doc.getTextWidth(it.v)+2;}
-      else if(it.t==='op'){tc(...TXTM);fnt(9,'bold');doc.text(it.v,rx,ry);rx+=doc.getTextWidth(it.v)+2;}
-      else if(it.t==='static'){tc(...TXTM);fnt(7.5,'italic');doc.text(it.v,rx,ry);rx+=doc.getTextWidth(it.v)+2;}
-      else if(it.t==='val'){
-        const vw=24,vh=5;dc(...(it.c||NAVY));lw(0.5);doc.rect(rx,ry-3.8,vw,vh);
-        tc(...(it.c||NAVY));fnt(8,'bold');doc.text(it.v||'—',rx+vw-1.5,ry-0.2,{align:'right'});rx+=vw+3;
-      }
+  // Vertical calc box helper — draws one box at x,y with given width
+  function calcBox(title, borderCol, rows, bx, by, bw) {
+    const lineH = 7;
+    const bh = 8 + rows.length * lineH + 3;
+    fc(...OFFWH); doc.rect(bx, by, bw, bh, 'F');
+    fc(...borderCol); doc.rect(bx, by, 2.5, bh, 'F');
+    tc(...borderCol); fnt(8, 'bold'); doc.text(title, bx + 6, by + 5.5);
+    let ry = by + 5.5;
+    rows.forEach((row, i) => {
+      ry += lineH;
+      const isLast = i === rows.length - 1;
+      if(isLast) { dc(...GRAYL); lw(0.3); doc.line(bx+6, ry-4.5, bx+bw-2, ry-4.5); }
+      tc(...TXTM); fnt(7); doc.text(row.label, bx + 6, ry);
+      const vw = 26;
+      dc(...(row.c || NAVY)); lw(isLast ? 0.8 : 0.4);
+      doc.rect(bx + bw - vw - 2, ry - 4, vw, 5.2);
+      tc(...(row.c || NAVY)); fnt(isLast ? 8.5 : 7.5, isLast ? 'bold' : 'normal');
+      doc.text(row.v || '—', bx + bw - 3, ry, {align: 'right'});
     });
-    y+=h+2;
+    return bh;
   }
 
-  calcSection('KASSE',BLUE,[
-    {t:'label',v:'Kasse gemäss Programm'},{t:'val',v:fmtChf(getV('kasseProgr')),c:BLUE},
-    {t:'op',v:'−'},{t:'label',v:'Löhne'},{t:'val',v:fmtChf(getV('loehneVal')),c:YELL},
-    {t:'op',v:'='},{t:'label',v:'Kasse gerechnet'},{t:'val',v:fmtChf(getV('kasseGer')),c:RED},
-  ]);
-  calcSection('TRINKGELD',GOLD,[
-    {t:'label',v:'Kasse gezählt'},{t:'val',v:fmtChf(getV('kasseGez')),c:BLUE},
-    {t:'op',v:'−'},{t:'label',v:'Kasse gerechnet'},{t:'val',v:fmtChf(getV('kasseGer')),c:RED},
-    {t:'op',v:'='},{t:'label',v:'Trinkgeld'},{t:'val',v:fmtChf(getV('trinkgeld')),c:NAVY},
-  ]);
-  calcSection('BARUMSATZ',BLUE,[
-    {t:'label',v:'Kasse gemäss Programm'},{t:'val',v:fmtChf(getV('kasseProgr')),c:BLUE},
-    {t:'op',v:'−'},{t:'static',v:'500.– Anfangsbestand'},
-    {t:'op',v:'='},{t:'label',v:'Barumsatz'},{t:'val',v:fmtChf(getV('barumsatz')),c:NAVY},
-  ]);
-  calcSection('PREPOST',RED,[
-    {t:'label',v:'Kasse gerechnet'},{t:'val',v:fmtChf(getV('kasseGer')),c:RED},
-    {t:'op',v:'−'},{t:'static',v:'500.– Anfangsbestand'},
-    {t:'op',v:'='},{t:'label',v:'an Prepost'},{t:'val',v:fmtChf(getV('prepost')),c:NAVY},
-  ]);
-  y+=2;
+  // 2×2 grid of calc boxes
+  const halfW = (CW - 5) / 2;
+  const h1 = calcBox('KASSE', BLUE, [
+    {label: 'Kasse gemäss Programm', v: fmtChf(getV('kasseProgr')), c: BLUE},
+    {label: '− Löhne', v: fmtChf(getV('loehneVal')), c: YELL},
+    {label: '= Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
+  ], ML, y, halfW);
+  const h2 = calcBox('TRINKGELD', GOLD, [
+    {label: 'Kasse gezählt', v: fmtChf(getV('kasseGez')), c: BLUE},
+    {label: '− Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
+    {label: '= Trinkgeld', v: fmtChf(getV('trinkgeld')), c: NAVY},
+  ], ML + halfW + 5, y, halfW);
+  const row1H = Math.max(h1, h2) + 3;
+  const h3 = calcBox('BARUMSATZ', BLUE, [
+    {label: 'Kasse gemäss Programm', v: fmtChf(getV('kasseProgr')), c: BLUE},
+    {label: '− 500.– Anfangsbestand', v: '500.00', c: TXTM},
+    {label: '= Barumsatz', v: fmtChf(getV('barumsatz')), c: NAVY},
+  ], ML, y + row1H, halfW);
+  const h4 = calcBox('PREPOST', RED, [
+    {label: 'Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
+    {label: '− 500.– Anfangsbestand', v: '500.00', c: TXTM},
+    {label: '= an Prepost', v: fmtChf(getV('prepost')), c: NAVY},
+  ], ML + halfW + 5, y + row1H, halfW);
+  y += row1H + Math.max(h3, h4) + 5;
 
   // Staff table
   const colW=[10,55,18,18,16,20,24,33];
