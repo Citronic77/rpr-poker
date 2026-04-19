@@ -135,6 +135,7 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
 .tot-cell{text-align:right;font-weight:700;color:var(--navy);white-space:nowrap}
 .form-footer{padding:1.5rem 2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;border-top:2px solid var(--gray-light)}
 .sig-field{display:flex;flex-direction:column;gap:6px}
+.sig-line{border-bottom:2px solid var(--navy);height:36px}
 .sig-field label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-mid)}
 .sig-line{border-bottom:2px solid var(--navy);height:36px}
 .addr{font-size:13px;color:var(--text-mid);line-height:1.6}
@@ -323,7 +324,11 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
       </div>
       <div class="sig-field">
         <label>Unterschrift Floorman</label>
-        <div class="sig-line"></div>
+        <div style="border:2px solid var(--navy);border-radius:4px;position:relative;background:#fff;">
+          <canvas id="sigCanvas" width="380" height="100" style="display:block;touch-action:none;cursor:crosshair;width:100%;height:100px"></canvas>
+          <button onclick="clearSig()" style="position:absolute;top:4px;right:4px;background:none;border:1px solid var(--border);border-radius:3px;font-size:11px;padding:2px 7px;cursor:pointer;color:var(--text-mid)">✕ Löschen</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-mid);margin-top:3px">Mit Finger oder Stift unterschreiben</div>
       </div>
     </div>
     <div class="legal-box">
@@ -683,9 +688,15 @@ function buildPDF(){
   doc.text('UNTERSCHRIFT FLOORMAN',ML+CW/2+4,y);
   fnt(10,'bold');tc(...NAVY);
   doc.text('Bonnstrasse 22, 3186 Düdingen',ML,y+5.5);
-  lw(0.5);dc(...NAVY);
-  doc.line(ML+CW/2+4,y+9,ML+CW,y+9);
-  y+=15;
+  // Draw signature image if available
+  const sigData = getSigDataUrl();
+  if(sigData) {
+    doc.addImage(sigData, 'PNG', ML+CW/2+4, y+1, 75, 20);
+  } else {
+    lw(0.5);dc(...NAVY);
+    doc.line(ML+CW/2+4,y+18,ML+CW,y+18);
+  }
+  y+=22;
 
   // Legal
   fc(...NAVY);doc.rect(ML-3,y,CW+6,18,'F');
@@ -694,6 +705,83 @@ function buildPDF(){
   doc.text(doc.splitTextToSize(legal,CW),ML,y+5.5);
 
   return doc;
+}
+
+// ── SIGNATURE PAD ──
+let sigDrawing = false;
+let sigLastX = 0, sigLastY = 0;
+
+function initSig() {
+  const canvas = document.getElementById('sigCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#0d1e3d';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / r.width;
+    const scaleY = canvas.height / r.height;
+    if(e.touches) {
+      return {
+        x: (e.touches[0].clientX - r.left) * scaleX,
+        y: (e.touches[0].clientY - r.top) * scaleY
+      };
+    }
+    return {
+      x: (e.clientX - r.left) * scaleX,
+      y: (e.clientY - r.top) * scaleY
+    };
+  }
+
+  function start(e) {
+    e.preventDefault();
+    sigDrawing = true;
+    const pos = getPos(e);
+    sigLastX = pos.x; sigLastY = pos.y;
+    ctx.beginPath();
+    ctx.moveTo(sigLastX, sigLastY);
+  }
+
+  function draw(e) {
+    if(!sigDrawing) return;
+    e.preventDefault();
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(sigLastX, sigLastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    sigLastX = pos.x; sigLastY = pos.y;
+  }
+
+  function stop(e) { sigDrawing = false; }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stop);
+  canvas.addEventListener('mouseleave', stop);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', draw, {passive:false});
+  canvas.addEventListener('touchend', stop);
+}
+
+function clearSig() {
+  const canvas = document.getElementById('sigCanvas');
+  if(!canvas) return;
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function getSigDataUrl() {
+  const canvas = document.getElementById('sigCanvas');
+  if(!canvas) return null;
+  // Check if empty
+  const ctx = canvas.getContext('2d');
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const hasContent = data.some(v => v !== 0);
+  if(!hasContent) return null;
+  return canvas.toDataURL('image/png');
 }
 
 // ── LOKAL DRUCKEN ──
@@ -801,7 +889,7 @@ ${staffLines}
 }
 
 // ── INIT ──
-load();renderEmpList();buildTable();
+load();renderEmpList();buildTable();initSig();
 document.getElementById('datum').value=today();
 document.getElementById('delModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
 document.getElementById('cfgServer').addEventListener('change',checkServer);
