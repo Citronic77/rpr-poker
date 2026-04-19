@@ -717,19 +717,10 @@ ${staffLines}
 
     const pdfBase64 = doc.output('datauristring').split(',')[1];
 
-    setLoader(true, 'E-Mail wird gesendet…', 'An: roger@lehmanncomputer.ch');
-
-    await emailjs.send('service_8eqgfmq', 'template_xwfnid3', {
-      datum: fmtDate(datum),
-      verantw: getV('verantw') || '—',
-      summary: summary,
-      filename: filename,
-      pdf_attachment: pdfBase64,
-    });
-
-    // Save to server + get download link
+    // 1. Zuerst PDF auf Server speichern → Link erhalten
+    setLoader(true, 'PDF wird gespeichert…', '');
     const serverUrl = document.getElementById('cfgServer').value.trim();
-    let pdfLink = '';
+    let pdfUrl = '';
     if(serverUrl) {
       try {
         const resp = await fetch(serverUrl + '/api/gastro/send', {
@@ -738,12 +729,22 @@ ${staffLines}
           body: JSON.stringify({ pdfBase64, filename, datum: fmtDate(datum), summary }),
         });
         const data = await resp.json();
-        if(data.pdfUrl) pdfLink = '  |  <a href="' + data.pdfUrl + '" target="_blank" style="color:#4ade80">PDF Download</a>';
+        if(data.pdfUrl) pdfUrl = data.pdfUrl;
       } catch(e) {}
     }
 
+    // 2. Dann EmailJS mit PDF-Link
+    setLoader(true, 'E-Mail wird gesendet…', 'An: roger@lehmanncomputer.ch');
+    await emailjs.send('service_8eqgfmq', 'template_xwfnid3', {
+      datum: fmtDate(datum),
+      verantw: getV('verantw') || '—',
+      summary: summary,
+      filename: filename,
+      pdf_url: pdfUrl || '(kein Link verfügbar)',
+    });
+
     setLoader(false);
-    showNotif('success', '✓ E-Mail gesendet', `Gastro-Abrechnung ${fmtDate(datum)} gesendet an roger@lehmanncomputer.ch${pdfLink ? ' · PDF-Link in E-Mail' : ''}`, 8000);
+    showNotif('success', '✓ E-Mail gesendet', `Gastro-Abrechnung ${fmtDate(datum)} gesendet · ${pdfUrl ? 'PDF-Link in E-Mail' : ''}`, 8000);
 
   } catch(err) {
     setLoader(false);
