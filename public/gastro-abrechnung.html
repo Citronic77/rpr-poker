@@ -595,7 +595,7 @@ function calcAll(){
   sv('kasseGer',ger);sv('kasseGerTG',ger);sv('kasseGerPP',ger);
   sv('kasseProgrBU',prog);sv('trinkgeld',gez-ger);sv('barumsatz',prog-500);sv('prepost',ger-500);
 }
-function sv(id,val){const el=document.getElementById(id);if(el)el.value=isNaN(val)?'':val.toFixed(2);}
+function sv(id,val){const el=document.getElementById(id);if(!el)return;const n=parseFloat(val);el.value=(val===''||val===null||val===undefined||isNaN(n))?'':n.toFixed(2);}
 function getV(id){return document.getElementById(id)?.value||'';}
 function fmtDate(d){return d?d.split('-').reverse().join('.'):'—';}
 function fmtChf(v){if(!v&&v!=='0')return'—';const n=parseFloat(v);return isNaN(n)?'—':n.toFixed(2);}
