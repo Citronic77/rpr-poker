@@ -1,11 +1,11 @@
 {
   "smtp": {
     "host": "smtp.senselan.ch",
-    "port": 587,
+    "port": 465,
     "user": "smtp-lc@sensemail.ch",
     "pass": "31LcSMtP86++"
   },
   "recipient": "roger@lehmanncomputer.ch",
-  "printer": "",  
+  "printer": "",
   "serverPort": 3000
 }
