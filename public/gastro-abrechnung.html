@@ -223,7 +223,7 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
     <div class="form-body">
       <div class="top-row">
         <div class="field-group"><label>Datum</label><input type="date" id="datum"></div>
-        <div class="field-group"><label>Verantwortlich</label><select id="verantw" style="border:none;border-bottom:2px solid var(--navy);padding:6px 0;font-family:'Barlow',sans-serif;font-size:15px;font-weight:500;color:var(--text-dark);background:transparent;outline:none;width:100%;-webkit-appearance:none;appearance:none;cursor:pointer"><option value="">— wählen —</option></select></div>
+        <div class="field-group"><label>Verantwortlich</label><select id="verantw" onchange="saveForm()" style="border:none;border-bottom:2px solid var(--navy);padding:6px 0;font-family:'Barlow',sans-serif;font-size:15px;font-weight:500;color:var(--text-dark);background:transparent;outline:none;width:100%;-webkit-appearance:none;appearance:none;cursor:pointer"><option value="">— wählen —</option></select></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
 
@@ -232,7 +232,7 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
           <div class="calc-title">Kasse</div>
           <div class="calc-vrow">
             <span class="lbl">Kasse gemäss Programm</span>
-            <input type="number" class="ci blue" id="kasseProgr" placeholder="0.00" step="0.05" oninput="calcAll()" tabindex="1">
+            <input type="number" class="ci blue" id="kasseProgr" placeholder="0.00" step="0.05" oninput="calcAll();saveForm()" tabindex="1">
           </div>
           <div class="calc-vrow">
             <span class="lbl">&#8722; Löhne</span>
@@ -249,7 +249,7 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
           <div class="calc-title">Trinkgeld</div>
           <div class="calc-vrow">
             <span class="lbl">Kasse gezählt</span>
-            <input type="number" class="ci blue" id="kasseGez" placeholder="0.00" step="0.05" oninput="calcAll()" tabindex="2">
+            <input type="number" class="ci blue" id="kasseGez" placeholder="0.00" step="0.05" oninput="calcAll();saveForm()" tabindex="2">
           </div>
           <div class="calc-vrow">
             <span class="lbl">&#8722; Kasse gerechnet</span>
@@ -367,7 +367,57 @@ const ROWS=4, PRICE=25;
 let employees=[], pendingDel=null;
 
 // ── STORAGE ──
-function save(){try{localStorage.setItem('uq_emp',JSON.stringify(employees));}catch(e){}}
+function save(){
+  try{
+    localStorage.setItem('uq_emp', JSON.stringify(employees));
+  } catch(e){}
+}
+
+function saveForm(){
+  try{
+    const form = {
+      datum: getV('datum'),
+      verantw: getV('verantw'),
+      kasseProgr: getV('kasseProgr'),
+      kasseGez: getV('kasseGez'),
+      rows: []
+    };
+    for(let i=1;i<=ROWS;i++){
+      form.rows.push({
+        name: document.getElementById('name'+i)?.value || '',
+        von: document.getElementById('von'+i)?.value || '',
+        bis: document.getElementById('bis'+i)?.value || '',
+      });
+    }
+    localStorage.setItem('uq_form', JSON.stringify(form));
+  } catch(e){}
+}
+
+function loadForm(){
+  try{
+    const d = localStorage.getItem('uq_form');
+    if(!d) return;
+    const form = JSON.parse(d);
+    if(form.datum) document.getElementById('datum').value = form.datum;
+    if(form.verantw) document.getElementById('verantw').value = form.verantw;
+    if(form.kasseProgr) document.getElementById('kasseProgr').value = form.kasseProgr;
+    if(form.kasseGez) document.getElementById('kasseGez').value = form.kasseGez;
+    if(form.rows) {
+      form.rows.forEach((row, idx) => {
+        const i = idx + 1;
+        if(document.getElementById('name'+i)) document.getElementById('name'+i).value = row.name || '';
+        if(document.getElementById('von'+i)) { document.getElementById('von'+i).value = row.von || ''; if(row.von) validateTime(document.getElementById('von'+i), i); }
+        if(document.getElementById('bis'+i)) { document.getElementById('bis'+i).value = row.bis || ''; if(row.bis) validateTime(document.getElementById('bis'+i), i); }
+      });
+    }
+    calcAll(); syncLoehne();
+  } catch(e){}
+}
+
+function clearFormStorage(){
+  try{ localStorage.removeItem('uq_form'); } catch(e){}
+}
+
 function load(){try{const d=localStorage.getItem('uq_emp');if(d)employees=JSON.parse(d);}catch(e){}}
 
 // ── SERVER CHECK ──
@@ -420,9 +470,9 @@ function buildTable(){
   for(let i=1;i<=ROWS;i++){
     const tr=document.createElement('tr');
     tr.innerHTML=`<td class="c">${i}</td>
-      <td><select class="tsel" id="name${i}" tabindex="${2+i*3-2}"><option value="">— wählen —</option></select></td>
-      <td><input class="ttime" type="text" id="von${i}" tabindex="${2+i*3-1}" placeholder="18:00" maxlength="5" oninput="handleTimeInput(this,${i})" onblur="validateTime(this,${i})"></td>
-      <td><input class="ttime" type="text" id="bis${i}" tabindex="${2+i*3}" placeholder="23:00" maxlength="5" oninput="handleTimeInput(this,${i})" onblur="validateTime(this,${i})"></td>
+      <td><select class="tsel" id="name${i}" tabindex="${2+i*3-2}" onchange="saveForm()"><option value="">— wählen —</option></select></td>
+      <td><input class="ttime" type="text" id="von${i}" tabindex="${2+i*3-1}" placeholder="18:00" maxlength="5" oninput="handleTimeInput(this,${i});saveForm()" onblur="validateTime(this,${i})"></td>
+      <td><input class="ttime" type="text" id="bis${i}" tabindex="${2+i*3}" placeholder="23:00" maxlength="5" oninput="handleTimeInput(this,${i});saveForm()" onblur="validateTime(this,${i})"></td>
       <td class="std-cell" id="std${i}">—</td>
       <td class="r" style="color:var(--text-mid);font-weight:600;">25.00</td>
       <td class="tot-cell" id="tot${i}">—</td>
@@ -530,6 +580,7 @@ function resetForm(){
   document.getElementById('totalLoehne').textContent='0.00';
   document.getElementById('loehneVal').value='';
   for(let i=1;i<=ROWS;i++) clearStaffSig(i);
+  clearFormStorage();
 }
 
 // ── NOTIFICATION ──
@@ -942,6 +993,7 @@ ${staffLines}
     });
 
     setLoader(false);
+    clearFormStorage();
     showNotif('success', '✓ E-Mail gesendet', `Gastro-Abrechnung ${fmtDate(datum)} gesendet · ${pdfUrl ? 'PDF-Link in E-Mail' : ''}`, 8000);
 
   } catch(err) {
@@ -953,7 +1005,7 @@ ${staffLines}
 }
 
 // ── INIT ──
-load();renderEmpList();buildTable();initSig();
+load();renderEmpList();buildTable();initSig();loadForm();
 document.getElementById('datum').value=today();
 document.getElementById('delModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
 document.getElementById('cfgServer').addEventListener('change',checkServer);
