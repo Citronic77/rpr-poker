@@ -615,11 +615,11 @@ function resetForm(){
     document.getElementById('bis'+i).classList.remove('invalid');
     document.getElementById('std'+i).textContent='—';
     document.getElementById('tot'+i).textContent='—';
-    document.getElementById('sig'+i).value='';
   }
   document.getElementById('totalLoehne').textContent='0.00';
   document.getElementById('loehneVal').value='';
   for(let i=1;i<=ROWS;i++) clearStaffSig(i);
+  clearSig(); // Floorman Unterschrift
   clearFormStorage();
 }
 
@@ -1034,6 +1034,20 @@ ${staffLines}
 
     setLoader(false);
     clearFormStorage();
+    // Reset form after successful send
+    document.getElementById('verantw').value='';
+    ['kasseProgr','loehneVal','kasseGez'].forEach(id=>document.getElementById(id).value='');
+    ['kasseGer','kasseGerTG','kasseGerPP','kasseProgrBU','trinkgeld','barumsatz','prepost'].forEach(id=>sv(id,''));
+    for(let i=1;i<=ROWS;i++){
+      document.getElementById('name'+i).value='';
+      document.getElementById('von'+i).value='';
+      document.getElementById('bis'+i).value='';
+      document.getElementById('std'+i).textContent='—';
+      document.getElementById('tot'+i).textContent='—';
+    }
+    document.getElementById('totalLoehne').textContent='0.00';
+    for(let j=1;j<=ROWS;j++) clearStaffSig(j);
+    clearSig();
     showNotif('success', '✓ E-Mail gesendet', `Gastro-Abrechnung ${fmtDate(datum)} gesendet · ${pdfUrl ? 'PDF-Link in E-Mail' : ''}`, 8000);
 
   } catch(err) {
