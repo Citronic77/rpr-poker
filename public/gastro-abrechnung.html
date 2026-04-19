@@ -603,24 +603,18 @@ function today(){return new Date().toISOString().split('T')[0];}
 
 function resetForm(){
   if(!confirm('Formular wirklich zurücksetzen?'))return;
-  document.getElementById('datum').value=today();
-  document.getElementById('verantw').value='';
-  ['kasseProgr','loehneVal','kasseGez'].forEach(id=>document.getElementById(id).value='');
-  ['kasseGer','kasseGerTG','kasseGerPP','kasseProgrBU','trinkgeld','barumsatz','prepost'].forEach(id=>sv(id,''));
-  for(let i=1;i<=ROWS;i++){
-    document.getElementById('name'+i).value='';
-    document.getElementById('von'+i).value='';
-    document.getElementById('von'+i).classList.remove('invalid');
-    document.getElementById('bis'+i).value='';
-    document.getElementById('bis'+i).classList.remove('invalid');
-    document.getElementById('std'+i).textContent='—';
-    document.getElementById('tot'+i).textContent='—';
-  }
-  document.getElementById('totalLoehne').textContent='0.00';
-  document.getElementById('loehneVal').value='';
-  for(let i=1;i<=ROWS;i++) clearStaffSig(i);
-  clearSig(); // Floorman Unterschrift
   clearFormStorage();
+  // Rebuild table (clears all rows including canvases)
+  buildTable();
+  // Reset header fields
+  document.getElementById('datum').value = today();
+  document.getElementById('verantw').value = '';
+  // Reset calc fields
+  ['kasseProgr','kasseGez'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['kasseGer','kasseGerTG','kasseGerPP','kasseProgrBU','trinkgeld','barumsatz','prepost','loehneVal'].forEach(id => sv(id,''));
+  document.getElementById('totalLoehne').textContent = '0.00';
+  // Clear floor signature
+  clearSig();
 }
 
 // ── NOTIFICATION ──
@@ -1035,18 +1029,12 @@ ${staffLines}
     setLoader(false);
     clearFormStorage();
     // Reset form after successful send
-    document.getElementById('verantw').value='';
-    ['kasseProgr','loehneVal','kasseGez'].forEach(id=>document.getElementById(id).value='');
-    ['kasseGer','kasseGerTG','kasseGerPP','kasseProgrBU','trinkgeld','barumsatz','prepost'].forEach(id=>sv(id,''));
-    for(let i=1;i<=ROWS;i++){
-      document.getElementById('name'+i).value='';
-      document.getElementById('von'+i).value='';
-      document.getElementById('bis'+i).value='';
-      document.getElementById('std'+i).textContent='—';
-      document.getElementById('tot'+i).textContent='—';
-    }
-    document.getElementById('totalLoehne').textContent='0.00';
-    for(let j=1;j<=ROWS;j++) clearStaffSig(j);
+    buildTable();
+    document.getElementById('datum').value = today();
+    document.getElementById('verantw').value = '';
+    ['kasseProgr','kasseGez'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    ['kasseGer','kasseGerTG','kasseGerPP','kasseProgrBU','trinkgeld','barumsatz','prepost','loehneVal'].forEach(id => sv(id,''));
+    document.getElementById('totalLoehne').textContent = '0.00';
     clearSig();
     showNotif('success', '✓ E-Mail gesendet', `Gastro-Abrechnung ${fmtDate(datum)} gesendet · ${pdfUrl ? 'PDF-Link in E-Mail' : ''}`, 8000);
 
