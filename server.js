@@ -514,6 +514,19 @@ setInterval(() => {
   });
 }, 30000);
 
+// ── Gastro PDF Download ──
+const GASTRO_PDF_DIR = path.join(__dirname, 'public', 'gastro-pdfs');
+if (!fs.existsSync(GASTRO_PDF_DIR)) fs.mkdirSync(GASTRO_PDF_DIR, { recursive: true });
+
+app.get('/gastro-pdf/:filename', (req, res) => {
+  const filename = path.basename(req.params.filename); // security: no path traversal
+  const filePath = path.join(GASTRO_PDF_DIR, filename);
+  if (!fs.existsSync(filePath)) return res.status(404).send('PDF nicht gefunden');
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.sendFile(filePath);
+});
+
 // ── Gastro-Abrechnung API ──
 app.get('/api/gastro/health', (req, res) => {
   if (!gastroCfg) return res.status(503).json({ ok: false, error: 'gastro-config.json fehlt' });
@@ -529,11 +542,20 @@ app.post('/api/gastro/send', express.json({ limit: '20mb' }), async (req, res) =
   const archivPath = path.join(ARCHIV_DIR, filename);
   const results = { email: false, archiv: false, druck: false, errors: [] };
 
-  // Archivieren
+  // Archivieren (privat)
   try {
     fs.writeFileSync(archivPath, pdfBuffer);
     results.archiv = true;
   } catch (err) { results.errors.push('Archivieren: ' + err.message); }
+
+  // Öffentlicher PDF-Link
+  let pdfDownloadUrl = null;
+  try {
+    const publicPdfPath = path.join(GASTRO_PDF_DIR, filename);
+    fs.writeFileSync(publicPdfPath, pdfBuffer);
+    const baseUrl = req.protocol + '://' + req.get('host');
+    pdfDownloadUrl = baseUrl + '/gastro-pdf/' + encodeURIComponent(filename);
+  } catch (err) { results.errors.push('PDF-Link: ' + err.message); }
 
   // E-Mail — mit Timeout damit der Server nicht hängt
   const emailPromise = (async () => {
@@ -545,7 +567,13 @@ app.post('/api/gastro/send', express.json({ limit: '20mb' }), async (req, res) =
       <div style="background:#f8f7f4;padding:24px;border:1px solid #e8e6e0;border-top:none;border-radius:0 0 6px 6px">
         <h2 style="color:#0d1e3d;margin:0 0 16px">Gastro-Abrechnung ${datum || ''}</h2>
         <pre style="background:#fff;border:1px solid #e8e6e0;border-radius:4px;padding:16px;font-size:13px;line-height:1.7;white-space:pre-wrap">${summary || ''}</pre>
+        ${pdfDownloadUrl ? `<div style="margin-top:20px;text-align:center">
+          <a href="${pdfDownloadUrl}" style="background:#0d1e3d;color:#f5a623;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:.05em">
+            &#128196; PDF herunterladen
+          </a>
+        </div>` : ''}
       </div>
+      <p style="font-size:11px;color:#a0aec0;text-align:center;margin-top:12px">Bonnstrasse 22, 3186 Düdingen · poker@rpr.duedingen.ch</p>
     </div>`;
     await mailer.sendMail({
       from: `"UNIQUE Gastro" <${gastroCfg.smtp.user}>`,
@@ -569,7 +597,7 @@ app.post('/api/gastro/send', express.json({ limit: '20mb' }), async (req, res) =
   results.druck = true; // Als OK markieren damit UI nicht rot wird
   
   const allOk = results.email && results.archiv;
-  res.status(200).json({ ok: true, results, errors: results.errors });
+  res.status(200).json({ ok: true, results, errors: results.errors, pdfUrl: pdfDownloadUrl });
 });
 
 server.listen(PORT, () => {
