@@ -219,13 +219,13 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
     <div class="form-body">
       <div class="top-row">
         <div class="field-group"><label>Datum</label><input type="date" id="datum"></div>
-        <div class="field-group"><label>Verantwortlich</label><input type="text" id="verantw" placeholder="Name eingeben…"></div>
+        <div class="field-group"><label>Verantwortlich</label><select id="verantw" style="border:none;border-bottom:2px solid var(--navy);padding:6px 0;font-family:'Barlow',sans-serif;font-size:15px;font-weight:500;color:var(--text-dark);background:transparent;outline:none;width:100%;-webkit-appearance:none;appearance:none;cursor:pointer"><option value="">— wählen —</option></select></div>
       </div>
       <div class="calc-section" style="border-left-color:var(--blue-box)">
         <div class="calc-title">Kasse</div>
         <div class="calc-row">
           <span class="lbl">Kasse gemäss Programm</span>
-          <input type="number" class="ci blue" id="kasseProgr" placeholder="0.00" step="0.05" oninput="calcAll()">
+          <input type="number" class="ci blue" id="kasseProgr" placeholder="0.00" step="0.05" oninput="calcAll()" tabindex="1">
           <span class="op">&#8722;</span><span class="lbl">Löhne</span>
           <input type="number" class="ci yellow" id="loehneVal" placeholder="0.00" step="0.05" oninput="calcAll()">
           <span class="eq">=</span><span class="lbl">Kasse gerechnet</span>
@@ -236,7 +236,7 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
         <div class="calc-title">Trinkgeld</div>
         <div class="calc-row">
           <span class="lbl">Kasse gezählt</span>
-          <input type="number" class="ci blue" id="kasseGez" placeholder="0.00" step="0.05" oninput="calcAll()">
+          <input type="number" class="ci blue" id="kasseGez" placeholder="0.00" step="0.05" oninput="calcAll()" tabindex="2">
           <span class="op">&#8722;</span><span class="lbl">Kasse gerechnet</span>
           <input type="number" class="ci red result" id="kasseGerTG" readonly placeholder="0.00">
           <span class="eq">=</span><span class="lbl">Trinkgeld</span>
@@ -383,9 +383,9 @@ function buildTable(){
   for(let i=1;i<=ROWS;i++){
     const tr=document.createElement('tr');
     tr.innerHTML=`<td class="c">${i}</td>
-      <td><select class="tsel" id="name${i}"><option value="">— wählen —</option></select></td>
-      <td><input class="ttime" type="text" id="von${i}" placeholder="18:00" maxlength="5" oninput="handleTimeInput(this,${i})" onblur="validateTime(this,${i})"></td>
-      <td><input class="ttime" type="text" id="bis${i}" placeholder="23:00" maxlength="5" oninput="handleTimeInput(this,${i})" onblur="validateTime(this,${i})"></td>
+      <td><select class="tsel" id="name${i}" tabindex="${2+i*3-2}"><option value="">— wählen —</option></select></td>
+      <td><input class="ttime" type="text" id="von${i}" tabindex="${2+i*3-1}" placeholder="18:00" maxlength="5" oninput="handleTimeInput(this,${i})" onblur="validateTime(this,${i})"></td>
+      <td><input class="ttime" type="text" id="bis${i}" tabindex="${2+i*3}" placeholder="23:00" maxlength="5" oninput="handleTimeInput(this,${i})" onblur="validateTime(this,${i})"></td>
       <td class="std-cell" id="std${i}">—</td>
       <td class="r" style="color:var(--text-mid);font-weight:600;">25.00</td>
       <td class="tot-cell" id="tot${i}">—</td>
@@ -395,10 +395,18 @@ function buildTable(){
   refreshSelects();
 }
 function refreshSelects(){
+  // Staff table selects
   for(let i=1;i<=ROWS;i++){
     const sel=document.getElementById('name'+i);if(!sel)continue;
     const cur=sel.value;sel.innerHTML='<option value="">— wählen —</option>';
     employees.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;if(n===cur)o.selected=true;sel.appendChild(o);});
+  }
+  // Verantwortlich dropdown
+  const vSel=document.getElementById('verantw');
+  if(vSel){
+    const cur=vSel.value;
+    vSel.innerHTML='<option value="">— wählen —</option>';
+    employees.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;if(n===cur)o.selected=true;vSel.appendChild(o);});
   }
 }
 function handleTimeInput(el, i) {
