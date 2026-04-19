@@ -621,7 +621,7 @@ function buildPDF(){
   // 2×2 grid of calc boxes
   const halfW = (CW - 5) / 2;
   const h1 = calcBox('KASSE', BLUE, [
-    {label: 'Kasse gemäss Programm', v: fmtChf(getV('kasseProgr')), c: BLUE},
+    {label: 'Kasse Programm', v: fmtChf(getV('kasseProgr')), c: BLUE},
     {label: '− Löhne', v: fmtChf(getV('loehneVal')), c: YELL},
     {label: '= Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
   ], ML, y, halfW);
@@ -632,13 +632,13 @@ function buildPDF(){
   ], ML + halfW + 5, y, halfW);
   const row1H = Math.max(h1, h2) + 3;
   const h3 = calcBox('BARUMSATZ', BLUE, [
-    {label: 'Kasse gemäss Programm', v: fmtChf(getV('kasseProgr')), c: BLUE},
-    {label: '− 500.– Anfangsbestand', v: '500.00', c: TXTM},
+    {label: 'Kasse Programm', v: fmtChf(getV('kasseProgr')), c: BLUE},
+    {label: '− Anfangsbestand', v: 'CHF 500.00', c: TXTM},
     {label: '= Barumsatz', v: fmtChf(getV('barumsatz')), c: NAVY},
   ], ML, y + row1H, halfW);
   const h4 = calcBox('PREPOST', RED, [
     {label: 'Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
-    {label: '− 500.– Anfangsbestand', v: '500.00', c: TXTM},
+    {label: '− Anfangsbestand', v: 'CHF 500.00', c: TXTM},
     {label: '= an Prepost', v: fmtChf(getV('prepost')), c: NAVY},
   ], ML + halfW + 5, y + row1H, halfW);
   y += row1H + Math.max(h3, h4) + 5;
