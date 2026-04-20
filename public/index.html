@@ -364,6 +364,7 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
           <div class="gastro-card-icon">🔋</div>
           <div class="gastro-card-title">Powerbank Verleih</div>
           <div class="gastro-card-sub">10 Powerbanks inkl. Kabel</div>
+          <div id="pb-status" style="margin-top:4px;font-size:11px;font-weight:600;display:none"></div>
         </div>
       </a>
 
@@ -534,6 +535,7 @@ function showTab(t) {
   if(t === 'dealer') renderDealerSel();
   if(t === 'floor') renderFloor();
   if(t === 'ft') renderFT();
+  if(t === 'gastro') renderGastro();
 }
 
 // ── DEALER ──
@@ -860,6 +862,23 @@ function renderFT() {
       </div>` : ''}
     </div>`;
   }).join('');
+}
+
+// ── GASTRO ──
+function renderGastro() {
+  const el = document.getElementById('pb-status');
+  if(!el) return;
+  try {
+    const d = localStorage.getItem('uq_powerbanks');
+    const loans = d ? JSON.parse(d) : [];
+    if(loans.length === 0) {
+      el.style.display = 'none';
+    } else {
+      el.style.display = 'block';
+      el.style.color = '#E24B4A';
+      el.textContent = '🔴 ' + loans.length + ' aktive Ausleihe' + (loans.length > 1 ? 'n' : '');
+    }
+  } catch(e) { el.style.display = 'none'; }
 }
 
 function toggleNotif(){
