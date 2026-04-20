@@ -1014,8 +1014,16 @@ ${staffLines}
           body: JSON.stringify({ pdfBase64, filename, datum: fmtDate(datum), summary }),
         });
         const data = await resp.json();
-        if(data.pdfUrl) pdfUrl = data.pdfUrl;
-      } catch(e) {}
+        console.log('Server response:', JSON.stringify(data));
+        if(data.pdfUrl) {
+          pdfUrl = data.pdfUrl;
+          console.log('PDF URL:', pdfUrl);
+        } else {
+          console.warn('No pdfUrl in response:', data);
+        }
+      } catch(e) {
+        console.error('Fetch error:', e.message);
+      }
     }
 
     // 2. Dann EmailJS mit PDF-Link
