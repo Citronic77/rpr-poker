@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Powerbank Verleih — UNIQUE</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0d1e3d;
+  --navy-light: #1a3060;
+  --gold: #f5a623;
+  --gold-dark: #d4891a;
+  --bg: #f0ede8;
+  --card: #fff;
+  --border: #e0ddd8;
+  --text: #0d1e3d;
+  --text2: #4a5568;
+  --green: #16a34a;
+  --green-bg: #f0fdf4;
+  --green-border: #86efac;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --red-border: #fca5a5;
+  --amber: #d97706;
+  --amber-bg: #fffbeb;
+  --amber-border: #fcd34d;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  background: var(--navy);
+  padding: 14px 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header-logo { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #fff; letter-spacing: .15em; }
+.header-sub { font-size: 10px; color: var(--gold); letter-spacing: .2em; text-transform: uppercase; margin-top: 1px; }
+.header-badge { background: var(--gold); color: var(--navy); padding: 6px 14px; border-radius: 3px; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 900; letter-spacing: .05em; }
+
+/* LAYOUT */
+.page { max-width: 480px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+
+/* SECTION */
+.section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .15em; text-transform: uppercase;
+  color: var(--text2); margin-bottom: .6rem;
+}
+
+/* POWERBANK GRID */
+.pb-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+.pb-btn {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .15s;
+  position: relative;
+  padding: 6px 4px;
+}
+.pb-btn:hover:not(.pb-lent) { border-color: var(--gold); background: #fffbeb; }
+.pb-btn.pb-selected { border-color: var(--gold); background: #fffbeb; box-shadow: 0 0 0 3px rgba(245,166,35,.2); }
+.pb-btn.pb-lent { background: var(--red-bg); border-color: var(--red-border); cursor: default; }
+.pb-btn.pb-lent:hover { background: var(--red-bg); }
+.pb-num { font-size: 20px; font-weight: 700; color: var(--navy); line-height: 1; }
+.pb-icon { font-size: 16px; line-height: 1; margin-bottom: 2px; }
+.pb-lent .pb-num { color: var(--red); }
+.pb-lent-name { font-size: 8px; color: var(--red); font-weight: 600; text-align: center; line-height: 1.2; margin-top: 2px; overflow: hidden; max-height: 20px; word-break: break-word; }
+
+/* FORM CARD */
+.form-card {
+  background: var(--card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.form-card-header {
+  background: var(--navy-light);
+  padding: 10px 1rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--gold);
+}
+.form-card-body { padding: 1rem; display: flex; flex-direction: column; gap: 12px; }
+
+.field label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text2); display: block; margin-bottom: 5px; }
+.field select, .field input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px; font-weight: 500;
+  color: var(--text);
+  background: #fff;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.field select:focus, .field input:focus { border-color: var(--gold); }
+
+/* DEPOT OPTIONS */
+.depot-options { display: flex; gap: 8px; }
+.depot-opt {
+  flex: 1;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  background: #fff;
+}
+.depot-opt:hover { border-color: var(--navy); }
+.depot-opt.selected { border-color: var(--navy); background: #f0f4ff; }
+.depot-opt-icon { font-size: 22px; margin-bottom: 4px; }
+.depot-opt-label { font-size: 12px; font-weight: 700; color: var(--navy); }
+.depot-opt-sub { font-size: 10px; color: var(--text2); margin-top: 1px; }
+
+/* BUTTONS */
+.btn-verleihen {
+  width: 100%;
+  padding: 14px;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px; font-weight: 900;
+  letter-spacing: .05em;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-verleihen:hover:not(:disabled) { background: var(--gold-dark); }
+.btn-verleihen:disabled { opacity: .4; cursor: not-allowed; }
+
+/* AKTIVE AUSLEIHEN */
+.lend-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+.lend-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lend-pb {
+  width: 36px; height: 36px;
+  background: var(--navy);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 900; color: var(--gold);
+  flex-shrink: 0;
+}
+.lend-info { flex: 1; }
+.lend-name { font-size: 14px; font-weight: 600; color: var(--navy); }
+.lend-meta { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.lend-depot {
+  font-size: 11px; font-weight: 600;
+  padding: 3px 8px; border-radius: 99px;
+}
+.lend-depot.ausweis { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.lend-depot.geld { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.btn-return {
+  padding: 6px 12px;
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 12px; font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.btn-return:hover { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+
+.empty-state { text-align: center; padding: 1.5rem; color: var(--text2); font-size: 13px; background: var(--card); border-radius: 10px; border: 1px solid var(--border); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--navy); color: #fff;
+  padding: 10px 20px; border-radius: 99px;
+  font-size: 13px; font-weight: 500;
+  opacity: 0; transition: all .3s; pointer-events: none; white-space: nowrap;
+  z-index: 999;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-logo">UNIQUE</div>
+    <div class="header-sub">Poker &amp; Sport Lounge</div>
+  </div>
+  <div class="header-badge">🔋 Powerbank Verleih</div>
+</div>
+
+<div class="page">
+
+  <!-- Powerbank Auswahl -->
+  <div class="section-title">Powerbank wählen</div>
+  <div class="pb-grid" id="pbGrid"></div>
+
+  <!-- Formular -->
+  <div class="form-card">
+    <div class="form-card-header">Ausleihe erfassen</div>
+    <div class="form-card-body">
+
+      <div class="field">
+        <label>Powerbank</label>
+        <select id="selPB">
+          <option value="">— Powerbank wählen —</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Spieler</label>
+        <input type="text" id="inpSpieler" placeholder="Name eingeben…" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>Depot</label>
+        <div class="depot-options">
+          <div class="depot-opt" id="depotAusweis" onclick="selectDepot('ausweis')">
+            <div class="depot-opt-icon">🪪</div>
+            <div class="depot-opt-label">Ausweis</div>
+            <div class="depot-opt-sub">Hinterlegt</div>
+          </div>
+          <div class="depot-opt" id="depotGeld" onclick="selectDepot('geld')">
+            <div class="depot-opt-icon">💵</div>
+            <div class="depot-opt-label">CHF 20.–</div>
+            <div class="depot-opt-sub">Hinterlegt</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-verleihen" id="btnVerleihen" onclick="verleihen()" disabled>
+        🔋 Verleihen
+      </button>
+    </div>
+  </div>
+
+  <!-- Aktive Ausleihen -->
+  <div class="section-title">Aktive Ausleihen</div>
+  <div id="lendList"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'uq_powerbanks';
+let depot = null;
+let loans = [];
+
+// Load from localStorage
+function loadData() {
+  try {
+    const d = localStorage.getItem(STORAGE_KEY);
+    if(d) loans = JSON.parse(d);
+  } catch(e) {}
+}
+
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(loans)); } catch(e) {}
+}
+
+function getLentPBs() { return loans.map(l => l.pb); }
+
+// Render powerbank grid
+function renderGrid() {
+  const grid = document.getElementById('pbGrid');
+  const lent = getLentPBs();
+  grid.innerHTML = '';
+  for(let i = 1; i <= 10; i++) {
+    const isLent = lent.includes(i);
+    const loan = loans.find(l => l.pb === i);
+    const selPB = parseInt(document.getElementById('selPB').value);
+    const isSelected = selPB === i;
+    const div = document.createElement('div');
+    div.className = 'pb-btn' + (isLent ? ' pb-lent' : '') + (isSelected && !isLent ? ' pb-selected' : '');
+    div.innerHTML = `<div class="pb-icon">${isLent ? '🔴' : '🔋'}</div>
+      <div class="pb-num">${i}</div>
+      ${isLent && loan ? `<div class="pb-lent-name">${loan.spieler.split(' ')[0]}</div>` : ''}`;
+    if(!isLent) {
+      div.onclick = () => {
+        document.getElementById('selPB').value = i;
+        validateForm();
+        renderGrid();
+      };
+    }
+    grid.appendChild(div);
+  }
+}
+
+// Render active loans
+function renderLoans() {
+  const list = document.getElementById('lendList');
+  if(!loans.length) {
+    list.innerHTML = '<div class="empty-state">🔋 Keine aktiven Ausleihen</div>';
+    return;
+  }
+  list.innerHTML = loans.map((l, idx) => `
+    <div class="lend-item">
+      <div class="lend-pb">${l.pb}</div>
+      <div class="lend-info">
+        <div class="lend-name">${l.spieler}</div>
+        <div class="lend-meta">Seit ${l.time} · inkl. Kabel</div>
+      </div>
+      <div class="lend-depot ${l.depot}">${l.depot === 'ausweis' ? '🪪 Ausweis' : '💵 20.–'}</div>
+      <button class="btn-return" onclick="returnPB(${idx})">↩ Zurück</button>
+    </div>
+  `).join('');
+}
+
+// Update selPB options
+function renderSelect() {
+  const sel = document.getElementById('selPB');
+  const cur = sel.value;
+  const lent = getLentPBs();
+  sel.innerHTML = '<option value="">— Powerbank wählen —</option>';
+  for(let i = 1; i <= 10; i++) {
+    if(!lent.includes(i)) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = 'Powerbank ' + i;
+      if(parseInt(cur) === i) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+}
+
+function selectDepot(type) {
+  depot = type;
+  document.getElementById('depotAusweis').classList.toggle('selected', type === 'ausweis');
+  document.getElementById('depotGeld').classList.toggle('selected', type === 'geld');
+  validateForm();
+}
+
+function validateForm() {
+  const pb = document.getElementById('selPB').value;
+  const name = document.getElementById('inpSpieler').value.trim();
+  document.getElementById('btnVerleihen').disabled = !pb || !name || !depot;
+}
+
+function ftime() {
+  const d = new Date();
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+function verleihen() {
+  const pb = parseInt(document.getElementById('selPB').value);
+  const spieler = document.getElementById('inpSpieler').value.trim();
+  if(!pb || !spieler || !depot) return;
+
+  loans.push({ pb, spieler, depot, time: ftime() });
+  saveData();
+
+  // Reset form
+  document.getElementById('selPB').value = '';
+  document.getElementById('inpSpieler').value = '';
+  depot = null;
+  document.getElementById('depotAusweis').classList.remove('selected');
+  document.getElementById('depotGeld').classList.remove('selected');
+  document.getElementById('btnVerleihen').disabled = true;
+
+  renderSelect();
+  renderGrid();
+  renderLoans();
+  showToast('🔋 Powerbank ' + pb + ' an ' + spieler + ' verliehen');
+}
+
+function returnPB(idx) {
+  const loan = loans[idx];
+  if(!confirm(`Powerbank ${loan.pb} von ${loan.spieler} zurückgegeben?\nDepot: ${loan.depot === 'ausweis' ? 'Ausweis zurückgeben' : 'CHF 20.– zurückgeben'}`)) return;
+  loans.splice(idx, 1);
+  saveData();
+  renderSelect();
+  renderGrid();
+  renderLoans();
+  showToast('✅ Powerbank ' + loan.pb + ' zurückgegeben · Depot an ' + loan.spieler + ' zurück');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Event listeners
+document.getElementById('selPB').addEventListener('change', () => { validateForm(); renderGrid(); });
+document.getElementById('inpSpieler').addEventListener('input', validateForm);
+
+// Init
+loadData();
+renderSelect();
+renderGrid();
+renderLoans();
+</script>
+</body>
+</html>
