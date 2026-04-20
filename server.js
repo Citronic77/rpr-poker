@@ -527,6 +527,31 @@ app.get('/gastro-pdf/:filename', (req, res) => {
   res.sendFile(filePath);
 });
 
+// ── Gastro Mitarbeiter (server-side persistent) ──
+const EMPLOYEES_PATH = path.join(__dirname, 'gastro-employees.json');
+
+function loadEmployees() {
+  try {
+    if(fs.existsSync(EMPLOYEES_PATH)) return JSON.parse(fs.readFileSync(EMPLOYEES_PATH, 'utf8'));
+  } catch(e) {}
+  return [];
+}
+
+function saveEmployees(list) {
+  try { fs.writeFileSync(EMPLOYEES_PATH, JSON.stringify(list)); } catch(e) {}
+}
+
+app.get('/api/gastro/employees', (req, res) => {
+  res.json(loadEmployees());
+});
+
+app.post('/api/gastro/employees', express.json(), (req, res) => {
+  const list = req.body;
+  if(!Array.isArray(list)) return res.status(400).json({ error: 'Invalid data' });
+  saveEmployees(list);
+  res.json({ ok: true });
+});
+
 // ── Gastro-Abrechnung API ──
 app.get('/api/gastro/health', (req, res) => {
   if (!gastroCfg) return res.status(503).json({ ok: false, error: 'gastro-config.json fehlt' });
