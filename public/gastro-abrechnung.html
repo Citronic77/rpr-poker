@@ -371,6 +371,15 @@ function save(){
   try{
     localStorage.setItem('uq_emp', JSON.stringify(employees));
   } catch(e){}
+  // Also save to server
+  const serverUrl = document.getElementById('cfgServer').value.trim();
+  if(serverUrl) {
+    fetch(serverUrl + '/api/gastro/employees', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(employees)
+    }).catch(() => {});
+  }
 }
 
 function saveForm(){
@@ -458,7 +467,25 @@ function clearFormStorage(){
   } catch(e){}
 }
 
-function load(){try{const d=localStorage.getItem('uq_emp');if(d)employees=JSON.parse(d);}catch(e){}}
+function load(){
+  try{const d=localStorage.getItem('uq_emp');if(d)employees=JSON.parse(d);}catch(e){}
+}
+
+async function loadFromServer(){
+  const serverUrl = document.getElementById('cfgServer').value.trim();
+  if(!serverUrl) return;
+  try {
+    const resp = await fetch(serverUrl + '/api/gastro/employees');
+    if(!resp.ok) return;
+    const list = await resp.json();
+    if(Array.isArray(list) && list.length > 0) {
+      employees = list;
+      localStorage.setItem('uq_emp', JSON.stringify(employees));
+      renderEmpList();
+      refreshSelects();
+    }
+  } catch(e) {}
+}
 
 // ── SERVER CHECK ──
 async function checkServer() {
@@ -1065,7 +1092,10 @@ document.getElementById('delModal').addEventListener('click',e=>{if(e.target===e
 document.getElementById('cfgServer').addEventListener('change',checkServer);
 
 // Check server on load
-setTimeout(checkServer,500);
+setTimeout(async () => {
+  await checkServer();
+  await loadFromServer();
+}, 500);
 </script>
 </body>
 </html>
