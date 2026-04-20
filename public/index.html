@@ -126,6 +126,13 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
 
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.gastro-card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:1.25rem 1rem;display:flex;flex-direction:column;gap:6px;position:relative;cursor:pointer;transition:background .15s}
+.gastro-card:hover:not(.gastro-card-soon){background:var(--bg2)}
+.gastro-card-soon{opacity:.5;cursor:default}
+.gastro-card-icon{font-size:28px;line-height:1}
+.gastro-card-title{font-size:14px;font-weight:600;color:var(--text)}
+.gastro-card-sub{font-size:11px;color:var(--text2);line-height:1.4}
+.gastro-card-badge{position:absolute;top:8px;right:8px;background:var(--border2);color:var(--text2);font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
 .ft-seat{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:10px;display:flex;flex-direction:column;gap:6px}
 .ft-seat-num{font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase}
 .ft-seat-name{font-size:14px;font-weight:500;color:var(--text);min-height:20px}
@@ -161,6 +168,7 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
     <div class="tab active" onclick="showTab('dealer')">Dealer</div>
     <div class="tab" onclick="showTab('floor')">Floorman</div>
     <div class="tab" onclick="showTab('ft')">Final Table</div>
+    <div class="tab" onclick="showTab('gastro')">Gastro</div>
   </div>
 
   <!-- ══ DEALER ══ -->
@@ -333,6 +341,50 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
   </div>
 </div>
 
+  <!-- ══ GASTRO ══ -->
+  <div id="tab-gastro" class="panel">
+    <div style="margin-bottom:1.25rem">
+      <div style="font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem">Gastro — UNIQUE Poker &amp; Sport Lounge</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+
+      <!-- Gastro-Abrechnung -->
+      <a href="/gastro-abrechnung.html" target="_blank" style="text-decoration:none">
+        <div class="gastro-card">
+          <div class="gastro-card-icon">🧾</div>
+          <div class="gastro-card-title">Gastro-Abrechnung</div>
+          <div class="gastro-card-sub">Tagesabschluss, Löhne, PDF-Versand</div>
+        </div>
+      </a>
+
+      <!-- Powerbank Verleih -->
+      <div class="gastro-card gastro-card-soon">
+        <div class="gastro-card-icon">🔋</div>
+        <div class="gastro-card-title">Powerbank Verleih</div>
+        <div class="gastro-card-sub">Demnächst verfügbar</div>
+        <div class="gastro-card-badge">Bald</div>
+      </div>
+
+      <!-- Placeholder 3 -->
+      <div class="gastro-card gastro-card-soon">
+        <div class="gastro-card-icon">➕</div>
+        <div class="gastro-card-title">Weiteres Tool</div>
+        <div class="gastro-card-sub">Demnächst verfügbar</div>
+        <div class="gastro-card-badge">Bald</div>
+      </div>
+
+      <!-- Placeholder 4 -->
+      <div class="gastro-card gastro-card-soon">
+        <div class="gastro-card-icon">➕</div>
+        <div class="gastro-card-title">Weiteres Tool</div>
+        <div class="gastro-card-sub">Demnächst verfügbar</div>
+        <div class="gastro-card-badge">Bald</div>
+      </div>
+
+    </div>
+  </div>
+
 </div><!-- end .app -->
 
 <div id="toast" class="toast"></div>
@@ -474,7 +526,7 @@ function updateSyncBars() {
 
 // ── TABS ──
 function showTab(t) {
-  ['dealer','floor','ft'].forEach((n,i) => {
+  ['dealer','floor','ft','gastro'].forEach((n,i) => {
     document.querySelectorAll('.tab')[i].classList.toggle('active', n === t);
     document.getElementById('tab-'+n).classList.toggle('active', n === t);
   });
