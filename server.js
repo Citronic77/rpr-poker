@@ -553,7 +553,10 @@ app.post('/api/gastro/send', express.json({ limit: '20mb' }), async (req, res) =
   try {
     const publicPdfPath = path.join(GASTRO_PDF_DIR, filename);
     fs.writeFileSync(publicPdfPath, pdfBuffer);
-    const baseUrl = req.protocol + '://' + req.get('host');
+    // Force https on Railway (req.protocol may return http behind proxy)
+    const host = req.get('host');
+    const proto = host.includes('railway.app') ? 'https' : req.protocol;
+    const baseUrl = proto + '://' + host;
     pdfDownloadUrl = baseUrl + '/gastro-pdf/' + encodeURIComponent(filename);
   } catch (err) { results.errors.push('PDF-Link: ' + err.message); }
 
