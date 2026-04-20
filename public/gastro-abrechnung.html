@@ -1,38 +1,1071 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"></head>
-<body style="font-family:Arial,sans-serif;background:#f0ede8;margin:0;padding:20px">
-  <div style="max-width:560px;margin:0 auto">
-    <div style="background:#0d1e3d;padding:18px 24px;border-radius:6px 6px 0 0">
-      <span style="font-size:22px;font-weight:900;color:#fff;letter-spacing:3px">UNIQUE</span>
-      <span style="font-size:11px;color:#f5a623;margin-left:10px;letter-spacing:2px;text-transform:uppercase">Poker &amp; Sport Lounge</span>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gastro-Abrechnung — UNIQUE</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('4laI9xZsiK1acmVxt');</script>
+<style>
+:root {
+  --navy:#0d1e3d; --navy-light:#1a3060; --gold:#f5a623; --gold-dark:#d4891a;
+  --off-white:#f8f7f4; --gray-light:#e8e6e0; --red-box:#e8453c;
+  --blue-box:#2a6db5; --yellow-box:#d4a017; --text-dark:#0d1e3d;
+  --text-mid:#4a5568; --border:#d0ccc4; --green:#22863a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:#e5e3dd;color:var(--text-dark);min-height:100vh;padding:2rem 1rem}
+.page-wrapper{max-width:920px;margin:0 auto}
+
+.toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap}
+.toolbar-left{font-size:12px;color:var(--text-mid);font-style:italic}
+.toolbar-right{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:6px;border:none;font-family:'Barlow',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;letter-spacing:.03em;transition:all .15s}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--gold);color:var(--navy)}
+.btn-primary:hover:not(:disabled){background:var(--gold-dark)}
+.btn-ghost{background:#fff;color:var(--navy);border:1.5px solid var(--border)}
+.btn-ghost:hover:not(:disabled){background:var(--off-white)}
+.btn-danger{background:#fff;color:var(--red-box);border:1.5px solid var(--red-box)}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:4px}
+
+/* CONFIG BAR */
+.config-bar{background:var(--navy-light);border-radius:6px;padding:12px 1.25rem;margin-bottom:1rem;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cfg-field{display:flex;flex-direction:column;gap:4px}
+.cfg-field label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7a9cc0}
+.cfg-field input{background:transparent;border:none;border-bottom:1.5px solid #3a5680;padding:4px 0;color:#fff;font-family:'Barlow',sans-serif;font-size:13.5px;outline:none}
+.cfg-field input:focus{border-bottom-color:var(--gold)}
+.cfg-field input::placeholder{color:#4a6690}
+.cfg-status{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:12px;color:#7a9cc0}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#4a6690;flex-shrink:0}
+.status-dot.ok{background:#4ade80}
+.status-dot.err{background:var(--red-box)}
+
+/* NOTIFICATION */
+.notif{position:fixed;top:20px;right:20px;z-index:200;padding:14px 20px;border-radius:8px;font-size:13.5px;max-width:360px;line-height:1.5;transform:translateX(120%);transition:transform .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.notif.show{transform:translateX(0)}
+.notif.success{background:#0d1e3d;border-left:4px solid #4ade80;color:#fff}
+.notif.error{background:#fff;border-left:4px solid var(--red-box);color:var(--text-dark)}
+.notif strong{display:block;margin-bottom:3px}
+.notif.success strong{color:#4ade80}
+.notif.error strong{color:var(--red-box)}
+
+/* EMP PANEL */
+.emp-panel{background:#fff;border-radius:6px;margin-bottom:1.25rem;box-shadow:0 2px 12px rgba(0,0,0,.1);overflow:hidden}
+.emp-panel-header{background:var(--navy-light);padding:11px 1.5rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.emp-panel-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.emp-toggle{color:#a8bcd4;font-size:12px;transition:transform .2s}
+.emp-toggle.open{transform:rotate(180deg)}
+.emp-panel-body{padding:1.25rem 1.5rem;display:none}
+.emp-panel-body.open{display:block}
+.emp-add-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:1rem;flex-wrap:wrap}
+.emp-add-row .fg{flex:1;min-width:130px;display:flex;flex-direction:column;gap:4px}
+.emp-add-row .fg label{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-mid)}
+.emp-add-row .fg input{border:none;border-bottom:2px solid var(--navy);padding:5px 0;font-family:'Barlow',sans-serif;font-size:14px;background:transparent;outline:none}
+.emp-add-row .fg input:focus{border-bottom-color:var(--gold)}
+.emp-list{display:flex;flex-wrap:wrap;gap:8px;min-height:30px}
+.emp-chip{display:flex;align-items:center;gap:7px;background:var(--off-white);border:1px solid var(--border);border-radius:20px;padding:5px 10px 5px 14px;font-size:13px;font-weight:500}
+.emp-chip-del{background:none;border:none;cursor:pointer;color:var(--text-mid);font-size:15px;line-height:1;padding:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.emp-chip-del:hover{background:var(--gray-light);color:var(--red-box)}
+.emp-empty{font-size:13px;color:var(--text-mid);font-style:italic}
+
+/* FORM */
+.form-card{background:#fff;border-radius:4px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.12)}
+.form-header{background:var(--navy);padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.logo-title{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;letter-spacing:.15em;line-height:1}
+.logo-subtitle{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.25em;text-transform:uppercase;margin-top:2px}
+.header-badge{background:var(--gold);color:var(--navy);padding:10px 22px;border-radius:3px;font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;letter-spacing:.05em;text-transform:uppercase}
+.contact-bar{background:var(--navy-light);padding:7px 2rem;display:flex;gap:2rem;font-size:12px;color:#a8bcd4}
+.form-body{padding:1.5rem 2rem 0}
+.top-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:2px solid var(--gray-light)}
+.field-group{display:flex;flex-direction:column;gap:5px}
+.field-group label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-mid)}
+.field-group input[type="text"],.field-group input[type="date"]{border:none;border-bottom:2px solid var(--navy);padding:6px 0;font-family:'Barlow',sans-serif;font-size:15px;font-weight:500;color:var(--text-dark);background:transparent;outline:none;width:100%}
+.field-group input:focus{border-bottom-color:var(--gold)}
+.calc-section{margin-bottom:1rem;padding:13px 1.25rem;border-radius:4px;background:var(--off-white);border-left:4px solid var(--gold)}
+.calc-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;letter-spacing:.1em;margin-bottom:9px;text-transform:uppercase;color:var(--gold)}
+.calc-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.calc-vrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0}
+.calc-vrow .lbl{flex:1;font-size:13px}
+.calc-vrow .ci{width:100px;flex-shrink:0}
+.lbl{font-size:13px;font-weight:500;color:var(--text-mid);white-space:nowrap}
+.op{font-size:16px;font-weight:700;color:var(--text-mid)}
+.eq{font-size:16px;font-weight:700;color:var(--navy)}
+input.ci{border:2px solid var(--border);border-radius:3px;padding:4px 8px;font-family:'Barlow',sans-serif;font-size:14px;font-weight:600;width:90px;text-align:right;background:#fff;outline:none;color:var(--text-dark)}
+input.ci.blue{border-color:var(--blue-box)}
+input.ci.yellow{border-color:var(--yellow-box)}
+input.ci.red{border-color:var(--red-box);color:var(--red-box)}
+input.ci.result{background:var(--gray-light);color:var(--navy);border-color:var(--navy)}
+input.ci[readonly]{cursor:default}
+input.ci:focus:not([readonly]){box-shadow:0 0 0 3px rgba(245,166,35,.25)}
+.divider{height:1px;background:var(--gray-light);margin:1.25rem 0}
+
+/* TABLE */
+.staff-table-wrap{margin:0 -2rem}
+.staff-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.staff-table colgroup col:nth-child(1){width:36px}
+.staff-table colgroup col:nth-child(2){width:22%}
+.staff-table colgroup col:nth-child(3){width:74px}
+.staff-table colgroup col:nth-child(4){width:74px}
+.staff-table colgroup col:nth-child(5){width:58px}
+.staff-table colgroup col:nth-child(6){width:76px}
+.staff-table colgroup col:nth-child(7){width:84px}
+.staff-table colgroup col:nth-child(8){width:auto}
+.staff-table thead{background:var(--navy);color:#fff}
+.staff-table thead th{padding:10px 10px;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-align:left}
+.staff-table thead th.c{text-align:center}
+.staff-table thead th.r{text-align:right}
+.staff-table tbody tr:nth-child(odd){background:#fff}
+.staff-table tbody tr:nth-child(even){background:var(--off-white)}
+.staff-table tbody tr:hover{background:#e8f0fb}
+.staff-table tbody td{padding:9px 10px;border-bottom:1px solid var(--gray-light);vertical-align:middle}
+.staff-table tbody td.c{text-align:center;font-weight:700;color:var(--text-mid);font-size:12px}
+.staff-table tbody td.r{text-align:right}
+.staff-table tfoot{background:var(--navy);color:#fff}
+.staff-table tfoot td{padding:12px 10px;font-weight:700}
+.foot-total{text-align:right;font-size:18px;color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:900}
+select.tsel{border:none;border-bottom:1.5px solid var(--border);background:transparent;font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;color:var(--text-dark);outline:none;width:100%;padding:2px 0;cursor:pointer;-webkit-appearance:none;appearance:none}
+select.tsel:focus{border-bottom-color:var(--gold)}
+input.ttime{border:none;border-bottom:1.5px solid var(--border);background:transparent;font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;color:var(--text-dark);outline:none;width:100%;padding:2px 2px;text-align:center;letter-spacing:.05em}
+input.ttime:focus{border-bottom-color:var(--gold)}
+input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
+.std-cell{text-align:right;font-weight:600;color:var(--navy);padding-right:10px}
+.tot-cell{text-align:right;font-weight:700;color:var(--navy);white-space:nowrap}
+.form-footer{padding:1.5rem 2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;border-top:2px solid var(--gray-light)}
+.sig-field{display:flex;flex-direction:column;gap:6px}
+.sig-line{border-bottom:2px solid var(--navy);height:36px}
+.sig-field label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-mid)}
+.sig-line{border-bottom:2px solid var(--navy);height:36px}
+.addr{font-size:13px;color:var(--text-mid);line-height:1.6}
+.addr strong{display:block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.addr span{font-size:14px;font-weight:600;color:var(--navy)}
+.legal-box{background:var(--navy);color:#8fa8c8;font-size:11.5px;line-height:1.6;padding:1rem 2rem}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:8px;padding:2rem;max-width:400px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.3)}
+.modal h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--navy);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.08em}
+.modal p{font-size:14px;color:var(--text-mid);line-height:1.6}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:1.25rem}
+
+/* LOADER */
+.loader{display:none;position:fixed;inset:0;background:rgba(13,30,61,.75);z-index:300;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.loader.show{display:flex}
+.loader-text{color:#fff;font-size:15px;font-weight:600;letter-spacing:.05em}
+.loader-sub{color:#a8bcd4;font-size:13px}
+.spinner{width:44px;height:44px;border:4px solid rgba(245,166,35,.25);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:620px){.top-row,.form-footer,.config-bar{grid-template-columns:1fr}.form-header{flex-direction:column;gap:12px;align-items:flex-start}.header-badge{font-size:18px;padding:8px 14px}}
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="toolbar-left">&#9993; E-Mail wird automatisch als PDF-Anhang versendet</div>
+    <div class="toolbar-right">
+      <button class="btn btn-ghost" onclick="resetForm()">&#8635; Zurücksetzen</button>
+      <button class="btn btn-ghost" onclick="printLocal()">&#128438; Lokal drucken</button>
+      <button class="btn btn-primary" id="sendBtn" onclick="generateAndSend()">&#9993; PDF senden</button>
     </div>
-    <div style="background:#fff;padding:24px;border:1px solid #e8e6e0;border-top:none;border-radius:0 0 6px 6px">
-      <h2 style="color:#0d1e3d;margin:0 0 8px;font-size:16px">Gastro-Abrechnung</h2>
-      <p style="color:#4a5568;font-size:13px;margin:0 0 16px">
-        Datum: <strong>{{datum}}</strong> &nbsp;|&nbsp; Verantwortlich: <strong>{{verantw}}</strong>
-      </p>
-      <pre style="background:#f8f7f4;border:1px solid #e8e6e0;border-radius:4px;padding:16px;font-size:13px;line-height:1.7;color:#2d3748;white-space:pre-wrap;font-family:monospace">{{summary}}</pre>
-      <div style="margin-top:24px;text-align:center">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr>
-            <td align="center">
-              <table cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                  <td style="background:#0d1e3d;border-radius:4px;padding:14px 32px;">
-                    <a href="{{pdf_url}}" target="_blank" style="color:#f5a623;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:.05em;display:inline-block">&#128196; PDF herunterladen</a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </div>
-      <p style="font-size:12px;color:#718096;margin-top:16px;text-align:center">Der Link ist für 30 Tage gültig.</p>
-    </div>
-    <p style="font-size:11px;color:#a0aec0;text-align:center;margin-top:12px">
-      Bonnstrasse 22, 3186 Düdingen &nbsp;·&nbsp; poker@rpr.duedingen.ch
-    </p>
   </div>
+
+  <!-- SERVER CONFIG -->
+  <div class="config-bar">
+    <div class="cfg-field">
+      <label>Server-URL</label>
+      <input type="text" id="cfgServer" value="https://rpr-poker-production.up.railway.app" placeholder="https://rpr-poker-production.up.railway.app">
+    </div>
+    <div class="cfg-field">
+      <label>Empfänger (aus config.json)</label>
+      <input type="text" id="cfgRecipient" readonly placeholder="Wird vom Server gelesen…" style="opacity:.6;cursor:default">
+    </div>
+    <div class="cfg-status">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Server-Verbindung wird geprüft…</span>
+    </div>
+  </div>
+
+  <!-- MITARBEITER -->
+  <div class="emp-panel">
+    <div class="emp-panel-header" onclick="togglePanel()">
+      <span class="emp-panel-title">&#128100; Mitarbeiter verwalten</span>
+      <span class="emp-toggle" id="empToggle">&#9660;</span>
+    </div>
+    <div class="emp-panel-body" id="empBody">
+      <div class="emp-add-row">
+        <div class="fg"><label>Vorname</label><input type="text" id="newFirst" placeholder="Max"></div>
+        <div class="fg"><label>Nachname</label><input type="text" id="newLast" placeholder="Muster"></div>
+        <button class="btn btn-primary btn-sm" onclick="addEmp()">+ Hinzufügen</button>
+      </div>
+      <div class="emp-list" id="empList">
+        <span class="emp-empty">Noch keine Mitarbeiter erfasst.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMULAR -->
+  <div class="form-card">
+    <div class="form-header">
+      <div><div class="logo-title">UNIQUE</div><div class="logo-subtitle">Poker &amp; Sport Lounge</div></div>
+      <div class="header-badge">Gastro-Abrechnung</div>
+    </div>
+    <div class="contact-bar">
+      <span>&#9990; +41 79 350 52 52</span>
+      <span>&#9993; poker@rpr.duedingen.ch</span>
+      <span>&#127760; www.rpr.poker</span>
+    </div>
+    <div class="form-body">
+      <div class="top-row">
+        <div class="field-group"><label>Datum</label><input type="date" id="datum"></div>
+        <div class="field-group"><label>Verantwortlich</label><select id="verantw" onchange="saveForm()" style="border:none;border-bottom:2px solid var(--navy);padding:6px 0;font-family:'Barlow',sans-serif;font-size:15px;font-weight:500;color:var(--text-dark);background:transparent;outline:none;width:100%;-webkit-appearance:none;appearance:none;cursor:pointer"><option value="">— wählen —</option></select></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+
+        <!-- Kasse -->
+        <div class="calc-section" style="border-left-color:var(--blue-box);margin:0">
+          <div class="calc-title">Kasse</div>
+          <div class="calc-vrow">
+            <span class="lbl">Kasse gemäss Programm</span>
+            <input type="number" class="ci blue" id="kasseProgr" placeholder="0.00" step="0.05" oninput="calcAll();saveForm()" tabindex="1">
+          </div>
+          <div class="calc-vrow">
+            <span class="lbl">&#8722; Löhne</span>
+            <input type="number" class="ci yellow" id="loehneVal" placeholder="0.00" step="0.05" oninput="calcAll()" readonly>
+          </div>
+          <div class="calc-vrow" style="border-top:1.5px solid var(--border);padding-top:6px;margin-top:4px">
+            <span class="lbl" style="font-weight:700">= Kasse gerechnet</span>
+            <input type="number" class="ci red result" id="kasseGer" readonly placeholder="0.00">
+          </div>
+        </div>
+
+        <!-- Trinkgeld -->
+        <div class="calc-section" style="border-left-color:var(--gold);margin:0">
+          <div class="calc-title">Trinkgeld</div>
+          <div class="calc-vrow">
+            <span class="lbl">Kasse gezählt</span>
+            <input type="number" class="ci blue" id="kasseGez" placeholder="0.00" step="0.05" oninput="calcAll();saveForm()" tabindex="2">
+          </div>
+          <div class="calc-vrow">
+            <span class="lbl">&#8722; Kasse gerechnet</span>
+            <input type="number" class="ci red result" id="kasseGerTG" readonly placeholder="0.00">
+          </div>
+          <div class="calc-vrow" style="border-top:1.5px solid var(--border);padding-top:6px;margin-top:4px">
+            <span class="lbl" style="font-weight:700">= Trinkgeld</span>
+            <input type="number" class="ci result" id="trinkgeld" readonly placeholder="0.00">
+          </div>
+        </div>
+
+        <!-- Barumsatz -->
+        <div class="calc-section" style="border-left-color:var(--blue-box);margin:0">
+          <div class="calc-title">Barumsatz</div>
+          <div class="calc-vrow">
+            <span class="lbl">Kasse gemäss Programm</span>
+            <input type="number" class="ci blue result" id="kasseProgrBU" readonly placeholder="0.00">
+          </div>
+          <div class="calc-vrow">
+            <span class="lbl">&#8722; Anfangsbestand (500.–)</span>
+            <input type="number" class="ci result" value="500.00" readonly style="color:var(--text-mid)">
+          </div>
+          <div class="calc-vrow" style="border-top:1.5px solid var(--border);padding-top:6px;margin-top:4px">
+            <span class="lbl" style="font-weight:700">= Barumsatz</span>
+            <input type="number" class="ci result" id="barumsatz" readonly placeholder="0.00">
+          </div>
+        </div>
+
+        <!-- Prepost -->
+        <div class="calc-section" style="border-left-color:var(--red-box);margin:0">
+          <div class="calc-title">Prepost</div>
+          <div class="calc-vrow">
+            <span class="lbl">Kasse gerechnet</span>
+            <input type="number" class="ci red result" id="kasseGerPP" readonly placeholder="0.00">
+          </div>
+          <div class="calc-vrow">
+            <span class="lbl">&#8722; Anfangsbestand (500.–)</span>
+            <input type="number" class="ci result" value="500.00" readonly style="color:var(--text-mid)">
+          </div>
+          <div class="calc-vrow" style="border-top:1.5px solid var(--border);padding-top:6px;margin-top:4px">
+            <span class="lbl" style="font-weight:700">= an Prepost</span>
+            <input type="number" class="ci result" id="prepost" readonly placeholder="0.00">
+          </div>
+        </div>
+
+      </div>
+      <div class="divider"></div>
+    </div>
+    <div class="staff-table-wrap">
+      <table class="staff-table">
+        <colgroup><col><col><col><col><col><col><col><col></colgroup>
+        <thead>
+          <tr>
+            <th class="c">Nr</th><th>Name</th><th class="c">Von</th><th class="c">Bis</th>
+            <th class="r">Std</th><th class="r">CHF/Std</th><th class="r">Total</th><th>Unterschrift</th>
+          </tr>
+        </thead>
+        <tbody id="staffBody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="6" style="padding:12px 10px;text-align:right;font-size:12px;letter-spacing:.06em;color:#a8bcd4;white-space:nowrap;">Total Löhne</td>
+            <td style="padding:12px 10px;text-align:right;white-space:nowrap;"><span class="foot-total" id="totalLoehne">0.00</span></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="form-footer">
+      <div class="addr">
+        <strong>Ort / Lieu / Luogo / Place</strong>
+        <span>Bonnstrasse 22, 3186 Düdingen</span>
+      </div>
+      <div class="sig-field">
+        <label>Unterschrift Floorman</label>
+        <div style="border:2px solid var(--navy);border-radius:4px;position:relative;background:#fff;">
+          <canvas id="sigCanvas" width="380" height="100" style="display:block;touch-action:none;cursor:crosshair;width:100%;height:100px"></canvas>
+          <button onclick="clearSig()" style="position:absolute;top:4px;right:4px;background:none;border:1px solid var(--border);border-radius:3px;font-size:11px;padding:2px 7px;cursor:pointer;color:var(--text-mid)">✕ Löschen</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-mid);margin-top:3px">Mit Finger oder Stift unterschreiben</div>
+      </div>
+    </div>
+    <div class="legal-box">
+      Der Mitarbeiter bestätigt mit seiner Unterschrift den Erhalt des Betrages in Bar und nimmt hiermit zur Kenntnis, dass alle Stunden korrekt abgerechnet werden. Der ausbezahlte Betrag versteht sich Netto. Allfällige Abgaben werden durch den Verein bezahlt.
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif">
+  <strong id="notifTitle"></strong>
+  <span id="notifMsg"></span>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-bg" id="delModal">
+  <div class="modal">
+    <h3>Mitarbeiter löschen?</h3>
+    <p id="delText"></p>
+    <div class="modal-btns">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-danger btn-sm" id="delConfirm">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="spinner"></div>
+  <div class="loader-text" id="loaderText">PDF wird generiert…</div>
+  <div class="loader-sub" id="loaderSub"></div>
+</div>
+
+<script>
+const ROWS=4, PRICE=25;
+let employees=[], pendingDel=null;
+
+// ── STORAGE ──
+function save(){
+  try{
+    localStorage.setItem('uq_emp', JSON.stringify(employees));
+  } catch(e){}
+}
+
+function saveForm(){
+  try{
+    const form = {
+      datum: getV('datum'),
+      verantw: getV('verantw'),
+      kasseProgr: getV('kasseProgr'),
+      kasseGez: getV('kasseGez'),
+      rows: []
+    };
+    for(let i=1;i<=ROWS;i++){
+      form.rows.push({
+        name: document.getElementById('name'+i)?.value || '',
+        von: document.getElementById('von'+i)?.value || '',
+        bis: document.getElementById('bis'+i)?.value || '',
+      });
+    }
+    // Save signatures
+    const sigs = {};
+    for(let i=1;i<=ROWS;i++){
+      const d = getStaffSigDataUrl(i);
+      if(d) sigs['staff'+i] = d;
+    }
+    const floorSig = getSigDataUrl();
+    if(floorSig) sigs['floor'] = floorSig;
+    localStorage.setItem('uq_sigs', JSON.stringify(sigs));
+    localStorage.setItem('uq_form', JSON.stringify(form));
+  } catch(e){}
+}
+
+function loadForm(){
+  try{
+    const d = localStorage.getItem('uq_form');
+    if(!d) return;
+    const form = JSON.parse(d);
+    if(form.datum) document.getElementById('datum').value = form.datum;
+    if(form.verantw) document.getElementById('verantw').value = form.verantw;
+    if(form.kasseProgr) document.getElementById('kasseProgr').value = form.kasseProgr;
+    if(form.kasseGez) document.getElementById('kasseGez').value = form.kasseGez;
+    if(form.rows) {
+      form.rows.forEach((row, idx) => {
+        const i = idx + 1;
+        if(document.getElementById('name'+i)) document.getElementById('name'+i).value = row.name || '';
+        if(document.getElementById('von'+i)) { document.getElementById('von'+i).value = row.von || ''; if(row.von) validateTime(document.getElementById('von'+i), i); }
+        if(document.getElementById('bis'+i)) { document.getElementById('bis'+i).value = row.bis || ''; if(row.bis) validateTime(document.getElementById('bis'+i), i); }
+      });
+    }
+    calcAll(); syncLoehne();
+
+    // Restore signatures
+    try {
+      const sigsRaw = localStorage.getItem('uq_sigs');
+      if(sigsRaw) {
+        const sigs = JSON.parse(sigsRaw);
+        // Staff sigs
+        for(let i=1;i<=ROWS;i++){
+          if(sigs['staff'+i]) {
+            const canvas = document.getElementById('sigCanvas'+i);
+            if(canvas) {
+              const img = new Image();
+              img.onload = (function(cv){ return function(){ cv.getContext('2d').drawImage(this,0,0); }; })(canvas);
+              img.src = sigs['staff'+i];
+            }
+          }
+        }
+        // Floor sig
+        if(sigs['floor']) {
+          const canvas = document.getElementById('sigCanvas');
+          if(canvas) {
+            const img = new Image();
+            img.onload = function(){ canvas.getContext('2d').drawImage(this,0,0); };
+            img.src = sigs['floor'];
+          }
+        }
+      }
+    } catch(e){}
+  } catch(e){}
+}
+
+function clearFormStorage(){
+  try{
+    localStorage.removeItem('uq_form');
+    localStorage.removeItem('uq_sigs');
+  } catch(e){}
+}
+
+function load(){try{const d=localStorage.getItem('uq_emp');if(d)employees=JSON.parse(d);}catch(e){}}
+
+// ── SERVER CHECK ──
+async function checkServer() {
+  const url = document.getElementById('cfgServer').value.trim();
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  const rec = document.getElementById('cfgRecipient');
+  try {
+    const r = await fetch(url+'/api/gastro/health', { signal: AbortSignal.timeout(4000) });
+    const d = await r.json();
+    dot.className='status-dot ok';
+    txt.textContent=`Verbunden · Empfänger: ${d.recipient} · Drucker: ${d.printer}`;
+    rec.value = d.recipient;
+  } catch(e) {
+    dot.className='status-dot err';
+    txt.textContent='Kein Server erreichbar unter: '+url;
+    rec.value='';
+  }
+}
+
+// ── EMPLOYEES ──
+function togglePanel(){document.getElementById('empBody').classList.toggle('open');document.getElementById('empToggle').classList.toggle('open');}
+function addEmp(){
+  const f=document.getElementById('newFirst').value.trim();
+  const l=document.getElementById('newLast').value.trim();
+  if(!f&&!l){alert('Bitte mindestens Vor- oder Nachname eingeben.');return;}
+  const name=[f,l].filter(Boolean).join(' ');
+  if(employees.includes(name)){alert('Bereits erfasst.');return;}
+  employees.push(name);employees.sort((a,b)=>a.localeCompare(b,'de'));
+  save();renderEmpList();refreshSelects();
+  document.getElementById('newFirst').value='';document.getElementById('newLast').value='';
+}
+function renderEmpList(){
+  const list=document.getElementById('empList');list.innerHTML='';
+  if(!employees.length){list.innerHTML='<span class="emp-empty">Noch keine Mitarbeiter erfasst.</span>';return;}
+  employees.forEach((name,i)=>{
+    const chip=document.createElement('div');chip.className='emp-chip';
+    chip.innerHTML=`<span>${name}</span><button class="emp-chip-del" onclick="askDel(${i})">&#215;</button>`;
+    list.appendChild(chip);
+  });
+}
+function askDel(i){pendingDel=i;document.getElementById('delText').textContent=`"${employees[i]}" entfernen?`;document.getElementById('delConfirm').onclick=doDel;document.getElementById('delModal').classList.add('open');}
+function closeModal(){document.getElementById('delModal').classList.remove('open');pendingDel=null;}
+function doDel(){if(pendingDel===null)return;employees.splice(pendingDel,1);save();renderEmpList();refreshSelects();closeModal();}
+
+// ── TABLE ──
+function buildTable(){
+  const tbody=document.getElementById('staffBody');tbody.innerHTML='';
+  for(let i=1;i<=ROWS;i++){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="c">${i}</td>
+      <td><select class="tsel" id="name${i}" tabindex="${2+i*3-2}" onchange="saveForm()"><option value="">— wählen —</option></select></td>
+      <td><input class="ttime" type="text" id="von${i}" tabindex="${2+i*3-1}" placeholder="18:00" maxlength="5" oninput="handleTimeInput(this,${i});saveForm()" onblur="validateTime(this,${i})"></td>
+      <td><input class="ttime" type="text" id="bis${i}" tabindex="${2+i*3}" placeholder="23:00" maxlength="5" oninput="handleTimeInput(this,${i});saveForm()" onblur="validateTime(this,${i})"></td>
+      <td class="std-cell" id="std${i}">—</td>
+      <td class="r" style="color:var(--text-mid);font-weight:600;">25.00</td>
+      <td class="tot-cell" id="tot${i}">—</td>
+      <td style="padding:2px 4px">
+        <div style="position:relative;border:1px solid var(--border);border-radius:3px;background:#fff;">
+          <canvas id="sigCanvas${i}" width="240" height="44" style="display:block;touch-action:none;cursor:crosshair;width:100%;height:44px"></canvas>
+          <button onclick="clearStaffSig(${i})" style="position:absolute;top:1px;right:1px;background:none;border:none;font-size:10px;padding:1px 4px;cursor:pointer;color:var(--text-mid);opacity:.5" title="Löschen">✕</button>
+        </div>
+      </td>\``;
+    tbody.appendChild(tr);
+  }
+  refreshSelects();
+  // Init signature pads for all rows
+  setTimeout(() => { for(let i=1;i<=ROWS;i++) initStaffSig(i); }, 0);
+}
+function refreshSelects(){
+  // Staff table selects
+  for(let i=1;i<=ROWS;i++){
+    const sel=document.getElementById('name'+i);if(!sel)continue;
+    const cur=sel.value;sel.innerHTML='<option value="">— wählen —</option>';
+    employees.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;if(n===cur)o.selected=true;sel.appendChild(o);});
+  }
+  // Verantwortlich dropdown
+  const vSel=document.getElementById('verantw');
+  if(vSel){
+    const cur=vSel.value;
+    vSel.innerHTML='<option value="">— wählen —</option>';
+    employees.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;if(n===cur)o.selected=true;vSel.appendChild(o);});
+  }
+}
+function handleTimeInput(el, i) {
+  // Strip non-digits
+  let digits = el.value.replace(/\D/g, '');
+  // Auto-insert colon after 2 digits
+  if (digits.length >= 3) {
+    el.value = digits.slice(0,2) + ':' + digits.slice(2,4);
+  } else {
+    el.value = digits;
+  }
+  el.classList.remove('invalid');
+  // Recalc as soon as we have a full time HH:MM
+  if (el.value.length === 5) recalcRow(i);
+  else { document.getElementById('std'+i).textContent='—'; document.getElementById('tot'+i).textContent='—'; syncLoehne(); }
+}
+function validateTime(el, i) {
+  const v = el.value;
+  if (!v) { el.classList.remove('invalid'); return; }
+  const ok = /^\d{2}:\d{2}$/.test(v) && parseInt(v.slice(0,2)) < 24 && parseInt(v.slice(3)) < 60;
+  el.classList.toggle('invalid', !ok);
+  if (ok) recalcRow(i);
+}
+function recalcRow(i){
+  const von=document.getElementById('von'+i).value;
+  const bis=document.getElementById('bis'+i).value;
+  const stdEl=document.getElementById('std'+i);
+  const totEl=document.getElementById('tot'+i);
+  if(!von||!bis||von.length!==5||bis.length!==5){stdEl.textContent='—';totEl.textContent='—';syncLoehne();return;}
+  const[vh,vm]=von.split(':').map(Number);
+  const[bh,bm]=bis.split(':').map(Number);
+  let mins=(bh*60+bm)-(vh*60+vm);if(mins<=0)mins+=1440;
+  const h=mins/60;
+  stdEl.textContent=(h%1===0?h.toFixed(0):h.toFixed(2))+' h';
+  totEl.textContent='CHF '+Math.ceil(h*PRICE).toFixed(2);
+  syncLoehne();
+}
+function getRowTotal(i){const t=document.getElementById('tot'+i).textContent;return t==='—'?0:(parseFloat(t.replace('CHF ',''))||0);}
+function syncLoehne(){
+  let sum=0;for(let i=1;i<=ROWS;i++)sum+=getRowTotal(i);
+  document.getElementById('totalLoehne').textContent=sum.toFixed(2);
+  document.getElementById('loehneVal').value=sum>0?sum.toFixed(2):'';
+  calcAll();
+}
+
+// ── CALCS ──
+function calcAll(){
+  const prog=parseFloat(document.getElementById('kasseProgr').value)||0;
+  const loe=parseFloat(document.getElementById('loehneVal').value)||0;
+  const gez=parseFloat(document.getElementById('kasseGez').value)||0;
+  const ger=prog-loe;
+  sv('kasseGer',ger);sv('kasseGerTG',ger);sv('kasseGerPP',ger);
+  sv('kasseProgrBU',prog);sv('trinkgeld',gez-ger);sv('barumsatz',prog-500);sv('prepost',ger-500);
+}
+function sv(id,val){const el=document.getElementById(id);if(!el)return;const n=parseFloat(val);el.value=(val===''||val===null||val===undefined||isNaN(n))?'':n.toFixed(2);}
+function getV(id){return document.getElementById(id)?.value||'';}
+function fmtDate(d){return d?d.split('-').reverse().join('.'):'—';}
+function fmtChf(v){if(!v&&v!=='0')return'—';const n=parseFloat(v);return isNaN(n)?'—':n.toFixed(2);}
+function today(){return new Date().toISOString().split('T')[0];}
+
+function resetForm(){
+  if(!confirm('Formular wirklich zurücksetzen?'))return;
+  clearFormStorage();
+  // Rebuild table (clears all rows including canvases)
+  buildTable();
+  // Reset header fields
+  document.getElementById('datum').value = today();
+  document.getElementById('verantw').value = '';
+  // Reset calc fields
+  ['kasseProgr','kasseGez'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['kasseGer','kasseGerTG','kasseGerPP','kasseProgrBU','trinkgeld','barumsatz','prepost'].forEach(id => sv(id,''));
+  document.getElementById('loehneVal').value = '0';
+  document.getElementById('totalLoehne').textContent = '0.00';
+  // Clear floor signature
+  clearSig();
+  initSig();
+}
+
+// ── NOTIFICATION ──
+let notifTimer=null;
+function showNotif(type,title,msg,duration=5000){
+  clearTimeout(notifTimer);
+  const n=document.getElementById('notif');
+  document.getElementById('notifTitle').textContent=title;
+  document.getElementById('notifMsg').textContent=msg;
+  n.className='notif '+type+' show';
+  notifTimer=setTimeout(()=>n.classList.remove('show'),duration);
+}
+
+// ── LOADER ──
+function setLoader(show,text,sub){
+  document.getElementById('loader').classList.toggle('show',show);
+  if(text)document.getElementById('loaderText').textContent=text;
+  if(sub!==undefined)document.getElementById('loaderSub').textContent=sub||'';
+}
+
+// ── PDF BUILD ──
+function buildPDF(){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const PW=210,ML=13,MR=13,CW=PW-ML-MR;
+  const fc=(...c)=>doc.setFillColor(...c);
+  const tc=(...c)=>doc.setTextColor(...c);
+  const dc=(...c)=>doc.setDrawColor(...c);
+  const lw=w=>doc.setLineWidth(w);
+  const fnt=(sz,wt)=>{doc.setFont('helvetica',wt||'normal');doc.setFontSize(sz);};
+  const NAVY=[13,30,61],NAVYL=[26,48,96],GOLD=[245,166,35];
+  const OFFWH=[248,247,244],GRAYL=[232,230,224];
+  const TXTM=[74,85,104],WHITE=[255,255,255];
+  const RED=[232,69,60],BLUE=[42,109,181],YELL=[212,160,23];
+  const NAVY_T=[168,188,212];
+  let y=0;
+
+  // Header
+  fc(...NAVY);doc.rect(0,0,PW,23,'F');
+  tc(...WHITE);fnt(18,'bold');doc.text('UNIQUE',ML,10.5);
+  fnt(6,'bold');tc(...GOLD);doc.text('POKER & SPORT LOUNGE',ML,15.5);
+  fc(...GOLD);doc.roundedRect(PW-MR-62,5,62,13,1.5,1.5,'F');
+  tc(...NAVY);fnt(11.5,'bold');doc.text('GASTRO-ABRECHNUNG',PW-MR-31,13,{align:'center'});
+  fc(...NAVYL);doc.rect(0,23,PW,6.5,'F');
+  tc(...NAVY_T);fnt(6.2);doc.text('+41 79 350 52 52  |  poker@rpr.duedingen.ch  |  www.rpr.poker',PW/2,27.5,{align:'center'});
+  y=34;
+
+  // Date / Verantwortlich
+  const datum=fmtDate(getV('datum'));
+  const verantw=getV('verantw')||'—';
+  fnt(7,'bold');tc(...TXTM);
+  doc.text('DATUM',ML,y);doc.text('VERANTWORTLICH',ML+CW/2+4,y);
+  fnt(11);tc(...NAVY);
+  doc.text(datum,ML,y+5.5);doc.text(verantw,ML+CW/2+4,y+5.5);
+  lw(0.25);dc(...GRAYL);
+  doc.line(ML,y+7.5,ML+CW/2-2,y+7.5);
+  doc.line(ML+CW/2+4,y+7.5,ML+CW,y+7.5);
+  y+=13;
+
+  // Vertical calc box helper — draws one box at x,y with given width
+  function calcBox(title, borderCol, rows, bx, by, bw) {
+    const lineH = 7;
+    const bh = 8 + rows.length * lineH + 3;
+    fc(...OFFWH); doc.rect(bx, by, bw, bh, 'F');
+    fc(...borderCol); doc.rect(bx, by, 2.5, bh, 'F');
+    tc(...borderCol); fnt(8, 'bold'); doc.text(title, bx + 6, by + 5.5);
+    const vw = 22;
+    const maxLabelW = bw - vw - 16;
+    let ry = by + 5.5;
+    rows.forEach((row, i) => {
+      ry += lineH;
+      const isLast = i === rows.length - 1;
+      if(isLast) { dc(...GRAYL); lw(0.3); doc.line(bx+6, ry-4.5, bx+bw-2, ry-4.5); }
+      // Draw label — never stretch, always fixed font size
+      tc(...TXTM);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.5);
+      doc.text(row.label, bx + 6, ry, {maxWidth: maxLabelW});
+      // Value box
+      dc(...(row.c || NAVY)); lw(isLast ? 0.8 : 0.4);
+      doc.rect(bx + bw - vw - 2, ry - 4, vw, 5.2);
+      tc(...(row.c || NAVY));
+      doc.setFont('helvetica', isLast ? 'bold' : 'normal');
+      doc.setFontSize(isLast ? 8 : 7);
+      doc.text(row.v || '—', bx + bw - 3, ry, {align: 'right'});
+    });
+    return bh;
+  }
+
+  // 2×2 grid of calc boxes
+  const halfW = (CW - 5) / 2;
+  const h1 = calcBox('KASSE', BLUE, [
+    {label: 'Kasse Programm', v: fmtChf(getV('kasseProgr')), c: BLUE},
+    {label: '- Löhne', v: fmtChf(getV('loehneVal')), c: YELL},
+    {label: '= Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
+  ], ML, y, halfW);
+  const h2 = calcBox('TRINKGELD', GOLD, [
+    {label: 'Kasse gezählt', v: fmtChf(getV('kasseGez')), c: BLUE},
+    {label: '- Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
+    {label: '= Trinkgeld', v: fmtChf(getV('trinkgeld')), c: NAVY},
+  ], ML + halfW + 5, y, halfW);
+  const row1H = Math.max(h1, h2) + 3;
+  const h3 = calcBox('BARUMSATZ', BLUE, [
+    {label: 'Kasse Programm', v: fmtChf(getV('kasseProgr')), c: BLUE},
+    {label: '- Anfangsbestand', v: '500.00', c: TXTM},
+    {label: '= Barumsatz', v: fmtChf(getV('barumsatz')), c: NAVY},
+  ], ML, y + row1H, halfW);
+  const h4 = calcBox('PREPOST', RED, [
+    {label: 'Kasse gerechnet', v: fmtChf(getV('kasseGer')), c: RED},
+    {label: '- Anfangsbestand', v: '500.00', c: TXTM},
+    {label: '= an Prepost', v: fmtChf(getV('prepost')), c: NAVY},
+  ], ML + halfW + 5, y + row1H, halfW);
+  y += row1H + Math.max(h3, h4) + 5;
+
+  // Staff table
+  const colW=[10,55,18,18,16,20,24,33];
+  const scale=CW/colW.reduce((a,b)=>a+b,0);
+  const cols=colW.map(w=>w*scale);
+  const tH=7,rH=13;
+
+  fc(...NAVY);doc.rect(ML,y,CW,tH,'F');
+  tc(...WHITE);fnt(7,'bold');
+  const hdrs=['Nr','Name','Von','Bis','Std','CHF/Std','Total','Unterschrift'];
+  const aligns=['center','left','center','center','right','right','right','left'];
+  let cx=ML;
+  hdrs.forEach((h,i)=>{
+    const cw=cols[i];
+    const tx=aligns[i]==='center'?cx+cw/2:aligns[i]==='right'?cx+cw-1.5:cx+1.5;
+    doc.text(h,tx,y+tH-1.8,{align:aligns[i]==='center'?'center':aligns[i]==='right'?'right':'left'});
+    cx+=cw;
+  });
+  y+=tH;
+
+  for(let i=1;i<=ROWS;i++){
+    const ri=i-1;
+    if(ri%2===0){fc(...WHITE);}else{fc(...OFFWH);}
+    doc.rect(ML,y,CW,rH,'F');
+    dc(...GRAYL);lw(0.2);doc.line(ML,y+rH,ML+CW,y+rH);
+    const name=document.getElementById('name'+i).value||'—';
+    const von=document.getElementById('von'+i).value||'—';
+    const bis=document.getElementById('bis'+i).value||'—';
+    const std=document.getElementById('std'+i).textContent;
+    const tot=document.getElementById('tot'+i).textContent;
+    const vals=[String(i),name,von,bis,std==='—'?'—':std,'25.00',tot==='—'?'—':tot,''];
+    cx=ML;
+    vals.forEach((v,j)=>{
+      const cw=cols[j];const mid=y+rH/2+1.5;
+      if(j===0){tc(120,130,150);fnt(8,'bold');doc.text(v,cx+cw/2,mid,{align:'center'});}
+      else if(j===5||j===6){tc(...NAVY);fnt(8.5,j===6?'bold':'normal');doc.text(v,cx+cw-1.5,mid,{align:'right'});}
+      else if(j===2||j===3||j===4){tc(...NAVY);fnt(8.5);doc.text(v,cx+cw/2,mid,{align:'center'});}
+      else{tc(...NAVY);fnt(8.5);doc.text(v,cx+2,mid);}
+      // sig image or line for last col
+      if(j===7){
+        const sd = getStaffSigDataUrl(i);
+        if(sd) { doc.addImage(sd,'PNG',cx+1,y+1,cw-2,rH-2); }
+        else { lw(0.3);dc(...GRAYL);doc.line(cx+2,y+rH-2.5,cx+cw-2,y+rH-2.5); }
+      }
+      cx+=cw;
+    });
+    y+=rH;
+  }
+
+  // Total row
+  fc(...NAVY);doc.rect(ML,y,CW,9,'F');
+  tc(...NAVY_T);fnt(7.5,'bold');
+  let cx2=ML;cols.forEach((cw,i)=>{if(i<5)cx2+=cw;});
+  doc.text('Total Löhne',cx2+cols[5]/2,y+6,{align:'center'});
+  tc(...GOLD);fnt(11,'bold');
+  let cx3=ML;cols.forEach((cw,i)=>{if(i<6)cx3+=cw;});
+  doc.text('CHF '+document.getElementById('totalLoehne').textContent,cx3+cols[6]-1.5,y+6.2,{align:'right'});
+  y+=9+6;
+
+  // Footer
+  fnt(7,'bold');tc(...TXTM);
+  doc.text('ORT / LIEU / LUOGO / PLACE',ML,y);
+  doc.text('UNTERSCHRIFT FLOORMAN',ML+CW/2+4,y);
+  fnt(10,'bold');tc(...NAVY);
+  doc.text('Bonnstrasse 22, 3186 Düdingen',ML,y+5.5);
+  // Draw signature image if available
+  const sigData = getSigDataUrl();
+  if(sigData) {
+    doc.addImage(sigData, 'PNG', ML+CW/2+4, y+1, 75, 20);
+  } else {
+    lw(0.5);dc(...NAVY);
+    doc.line(ML+CW/2+4,y+18,ML+CW,y+18);
+  }
+  y+=22;
+
+  // Legal
+  fc(...NAVY);doc.rect(ML-3,y,CW+6,18,'F');
+  tc(...NAVY_T);fnt(7);
+  const legal='Der Mitarbeiter bestätigt mit seiner Unterschrift den Erhalt des Betrages in Bar und nimmt hiermit zur Kenntnis, dass alle Stunden korrekt abgerechnet werden. Der ausbezahlte Betrag versteht sich Netto. Allfällige Abgaben werden durch den Verein bezahlt.';
+  doc.text(doc.splitTextToSize(legal,CW),ML,y+5.5);
+
+  return doc;
+}
+
+// ── STAFF SIGNATURE PADS ──
+function initStaffSig(i) {
+  const canvas = document.getElementById('sigCanvas' + i);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#0d1e3d';
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  let drawing = false, lx = 0, ly = 0;
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const sx = canvas.width / r.width, sy = canvas.height / r.height;
+    if(e.touches) return { x:(e.touches[0].clientX-r.left)*sx, y:(e.touches[0].clientY-r.top)*sy };
+    return { x:(e.clientX-r.left)*sx, y:(e.clientY-r.top)*sy };
+  }
+  function start(e) { e.preventDefault(); drawing=true; const p=getPos(e); lx=p.x; ly=p.y; ctx.beginPath(); ctx.moveTo(lx,ly); }
+  function draw(e) { if(!drawing) return; e.preventDefault(); const p=getPos(e); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(p.x,p.y); ctx.stroke(); lx=p.x; ly=p.y; }
+  function stop() { drawing=false; saveForm(); }
+
+  canvas.addEventListener('mousedown',start);
+  canvas.addEventListener('mousemove',draw);
+  canvas.addEventListener('mouseup',stop);
+  canvas.addEventListener('mouseleave',stop);
+  canvas.addEventListener('touchstart',start,{passive:false});
+  canvas.addEventListener('touchmove',draw,{passive:false});
+  canvas.addEventListener('touchend',stop);
+}
+
+function clearStaffSig(i) {
+  const canvas = document.getElementById('sigCanvas' + i);
+  if(!canvas) return;
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function getStaffSigDataUrl(i) {
+  const canvas = document.getElementById('sigCanvas' + i);
+  if(!canvas) return null;
+  const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+  if(!data.some(v => v !== 0)) return null;
+  return canvas.toDataURL('image/png');
+}
+
+// ── SIGNATURE PAD ──
+let sigDrawing = false;
+let sigLastX = 0, sigLastY = 0;
+
+function initSig() {
+  const canvas = document.getElementById('sigCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#0d1e3d';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / r.width;
+    const scaleY = canvas.height / r.height;
+    if(e.touches) {
+      return {
+        x: (e.touches[0].clientX - r.left) * scaleX,
+        y: (e.touches[0].clientY - r.top) * scaleY
+      };
+    }
+    return {
+      x: (e.clientX - r.left) * scaleX,
+      y: (e.clientY - r.top) * scaleY
+    };
+  }
+
+  function start(e) {
+    e.preventDefault();
+    sigDrawing = true;
+    const pos = getPos(e);
+    sigLastX = pos.x; sigLastY = pos.y;
+    ctx.beginPath();
+    ctx.moveTo(sigLastX, sigLastY);
+  }
+
+  function draw(e) {
+    if(!sigDrawing) return;
+    e.preventDefault();
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(sigLastX, sigLastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    sigLastX = pos.x; sigLastY = pos.y;
+  }
+
+  function stop(e) { sigDrawing = false; }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stop);
+  canvas.addEventListener('mouseleave', stop);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', draw, {passive:false});
+  canvas.addEventListener('touchend', stop);
+}
+
+function clearSig() {
+  const canvas = document.getElementById('sigCanvas');
+  if(!canvas) return;
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function getSigDataUrl() {
+  const canvas = document.getElementById('sigCanvas');
+  if(!canvas) return null;
+  // Check if empty
+  const ctx = canvas.getContext('2d');
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const hasContent = data.some(v => v !== 0);
+  if(!hasContent) return null;
+  return canvas.toDataURL('image/png');
+}
+
+// ── LOKAL DRUCKEN ──
+function printLocal() {
+  const btn = document.querySelector('[onclick="printLocal()"]');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generiere PDF…';
+  setTimeout(() => {
+    try {
+      const doc = buildPDF();
+      // Open PDF in new tab and trigger print
+      const pdfUrl = doc.output('bloburl');
+      const win = window.open(pdfUrl, '_blank');
+      if(win) {
+        win.addEventListener('load', () => {
+          win.print();
+        });
+      } else {
+        // Fallback: download
+        const datum = document.getElementById('datum').value || new Date().toISOString().split('T')[0];
+        doc.save('Gastro-Abrechnung-UNIQUE-' + datum + '.pdf');
+      }
+    } catch(e) {
+      alert('Fehler: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '&#128438; Lokal drucken';
+    }
+  }, 60);
+}
+
+// ── SEND via EmailJS ──
+async function generateAndSend(){
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  setLoader(true, 'PDF wird generiert…', '');
+  await new Promise(r => setTimeout(r, 60));
+
+  try {
+    const doc = buildPDF();
+    const datum = getV('datum') || today();
+    const filename = `Gastro-Abrechnung-UNIQUE-${datum}.pdf`;
+
+    // Build summary
+    let staffLines = '';
+    for(let i = 1; i <= ROWS; i++){
+      const name = document.getElementById('name'+i).value; if(!name) continue;
+      const von = document.getElementById('von'+i).value || '—';
+      const bis = document.getElementById('bis'+i).value || '—';
+      const std = document.getElementById('std'+i).textContent;
+      const tot = document.getElementById('tot'+i).textContent;
+      staffLines += `  ${i}. ${name.padEnd(20)} ${von}–${bis}   ${std.padStart(7)}   ${tot}\n`;
+    }
+    const summary =
+`Datum:           ${fmtDate(datum)}
+Verantwortlich:  ${getV('verantw')||'—'}
+
+Kasse gemäss Programm:  CHF ${fmtChf(getV('kasseProgr'))}
+Kasse gerechnet:        CHF ${fmtChf(getV('kasseGer'))}
+Trinkgeld:              CHF ${fmtChf(getV('trinkgeld'))}
+Barumsatz:              CHF ${fmtChf(getV('barumsatz'))}
+Prepost:                CHF ${fmtChf(getV('prepost'))}
+
+Löhne (CHF 25.–/Std, aufgerundet):
+${staffLines}
+  Total Löhne: CHF ${document.getElementById('totalLoehne').textContent}`;
+
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+
+    // 1. Zuerst PDF auf Server speichern → Link erhalten
+    setLoader(true, 'PDF wird gespeichert…', '');
+    const serverUrl = document.getElementById('cfgServer').value.trim();
+    let pdfUrl = '';
+    if(serverUrl) {
+      try {
+        const resp = await fetch(serverUrl + '/api/gastro/send', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ pdfBase64, filename, datum: fmtDate(datum), summary }),
+        });
+        const data = await resp.json();
+        console.log('Server response:', JSON.stringify(data));
+        if(data.pdfUrl) {
+          pdfUrl = data.pdfUrl;
+          console.log('PDF URL:', pdfUrl);
+        } else {
+          console.warn('No pdfUrl in response:', data);
+        }
+      } catch(e) {
+        console.error('Fetch error:', e.message);
+      }
+    }
+
+    // 2. Dann EmailJS mit PDF-Link
+    setLoader(true, 'E-Mail wird gesendet…', 'An: roger@lehmanncomputer.ch');
+    await emailjs.send('service_8eqgfmq', 'template_xwfnid3', {
+      datum: fmtDate(datum),
+      verantw: getV('verantw') || '—',
+      summary: summary,
+      filename: filename,
+      pdf_url: pdfUrl || '(kein Link verfügbar)',
+    });
+
+    setLoader(false);
+    clearFormStorage();
+    // Reset form after successful send
+    buildTable();
+    document.getElementById('datum').value = today();
+    document.getElementById('verantw').value = '';
+    ['kasseProgr','kasseGez'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    ['kasseGer','kasseGerTG','kasseGerPP','kasseProgrBU','trinkgeld','barumsatz','prepost'].forEach(id => sv(id,''));
+    document.getElementById('loehneVal').value = '0';
+    document.getElementById('totalLoehne').textContent = '0.00';
+    clearSig();
+    initSig();
+    showNotif('success', '✓ E-Mail gesendet', `Gastro-Abrechnung ${fmtDate(datum)} gesendet · ${pdfUrl ? 'PDF-Link in E-Mail' : ''}`, 8000);
+
+  } catch(err) {
+    setLoader(false);
+    showNotif('error', 'Fehler beim Senden', err.message || 'Unbekannter Fehler', 8000);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── INIT ──
+load();renderEmpList();buildTable();initSig();loadForm();
+document.getElementById('datum').value=today();
+document.getElementById('delModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+document.getElementById('cfgServer').addEventListener('change',checkServer);
+
+// Check server on load
+setTimeout(checkServer,500);
+</script>
 </body>
 </html>
