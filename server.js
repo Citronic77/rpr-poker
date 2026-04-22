@@ -415,6 +415,7 @@ wss.on('connection', ws => {
       } else if (msg.type === 'floorCallDone') {
         state.activeFloorCalls = state.activeFloorCalls.filter(t => t !== msg.table);
         broadcast({ type: 'floorCallDone', table: msg.table });
+        broadcastState(); // sync activeFloorCalls to all clients
         triggerWebhook('floorDone', msg.table);
       } else if (msg.type === 'getState') {
         // Client requesting fresh state (e.g. after reconnect)
