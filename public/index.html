@@ -431,7 +431,11 @@ function connect() {
     try {
       const msg = JSON.parse(e.data);
       if(msg.type === 'state') applyState(msg.payload);
-      else if(msg.type === 'floorCall') showFloorAlert(msg.table, msg.time);
+      else if(msg.type === 'floorCall') {
+        activeFloorCalls.add(msg.table); // sync alle Geräte
+        showFloorAlert(msg.table, msg.time);
+        renderDealer(); // Button sofort rot auf allen Geräten
+      }
       else if(msg.type === 'floorCallDone') {
         activeFloorCalls.delete(msg.table);
         renderDealer();
@@ -481,6 +485,10 @@ function applyState(payload) {
     // blinds array = only real rounds; currentLevel counts breaks too
     // We can't recalc without full schedule, so use blinds.length as max
     S.blindLevelNumber = Math.min(S.currentLevel, S.blinds.length);
+  }
+  // Sync floor calls from server state (important for reconnects)
+  if(S.activeFloorCalls) {
+    activeFloorCalls = new Set(S.activeFloorCalls);
   }
   document.getElementById('h-title').textContent = S.tourneyName || 'RPR Poker';
   const blindPill = document.getElementById('h-blind');
