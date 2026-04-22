@@ -143,6 +143,16 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
 .addr span{font-size:14px;font-weight:600;color:var(--navy)}
 .legal-box{background:var(--navy);color:#8fa8c8;font-size:11.5px;line-height:1.6;padding:1rem 2rem}
 
+/* SIGNATURE MODAL */
+.sig-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:1rem}
+.sig-modal-bg.open{display:flex}
+.sig-modal{background:#fff;border-radius:12px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)}
+.sig-modal-header{background:var(--navy);padding:12px 1rem;display:flex;align-items:center;justify-content:space-between}
+.sig-modal-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase}
+.sig-modal-body{padding:1rem}
+.sig-modal-canvas{border:2px solid var(--navy);border-radius:6px;background:#fff;touch-action:none;cursor:crosshair;width:100%;display:block}
+.sig-modal-footer{display:flex;gap:8px;padding:.75rem 1rem;border-top:1px solid var(--border)}
+
 /* MODAL */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center}
 .modal-bg.open{display:flex}
@@ -327,11 +337,14 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
       </div>
       <div class="sig-field">
         <label>Unterschrift Floorman</label>
-        <div style="border:2px solid var(--navy);border-radius:4px;position:relative;background:#fff;">
-          <canvas id="sigCanvas" width="380" height="100" style="display:block;touch-action:none;cursor:crosshair;width:100%;height:100px"></canvas>
-          <button onclick="clearSig()" style="position:absolute;top:4px;right:4px;background:none;border:1px solid var(--border);border-radius:3px;font-size:11px;padding:2px 7px;cursor:pointer;color:var(--text-mid)">✕ Löschen</button>
+        <div style="border:2px solid var(--navy);border-radius:4px;position:relative;background:#fff;cursor:pointer" onclick="openSigModal('floor','Unterschrift Floorman')">
+          <canvas id="sigCanvas" width="380" height="100" style="display:block;touch-action:none;width:100%;height:100px;pointer-events:none"></canvas>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0" id="sigFloorHint">
+            <span style="font-size:12px;color:var(--text-mid)">Tippen zum Unterschreiben</span>
+          </div>
+          <button onclick="event.stopPropagation();clearSig()" style="position:absolute;top:4px;right:4px;background:none;border:1px solid var(--border);border-radius:3px;font-size:11px;padding:2px 7px;cursor:pointer;color:var(--text-mid)">✕</button>
         </div>
-        <div style="font-size:11px;color:var(--text-mid);margin-top:3px">Mit Finger oder Stift unterschreiben</div>
+        <div style="font-size:11px;color:var(--text-mid);margin-top:3px">Tippen zum Unterschreiben</div>
       </div>
     </div>
     <div class="legal-box">
@@ -354,6 +367,24 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
     <div class="modal-btns">
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button>
       <button class="btn btn-danger btn-sm" id="delConfirm">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNATURE MODAL -->
+<div class="sig-modal-bg" id="sigModal">
+  <div class="sig-modal">
+    <div class="sig-modal-header">
+      <span class="sig-modal-title" id="sigModalTitle">Unterschrift</span>
+      <button onclick="closeSigModal()" style="background:none;border:none;color:#a8bcd4;font-size:20px;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div class="sig-modal-body">
+      <p style="font-size:12px;color:var(--text-mid);margin-bottom:.5rem">Mit Finger oder Stift unterschreiben:</p>
+      <canvas id="sigModalCanvas" class="sig-modal-canvas" height="200"></canvas>
+    </div>
+    <div class="sig-modal-footer">
+      <button onclick="clearSigModal()" class="btn btn-ghost btn-sm" style="flex:1">✕ Löschen</button>
+      <button onclick="saveSigModal()" class="btn btn-primary" style="flex:2">✓ Übernehmen</button>
     </div>
   </div>
 </div>
@@ -547,9 +578,9 @@ function buildTable(){
       <td class="r" style="color:var(--text-mid);font-weight:600;">25.00</td>
       <td class="tot-cell" id="tot${i}">—</td>
       <td style="padding:2px 4px">
-        <div style="position:relative;border:1px solid var(--border);border-radius:3px;background:#fff;">
-          <canvas id="sigCanvas${i}" width="240" height="44" style="display:block;touch-action:none;cursor:crosshair;width:100%;height:44px"></canvas>
-          <button onclick="clearStaffSig(${i})" style="position:absolute;top:1px;right:1px;background:none;border:none;font-size:10px;padding:1px 4px;cursor:pointer;color:var(--text-mid);opacity:.5" title="Löschen">✕</button>
+        <div style="position:relative;border:1px solid var(--border);border-radius:3px;background:#fff;cursor:pointer" onclick="openSigModal(${i},'Unterschrift Mitarbeiter '+${i})">
+          <canvas id="sigCanvas${i}" width="240" height="44" style="display:block;touch-action:none;width:100%;height:44px;pointer-events:none"></canvas>
+          <button onclick="event.stopPropagation();clearStaffSig(${i})" style="position:absolute;top:1px;right:1px;background:none;border:none;font-size:10px;padding:1px 4px;cursor:pointer;color:var(--text-mid);opacity:.5" title="Löschen">✕</button>
         </div>
       </td>\``;
     tbody.appendChild(tr);
@@ -842,6 +873,114 @@ function buildPDF(){
   doc.text(doc.splitTextToSize(legal,CW),ML,y+5.5);
 
   return doc;
+}
+
+// ── SIGNATURE MODAL ──
+let sigModalTarget = null; // 'floor' or staff index number
+let sigModalDrawing = false, sigModalLX = 0, sigModalLY = 0;
+let sigModalCtx = null;
+
+function openSigModal(target, title) {
+  sigModalTarget = target;
+  document.getElementById('sigModalTitle').textContent = title || 'Unterschrift';
+  document.getElementById('sigModal').classList.add('open');
+
+  const canvas = document.getElementById('sigModalCanvas');
+  // Set canvas width to match display size
+  canvas.width = canvas.offsetWidth || 448;
+  canvas.height = 200;
+  sigModalCtx = canvas.getContext('2d');
+  sigModalCtx.strokeStyle = '#0d1e3d';
+  sigModalCtx.lineWidth = 2.5;
+  sigModalCtx.lineCap = 'round';
+  sigModalCtx.lineJoin = 'round';
+  sigModalCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Copy existing signature if any
+  let existingData = null;
+  if(target === 'floor') existingData = getSigDataUrl();
+  else existingData = getStaffSigDataUrl(target);
+  if(existingData) {
+    const img = new Image();
+    img.onload = () => sigModalCtx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    img.src = existingData;
+  }
+
+  // Init drawing
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const sx = canvas.width / r.width, sy = canvas.height / r.height;
+    if(e.touches) return { x:(e.touches[0].clientX-r.left)*sx, y:(e.touches[0].clientY-r.top)*sy };
+    return { x:(e.clientX-r.left)*sx, y:(e.clientY-r.top)*sy };
+  }
+  function start(e) { e.preventDefault(); sigModalDrawing=true; const p=getPos(e); sigModalLX=p.x; sigModalLY=p.y; sigModalCtx.beginPath(); sigModalCtx.moveTo(sigModalLX,sigModalLY); }
+  function draw(e) { if(!sigModalDrawing) return; e.preventDefault(); const p=getPos(e); sigModalCtx.beginPath(); sigModalCtx.moveTo(sigModalLX,sigModalLY); sigModalCtx.lineTo(p.x,p.y); sigModalCtx.stroke(); sigModalLX=p.x; sigModalLY=p.y; }
+  function stop() { sigModalDrawing=false; }
+
+  // Remove old listeners by cloning
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+  sigModalCtx = newCanvas.getContext('2d');
+  sigModalCtx.strokeStyle = '#0d1e3d';
+  sigModalCtx.lineWidth = 2.5;
+  sigModalCtx.lineCap = 'round';
+  sigModalCtx.lineJoin = 'round';
+  if(existingData) {
+    const img = new Image();
+    img.onload = () => sigModalCtx.drawImage(img, 0, 0, newCanvas.width, newCanvas.height);
+    img.src = existingData;
+  }
+  newCanvas.addEventListener('mousedown', start);
+  newCanvas.addEventListener('mousemove', draw);
+  newCanvas.addEventListener('mouseup', stop);
+  newCanvas.addEventListener('mouseleave', stop);
+  newCanvas.addEventListener('touchstart', start, {passive:false});
+  newCanvas.addEventListener('touchmove', draw, {passive:false});
+  newCanvas.addEventListener('touchend', stop);
+}
+
+function clearSigModal() {
+  const canvas = document.getElementById('sigModalCanvas');
+  sigModalCtx = canvas.getContext('2d');
+  sigModalCtx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function saveSigModal() {
+  const canvas = document.getElementById('sigModalCanvas');
+  const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+  const hasContent = data.some(v => v !== 0);
+  const dataUrl = hasContent ? canvas.toDataURL('image/png') : null;
+
+  if(sigModalTarget === 'floor') {
+    // Copy to floor canvas
+    const floorCanvas = document.getElementById('sigCanvas');
+    if(floorCanvas) {
+      floorCanvas.getContext('2d').clearRect(0, 0, floorCanvas.width, floorCanvas.height);
+      if(dataUrl) {
+        const img = new Image();
+        img.onload = () => floorCanvas.getContext('2d').drawImage(img, 0, 0, floorCanvas.width, floorCanvas.height);
+        img.src = dataUrl;
+      }
+    }
+  } else {
+    // Copy to staff canvas
+    const staffCanvas = document.getElementById('sigCanvas' + sigModalTarget);
+    if(staffCanvas) {
+      staffCanvas.getContext('2d').clearRect(0, 0, staffCanvas.width, staffCanvas.height);
+      if(dataUrl) {
+        const img = new Image();
+        img.onload = () => staffCanvas.getContext('2d').drawImage(img, 0, 0, staffCanvas.width, staffCanvas.height);
+        img.src = dataUrl;
+      }
+    }
+  }
+  saveForm();
+  closeSigModal();
+}
+
+function closeSigModal() {
+  document.getElementById('sigModal').classList.remove('open');
+  sigModalTarget = null;
 }
 
 // ── STAFF SIGNATURE PADS ──
