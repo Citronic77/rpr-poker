@@ -437,14 +437,13 @@ function connect() {
         renderDealer(); // Button sofort rot auf allen Geräten
       }
       else if(msg.type === 'floorCallDone') {
-        console.log('floorCallDone received:', msg.table, 'floorCalls before:', JSON.stringify(floorCalls));
         activeFloorCalls.delete(msg.table);
         floorCalls = floorCalls.filter(f => f.table !== msg.table);
-        console.log('floorCalls after:', JSON.stringify(floorCalls));
         renderFloorCalls();
         renderDealer();
         renderFloor();
         toast('✓ Floor quittiert — ' + msg.table, 'green');
+        if('vibrate' in navigator) navigator.vibrate([100]);
       }
     } catch(e) {}
   };
