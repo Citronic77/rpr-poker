@@ -496,7 +496,10 @@ function applyState(payload) {
   }
   // Sync floor calls from server state (important for reconnects)
   if(S.activeFloorCalls) {
+    // Remove floor banners for tables no longer in server's activeFloorCalls
+    floorCalls = floorCalls.filter(f => S.activeFloorCalls.includes(f.table));
     activeFloorCalls = new Set(S.activeFloorCalls);
+    renderFloorCalls();
   }
   document.getElementById('h-title').textContent = S.tourneyName || 'RPR Poker';
   const blindPill = document.getElementById('h-blind');
