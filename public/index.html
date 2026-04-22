@@ -436,13 +436,11 @@ function connect() {
         showFloorAlert(msg.table, msg.time);
         renderDealer();
         renderFloor();
+        renderFloorCalls();
       }
       else if(msg.type === 'floorCallDone') {
-        // Clear by exact match and case-insensitive
-        activeFloorCalls.forEach(t => {
-          if(t === msg.table || t.toUpperCase() === msg.table.toUpperCase()) activeFloorCalls.delete(t);
-        });
-        floorCalls = floorCalls.filter(f => f.table !== msg.table);
+        activeFloorCalls.delete(msg.table);
+        delete floorCallTimes[msg.table];
         renderFloorCalls();
         renderDealer();
         renderFloor();
@@ -496,8 +494,6 @@ function applyState(payload) {
   }
   // Sync floor calls from server state (important for reconnects)
   if(S.activeFloorCalls) {
-    // Remove floor banners for tables no longer in server's activeFloorCalls
-    floorCalls = floorCalls.filter(f => S.activeFloorCalls.includes(f.table));
     activeFloorCalls = new Set(S.activeFloorCalls);
     renderFloorCalls();
   }
@@ -933,12 +929,11 @@ function toast(msg, color){
 }
 
 // ── FLOOR CALL ──
-// floor calls: {table, time, id}
-let floorCalls = [];
+// Time map: table → time (for display)
+const floorCallTimes = {};
 
 function showFloorAlert(table, time) {
-  const id = table + '_' + Date.now();
-  floorCalls.push({id, table, time});
+  floorCallTimes[table] = time;
   renderFloorCalls();
   const tNum = (table.match(/\d+/) || [''])[0];
   const tLabel = tNum ? 'Tisch ' + numToWord(tNum) : table;
@@ -946,28 +941,28 @@ function showFloorAlert(table, time) {
   if('vibrate' in navigator) navigator.vibrate([200,100,200,100,400]);
 }
 
-function dismissFloorCall(id) {
-  const call = floorCalls.find(f => f.id === id);
-  if(call) wsSend({ type: 'floorCallDone', table: call.table });
-  floorCalls = floorCalls.filter(f => f.id !== id);
-  renderFloorCalls();
+function dismissFloorCall(table) {
+  wsSend({ type: 'floorCallDone', table });
 }
 
 function renderFloorCalls() {
   const container = document.getElementById('floor-calls-container');
   if(!container) return;
-  if(!floorCalls.length) { container.innerHTML = ''; return; }
-  container.innerHTML = floorCalls.map(f => `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:#EF9F27;border-radius:var(--rl);margin-bottom:8px">
+  const tables = Array.from(activeFloorCalls);
+  if(!tables.length) { container.innerHTML = ''; return; }
+  container.innerHTML = tables.map(table => {
+    const time = floorCallTimes[table] || '';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:#EF9F27;border-radius:var(--rl);margin-bottom:8px">
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:20px">🚨</span>
         <div>
-          <div style="font-size:14px;font-weight:500;color:#fff">${f.table}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.8)">Floor gerufen — ${f.time}</div>
+          <div style="font-size:14px;font-weight:500;color:#fff">${table}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.8)">Floor gerufen${time ? ' — ' + time : ''}</div>
         </div>
       </div>
-      <button onclick="dismissFloorCall('${f.id}')" style="padding:6px 14px;font-size:12px;font-weight:500;border:none;border-radius:var(--r);background:#fff;color:#BA7517;cursor:pointer;white-space:nowrap">✓ Erledigt</button>
-    </div>`).join('');
+      <button onclick="dismissFloorCall('${table}')" style="padding:6px 14px;font-size:12px;font-weight:500;border:none;border-radius:var(--r);background:#fff;color:#BA7517;cursor:pointer;white-space:nowrap">✓ Erledigt</button>
+    </div>`;
+  }).join('');
 }
 // ── FLOOR CALL ──
 let pendingFloorTable = null;
