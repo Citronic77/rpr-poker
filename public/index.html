@@ -432,12 +432,16 @@ function connect() {
       const msg = JSON.parse(e.data);
       if(msg.type === 'state') applyState(msg.payload);
       else if(msg.type === 'floorCall') {
-        activeFloorCalls.add(msg.table); // sync alle Geräte
+        activeFloorCalls.add(msg.table);
         showFloorAlert(msg.table, msg.time);
-        renderDealer(); // Button sofort rot auf allen Geräten
+        renderDealer();
+        renderFloor();
       }
       else if(msg.type === 'floorCallDone') {
-        activeFloorCalls.delete(msg.table);
+        // Clear by exact match and case-insensitive
+        activeFloorCalls.forEach(t => {
+          if(t === msg.table || t.toUpperCase() === msg.table.toUpperCase()) activeFloorCalls.delete(t);
+        });
         floorCalls = floorCalls.filter(f => f.table !== msg.table);
         renderFloorCalls();
         renderDealer();
