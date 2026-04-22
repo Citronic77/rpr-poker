@@ -169,7 +169,20 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
 .spinner{width:44px;height:44px;border:4px solid rgba(245,166,35,.25);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-@media(max-width:620px){.top-row,.form-footer,.config-bar{grid-template-columns:1fr}.form-header{flex-direction:column;gap:12px;align-items:flex-start}.header-badge{font-size:18px;padding:8px 14px}.calc-grid{grid-template-columns:1fr !important}}
+@media(max-width:620px){
+  .top-row,.form-footer,.config-bar{grid-template-columns:1fr}
+  .form-header{flex-direction:column;gap:12px;align-items:flex-start}
+  .header-badge{font-size:18px;padding:8px 14px}
+  .calc-grid{grid-template-columns:1fr !important}
+  .staff-table-wrap{margin:0;overflow-x:auto}
+  .staff-table{min-width:600px}
+  #mobileStaff{display:block}
+  #desktopStaff{display:none}
+}
+@media(min-width:621px){
+  #mobileStaff{display:none}
+  #desktopStaff{display:block}
+}
 </style>
 </head>
 <body>
@@ -586,8 +599,60 @@ function buildTable(){
     tbody.appendChild(tr);
   }
   refreshSelects();
+  renderMobileStaff();
   // Init signature pads for all rows
   setTimeout(() => { for(let i=1;i<=ROWS;i++) initStaffSig(i); }, 0);
+}
+
+function renderMobileStaff() {
+  const mobile = document.getElementById('mobileStaff');
+  if(!mobile) return;
+  mobile.innerHTML = Array.from({length:ROWS},(_,i)=>i+1).map(i => `
+    <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="background:var(--navy);color:#fff;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:700">${i}</span>
+        <select class="tsel" id="mname${i}" style="flex:1" onchange="syncMobileToTable(${i})"><option value="">— wählen —</option></select>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="flex:1">
+          <div style="font-size:10px;font-weight:700;color:var(--text-mid);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Von</div>
+          <input class="ttime" type="text" id="mvon${i}" placeholder="18:00" maxlength="5" style="width:100%" oninput="handleTimeInput(this,${i});syncMobileToTable(${i})" onblur="validateTime(this,${i})">
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10px;font-weight:700;color:var(--text-mid);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Bis</div>
+          <input class="ttime" type="text" id="mbis${i}" placeholder="23:00" maxlength="5" style="width:100%" oninput="handleTimeInput(this,${i});syncMobileToTable(${i})" onblur="validateTime(this,${i})">
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10px;font-weight:700;color:var(--text-mid);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Std / Total</div>
+          <div style="font-size:13px;font-weight:600;color:var(--navy);padding-top:4px"><span id="mstd${i}">—</span></div>
+        </div>
+      </div>
+      <div style="border:1.5px solid var(--navy);border-radius:4px;height:50px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-mid);font-size:12px" onclick="openSigModal(${i},'Unterschrift Mitarbeiter ${i}')">
+        <canvas id="sigCanvas${i}" width="300" height="46" style="display:block;width:100%;height:46px;touch-action:none;pointer-events:none"></canvas>
+      </div>
+    </div>
+  `).join('');
+  // Fill selects
+  employees.forEach(name => {
+    for(let i=1;i<=ROWS;i++){
+      const sel=document.getElementById('mname'+i);
+      if(sel && ![...sel.options].some(o=>o.value===name)){
+        const o=document.createElement('option');o.value=name;o.textContent=name;sel.appendChild(o);
+      }
+    }
+  });
+}
+
+function syncMobileToTable(i) {
+  const mn = document.getElementById('mname'+i);
+  const mv = document.getElementById('mvon'+i);
+  const mb = document.getElementById('mbis'+i);
+  if(mn && document.getElementById('name'+i)) document.getElementById('name'+i).value = mn?.value||'';
+  if(mv && document.getElementById('von'+i)) { document.getElementById('von'+i).value = mv?.value||''; }
+  if(mb && document.getElementById('bis'+i)) { document.getElementById('bis'+i).value = mb?.value||''; }
+  const ms = document.getElementById('mstd'+i);
+  if(ms) ms.textContent = document.getElementById('std'+i)?.textContent || '—';
+  saveForm();
 }
 function refreshSelects(){
   // Staff table selects
@@ -885,10 +950,12 @@ function openSigModal(target, title) {
   document.getElementById('sigModalTitle').textContent = title || 'Unterschrift';
   document.getElementById('sigModal').classList.add('open');
 
+  // Wait for modal to be visible before getting canvas size
   const canvas = document.getElementById('sigModalCanvas');
-  // Set canvas width to match display size
-  canvas.width = canvas.offsetWidth || 448;
-  canvas.height = 200;
+  setTimeout(() => {
+    canvas.width = canvas.offsetWidth || 400;
+    canvas.height = 200;
+  }, 10);
   sigModalCtx = canvas.getContext('2d');
   sigModalCtx.strokeStyle = '#0d1e3d';
   sigModalCtx.lineWidth = 2.5;
@@ -917,26 +984,13 @@ function openSigModal(target, title) {
   function draw(e) { if(!sigModalDrawing) return; e.preventDefault(); const p=getPos(e); sigModalCtx.beginPath(); sigModalCtx.moveTo(sigModalLX,sigModalLY); sigModalCtx.lineTo(p.x,p.y); sigModalCtx.stroke(); sigModalLX=p.x; sigModalLY=p.y; }
   function stop() { sigModalDrawing=false; }
 
-  // Remove old listeners by cloning
-  const newCanvas = canvas.cloneNode(true);
-  canvas.parentNode.replaceChild(newCanvas, canvas);
-  sigModalCtx = newCanvas.getContext('2d');
-  sigModalCtx.strokeStyle = '#0d1e3d';
-  sigModalCtx.lineWidth = 2.5;
-  sigModalCtx.lineCap = 'round';
-  sigModalCtx.lineJoin = 'round';
-  if(existingData) {
-    const img = new Image();
-    img.onload = () => sigModalCtx.drawImage(img, 0, 0, newCanvas.width, newCanvas.height);
-    img.src = existingData;
-  }
-  newCanvas.addEventListener('mousedown', start);
-  newCanvas.addEventListener('mousemove', draw);
-  newCanvas.addEventListener('mouseup', stop);
-  newCanvas.addEventListener('mouseleave', stop);
-  newCanvas.addEventListener('touchstart', start, {passive:false});
-  newCanvas.addEventListener('touchmove', draw, {passive:false});
-  newCanvas.addEventListener('touchend', stop);
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stop);
+  canvas.addEventListener('mouseleave', stop);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', draw, {passive:false});
+  canvas.addEventListener('touchend', stop);
 }
 
 function clearSigModal() {
