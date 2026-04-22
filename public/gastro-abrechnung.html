@@ -159,7 +159,7 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
 .spinner{width:44px;height:44px;border:4px solid rgba(245,166,35,.25);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-@media(max-width:620px){.top-row,.form-footer,.config-bar{grid-template-columns:1fr}.form-header{flex-direction:column;gap:12px;align-items:flex-start}.header-badge{font-size:18px;padding:8px 14px}}
+@media(max-width:620px){.top-row,.form-footer,.config-bar{grid-template-columns:1fr}.form-header{flex-direction:column;gap:12px;align-items:flex-start}.header-badge{font-size:18px;padding:8px 14px}.calc-grid{grid-template-columns:1fr !important}}
 </style>
 </head>
 <body>
@@ -225,7 +225,7 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
         <div class="field-group"><label>Datum</label><input type="date" id="datum"></div>
         <div class="field-group"><label>Verantwortlich</label><select id="verantw" onchange="saveForm()" style="border:none;border-bottom:2px solid var(--navy);padding:6px 0;font-family:'Barlow',sans-serif;font-size:15px;font-weight:500;color:var(--text-dark);background:transparent;outline:none;width:100%;-webkit-appearance:none;appearance:none;cursor:pointer"><option value="">— wählen —</option></select></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+      <div class="calc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
 
         <!-- Kasse -->
         <div class="calc-section" style="border-left-color:var(--blue-box);margin:0">
