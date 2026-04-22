@@ -167,7 +167,10 @@ input.ttime.invalid{border-bottom-color:var(--red-box);color:var(--red-box)}
 
   <!-- TOOLBAR -->
   <div class="toolbar">
-    <div class="toolbar-left">&#9993; E-Mail wird automatisch als PDF-Anhang versendet</div>
+    <div class="toolbar-left">
+      <a href="javascript:history.back()" style="display:inline-flex;align-items:center;gap:5px;background:var(--navy);color:#fff;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:600;text-decoration:none;margin-right:10px">← Zurück</a>
+      &#9993; E-Mail wird automatisch als PDF-Anhang versendet
+    </div>
     <div class="toolbar-right">
       <button class="btn btn-ghost" onclick="resetForm()">&#8635; Zurücksetzen</button>
       <button class="btn btn-ghost" onclick="printLocal()">&#128438; Lokal drucken</button>
