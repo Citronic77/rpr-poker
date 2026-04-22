@@ -146,6 +146,7 @@ let state = {
   tables: [],
   players: [],      // parsed from .tdt
   eliminations: [], // manually set by dealers
+  activeFloorCalls: [], // tables currently calling floor
   lastUpdate: null,
   lastRaw: '',
   currentLevel: null,
@@ -408,9 +409,11 @@ wss.on('connection', ws => {
         state.eliminations.forEach((e, i) => e.pos = state.players.length - i);
         broadcastState();
       } else if (msg.type === 'floorCall') {
+        if(!state.activeFloorCalls.includes(msg.table)) state.activeFloorCalls.push(msg.table);
         broadcast({ type: 'floorCall', table: msg.table, time: msg.time });
         triggerWebhook('floorCall', msg.table);
       } else if (msg.type === 'floorCallDone') {
+        state.activeFloorCalls = state.activeFloorCalls.filter(t => t !== msg.table);
         broadcast({ type: 'floorCallDone', table: msg.table });
         triggerWebhook('floorDone', msg.table);
       } else if (msg.type === 'getState') {
