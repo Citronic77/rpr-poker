@@ -417,8 +417,6 @@ wss.on('connection', ws => {
           const activePlayers = state.players.length - state.eliminations.length;
           const player = state.players.find(p => p.id === playerId);
           const seat = player ? player.seat : null;
-          const buyinsAtElim = parsed && parsed.buyinCountPerPlayer ? (parsed.buyinCountPerPlayer[playerId] || 1) : 1;
-          // Use last parsed buyin counts from state
           const currentBuyinCounts = state.lastBuyinCounts || {};
           state.eliminations.push({ id: playerId, name: playerName, table, seat, time, pos: activePlayers, buyinsAtElim: currentBuyinCounts[playerId] || 1 });
           broadcastState();
