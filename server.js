@@ -300,7 +300,16 @@ function parseTDT(raw) {
   }
   const pot = Math.round(totalAmount - totalRake);
 
-  return { name, players, tables, blinds, currentLevel, currentBlind, currentBreak, blindLevelNumber, totalBuyins, totalUniquePlayers, totalReentries, totalBonus, pot };
+  // Build buyin count per player UUID
+  const buyinCountPerPlayer = {};
+  for (let i = 0; i < uuidPositions.length; i++) {
+    const { uuid, pos } = uuidPositions[i];
+    const nextPos = i + 1 < uuidPositions.length ? uuidPositions[i + 1].pos : raw.length;
+    const block = raw.slice(pos, nextPos);
+    buyinCountPerPlayer[uuid] = (block.match(/new GameBuyin\(\{/g) || []).length;
+  }
+
+  return { name, players, tables, blinds, currentLevel, currentBlind, currentBreak, blindLevelNumber, totalBuyins, totalUniquePlayers, totalReentries, totalBonus, pot, buyinCountPerPlayer };
 }
 
 // ── Broadcast to all clients ──
@@ -344,7 +353,14 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
 
     // Keep manual eliminations only for players still present in the file.
     // If a player disappeared (e.g. removed from tournament), drop their elimination.
-    state.eliminations = state.eliminations.filter(e => newPlayerIds.has(e.id));
+    // Also remove eliminations for players who have re-entered (more buyins than at elimination time).
+    state.eliminations = state.eliminations.filter(e => {
+      if (!newPlayerIds.has(e.id)) return false; // player removed
+      const currentBuyins = parsed.buyinCountPerPlayer[e.id] || 0;
+      const buyinsAtElim = e.buyinsAtElim || 1;
+      if (currentBuyins > buyinsAtElim) return false; // player re-entered
+      return true;
+    });
 
     // Recalculate positions after any drops
     state.eliminations.forEach((e, i) => e.pos = parsed.players.length - i);
@@ -366,6 +382,7 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
     state.totalBuyins = parsed.totalBuyins;
     state.totalUniquePlayers = parsed.totalUniquePlayers;
     state.totalReentries = parsed.totalReentries;
+    state.lastBuyinCounts = parsed.buyinCountPerPlayer;
     state.lastUpdate = new Date().toISOString();
 
     broadcastState();
@@ -400,7 +417,10 @@ wss.on('connection', ws => {
           const activePlayers = state.players.length - state.eliminations.length;
           const player = state.players.find(p => p.id === playerId);
           const seat = player ? player.seat : null;
-          state.eliminations.push({ id: playerId, name: playerName, table, seat, time, pos: activePlayers });
+          const buyinsAtElim = parsed && parsed.buyinCountPerPlayer ? (parsed.buyinCountPerPlayer[playerId] || 1) : 1;
+          // Use last parsed buyin counts from state
+          const currentBuyinCounts = state.lastBuyinCounts || {};
+          state.eliminations.push({ id: playerId, name: playerName, table, seat, time, pos: activePlayers, buyinsAtElim: currentBuyinCounts[playerId] || 1 });
           broadcastState();
         }
       } else if (msg.type === 'undo') {
