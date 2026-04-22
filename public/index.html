@@ -438,7 +438,11 @@ function connect() {
       }
       else if(msg.type === 'floorCallDone') {
         activeFloorCalls.delete(msg.table);
+        // Remove from local floorCalls list (floor banner on all devices)
+        floorCalls = floorCalls.filter(f => f.table !== msg.table);
+        renderFloorCalls();
         renderDealer();
+        renderFloor();
         toast('✓ Floor quittiert — ' + msg.table, 'green');
       }
     } catch(e) {}
