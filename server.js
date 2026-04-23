@@ -546,6 +546,32 @@ setInterval(() => {
   });
 }, 30000);
 
+// ── Registrierung PDF ──
+const REG_PDF_DIR = path.join(__dirname, 'public', 'reg-pdfs');
+if (!fs.existsSync(REG_PDF_DIR)) fs.mkdirSync(REG_PDF_DIR, { recursive: true });
+
+app.post('/api/reg/save', express.json({ limit: '20mb' }), (req, res) => {
+  const { pdfBase64, filename } = req.body;
+  if(!pdfBase64) return res.status(400).json({ ok: false });
+  try {
+    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+    const filePath = path.join(REG_PDF_DIR, path.basename(filename));
+    fs.writeFileSync(filePath, pdfBuffer);
+    const host = req.get('host');
+    const proto = host.includes('railway.app') ? 'https' : req.protocol;
+    const pdfUrl = proto + '://' + host + '/reg-pdf/' + encodeURIComponent(path.basename(filename));
+    res.json({ ok: true, pdfUrl });
+  } catch(e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+app.get('/reg-pdf/:filename', (req, res) => {
+  const filePath = path.join(REG_PDF_DIR, path.basename(req.params.filename));
+  if(!fs.existsSync(filePath)) return res.status(404).send('Nicht gefunden');
+  res.setHeader('Content-Type','application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="${path.basename(req.params.filename)}"`);
+  res.sendFile(filePath);
+});
+
 // ── Gastro PDF Download ──
 const GASTRO_PDF_DIR = path.join(__dirname, 'public', 'gastro-pdfs');
 if (!fs.existsSync(GASTRO_PDF_DIR)) fs.mkdirSync(GASTRO_PDF_DIR, { recursive: true });
