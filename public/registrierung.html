@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>UNIQUE Poker — Registrierung</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('4laI9xZsiK1acmVxt');</script>
+<style>
+:root {
+  --navy:#0d1e3d; --navy-l:#1a3060; --gold:#f5a623; --gold-d:#d4891a;
+  --bg:#f0ede8; --card:#fff; --border:#ddd9d3; --text:#0d1e3d; --text2:#5a6478;
+  --green:#16a34a; --red:#dc2626;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--navy);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between}
+.hdr-logo{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:#fff;letter-spacing:.15em}
+.hdr-sub{font-size:10px;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-top:1px}
+.lang-btns{display:flex;gap:6px}
+.lang-btn{background:rgba(255,255,255,.12);border:none;border-radius:4px;color:#fff;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.05em;transition:background .15s}
+.lang-btn.active{background:var(--gold);color:var(--navy)}
+
+/* PAGE */
+.page{max-width:520px;margin:0 auto;padding:1.5rem 1rem 4rem}
+.page-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--navy);letter-spacing:.08em;margin-bottom:.25rem}
+.page-sub{font-size:13px;color:var(--text2);margin-bottom:1.75rem}
+
+/* SECTION */
+.sect{background:var(--card);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-bottom:1rem}
+.sect-hdr{background:var(--navy-l);padding:9px 1rem;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.sect-body{padding:1rem;display:flex;flex-direction:column;gap:12px}
+
+/* FIELDS */
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2)}
+.field label .req{color:var(--red);margin-left:2px}
+.field input,.field textarea{border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-family:'Barlow',sans-serif;font-size:15px;color:var(--text);background:#fff;outline:none;width:100%;transition:border-color .15s}
+.field input:focus,.field textarea:focus{border-color:var(--gold)}
+.field input.err{border-color:var(--red)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* CHECKBOX */
+.check-wrap{display:flex;align-items:flex-start;gap:10px;padding:10px;background:#f8f7f4;border-radius:6px;border:1.5px solid var(--border);cursor:pointer}
+.check-wrap input[type=checkbox]{width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--navy);cursor:pointer}
+.check-label{font-size:13px;line-height:1.5;color:var(--text)}
+
+/* PHOTO */
+.photo-section{display:flex;gap:10px}
+.photo-box{flex:1;display:flex;flex-direction:column;gap:6px}
+.photo-box label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2)}
+.photo-preview{border:2px dashed var(--border);border-radius:8px;height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:#fafaf8;transition:border-color .15s}
+.photo-preview:hover{border-color:var(--gold)}
+.photo-preview img{width:100%;height:100%;object-fit:cover}
+.photo-preview .photo-icon{font-size:28px;margin-bottom:4px}
+.photo-preview .photo-hint{font-size:10px;color:var(--text2);text-align:center;padding:0 8px}
+.photo-preview input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.photo-clear{background:none;border:.5px solid var(--border);border-radius:4px;padding:3px 8px;font-size:10px;color:var(--text2);cursor:pointer;align-self:flex-start}
+
+/* SIGNATURE */
+.sig-wrap{border:2px solid var(--navy);border-radius:6px;background:#fff;cursor:pointer;position:relative;overflow:hidden}
+.sig-canvas{display:block;width:100%;height:120px;touch-action:none}
+.sig-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text2);pointer-events:none}
+.sig-clear{position:absolute;top:6px;right:6px;background:none;border:.5px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--text2);cursor:pointer;z-index:2}
+
+/* BUTTONS */
+.btn-submit{width:100%;padding:16px;background:var(--gold);color:var(--navy);border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.05em;cursor:pointer;transition:background .15s;margin-top:.5rem}
+.btn-submit:hover:not(:disabled){background:var(--gold-d)}
+.btn-submit:disabled{opacity:.45;cursor:not-allowed}
+
+/* LOADER */
+.loader{display:none;position:fixed;inset:0;background:rgba(13,30,61,.8);z-index:999;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loader.show{display:flex}
+.spinner{width:48px;height:48px;border:4px solid rgba(245,166,35,.25);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+.loader-txt{color:#fff;font-size:16px;font-weight:600}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:12px 24px;border-radius:99px;font-size:14px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:1000}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* SUCCESS */
+.success{display:none;text-align:center;padding:3rem 1rem}
+.success-icon{font-size:64px;margin-bottom:1rem}
+.success-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--green);margin-bottom:.5rem}
+.success-sub{font-size:14px;color:var(--text2)}
+
+@media(max-width:400px){.field-row{grid-template-columns:1fr}.photo-section{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-logo">UNIQUE</div>
+    <div class="hdr-sub" id="hdr-sub">Poker &amp; Sport Lounge</div>
+  </div>
+  <div class="lang-btns">
+    <button class="lang-btn active" onclick="setLang('de')">DE</button>
+    <button class="lang-btn" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+  </div>
+</div>
+
+<div class="page">
+  <div id="form-area">
+    <div class="page-title" id="t-title">Spieler-Registrierung</div>
+    <div class="page-sub" id="t-sub">Bitte alle Felder ausfüllen. Die mit <span style="color:var(--red)">*</span> markierten Felder sind obligatorisch.</div>
+
+    <!-- PERSÖNLICHE DATEN -->
+    <div class="sect">
+      <div class="sect-hdr" id="t-personal">Persönliche Daten</div>
+      <div class="sect-body">
+        <div class="field-row">
+          <div class="field">
+            <label id="t-vorname">Vorname <span class="req">*</span></label>
+            <input type="text" id="vorname" autocomplete="given-name">
+          </div>
+          <div class="field">
+            <label id="t-nachname">Nachname <span class="req">*</span></label>
+            <input type="text" id="nachname" autocomplete="family-name">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field" style="flex:2">
+            <label id="t-strasse">Strasse <span class="req">*</span></label>
+            <input type="text" id="strasse" autocomplete="street-address">
+          </div>
+          <div class="field">
+            <label id="t-nr">Nr.</label>
+            <input type="text" id="nr" style="max-width:80px">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label id="t-plz">PLZ <span class="req">*</span></label>
+            <input type="text" id="plz" autocomplete="postal-code" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label id="t-ort">Ort <span class="req">*</span></label>
+            <input type="text" id="ort" autocomplete="address-level2">
+          </div>
+        </div>
+        <div class="field">
+          <label id="t-handy">Handynummer <span class="req">*</span></label>
+          <input type="tel" id="handy" autocomplete="tel" inputmode="tel">
+        </div>
+        <div class="field">
+          <label id="t-email">E-Mail <span class="req">*</span></label>
+          <input type="email" id="email" autocomplete="email" inputmode="email">
+        </div>
+      </div>
+    </div>
+
+    <!-- NICKNAME -->
+    <div class="sect">
+      <div class="sect-hdr" id="t-nick-sect">Nickname & Datenschutz</div>
+      <div class="sect-body">
+        <label class="check-wrap" for="nick-check">
+          <input type="checkbox" id="nick-check">
+          <span class="check-label" id="t-nick-check">Ich möchte auf allen veröffentlichten Dokumenten (Web, Instagram, Pokersoftware im Club und Statistik) nur mit meinem Nicknamen erwähnt werden.</span>
+        </label>
+        <div class="field">
+          <label id="t-nickname">Nickname</label>
+          <input type="text" id="nickname" placeholder="z.B. PokerKing88">
+        </div>
+      </div>
+    </div>
+
+    <!-- AUSWEIS -->
+    <div class="sect">
+      <div class="sect-hdr" id="t-id-sect">Ausweis (Foto)</div>
+      <div class="sect-body">
+        <div id="t-id-hint" style="font-size:12px;color:var(--text2)">Bitte fotografiere die Vorder- und Rückseite deines Ausweises.</div>
+        <div class="photo-section">
+          <div class="photo-box">
+            <label id="t-id-front">Vorderseite</label>
+            <div class="photo-preview" id="prev-front">
+              <div class="photo-icon">📷</div>
+              <div class="photo-hint" id="t-photo-tap">Tippen zum Fotografieren</div>
+              <input type="file" id="file-front" accept="image/*" capture="environment" onchange="previewPhoto('front',this)">
+            </div>
+            <button class="photo-clear" onclick="clearPhoto('front')" id="t-clear-front" style="display:none">✕ Löschen</button>
+          </div>
+          <div class="photo-box">
+            <label id="t-id-back">Rückseite</label>
+            <div class="photo-preview" id="prev-back">
+              <div class="photo-icon">📷</div>
+              <div class="photo-hint" id="t-photo-tap2">Tippen zum Fotografieren</div>
+              <input type="file" id="file-back" accept="image/*" capture="environment" onchange="previewPhoto('back',this)">
+            </div>
+            <button class="photo-clear" onclick="clearPhoto('back')" id="t-clear-back" style="display:none">✕ Löschen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UNTERSCHRIFT -->
+    <div class="sect">
+      <div class="sect-hdr" id="t-sig-sect">Unterschrift</div>
+      <div class="sect-body">
+        <div id="t-sig-hint" style="font-size:12px;color:var(--text2)">Mit Finger oder Stift auf dem Feld unterschreiben.</div>
+        <div class="sig-wrap" onclick="void(0)">
+          <canvas class="sig-canvas" id="sigCanvas" width="480" height="120"></canvas>
+          <div class="sig-hint" id="sig-hint-txt">✍️ Hier unterschreiben</div>
+          <button class="sig-clear" onclick="clearSig()">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-submit" id="btnSubmit" onclick="submitForm()">
+      <span id="t-submit">✓ Registrierung absenden</span>
+    </button>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success" id="success-area">
+    <div class="success-icon">🎉</div>
+    <div class="success-title" id="t-success-title">Registrierung erfolgreich!</div>
+    <div class="success-sub" id="t-success-sub">Deine Daten wurden übermittelt. Wir freuen uns auf dich beim nächsten Turnier!</div>
+  </div>
+</div>
+
+<div class="loader" id="loader">
+  <div class="spinner"></div>
+  <div class="loader-txt" id="loader-txt">Wird verarbeitet…</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── TRANSLATIONS ──
+const T = {
+  de: {
+    title:'Spieler-Registrierung', sub:'Bitte alle Felder ausfüllen. Die mit * markierten Felder sind obligatorisch.',
+    personal:'Persönliche Daten', vorname:'Vorname', nachname:'Nachname',
+    strasse:'Strasse', nr:'Nr.', plz:'PLZ', ort:'Ort',
+    handy:'Handynummer', email:'E-Mail-Adresse',
+    nickSect:'Nickname & Datenschutz',
+    nickCheck:'Ich möchte auf allen veröffentlichten Dokumenten (Web, Instagram, Pokersoftware im Club und Statistik) nur mit meinem Nicknamen erwähnt werden.',
+    nickname:'Nickname',
+    idSect:'Ausweis (Foto)', idHint:'Bitte fotografiere die Vorder- und Rückseite deines Ausweises.',
+    idFront:'Vorderseite', idBack:'Rückseite', photoTap:'Tippen zum Fotografieren',
+    sigSect:'Unterschrift', sigHint:'Mit Finger oder Stift auf dem Feld unterschreiben.',
+    sigHintTxt:'✍️ Hier unterschreiben',
+    submit:'✓ Registrierung absenden',
+    successTitle:'Registrierung erfolgreich!',
+    successSub:'Deine Daten wurden übermittelt. Wir freuen uns auf dich beim nächsten Turnier!',
+    errRequired:'Bitte alle Pflichtfelder ausfüllen.', errSig:'Bitte unterschreiben.',
+    loading:'PDF wird erstellt…', sending:'Wird gesendet…',
+    clear:'✕ Löschen',
+  },
+  fr: {
+    title:'Inscription des joueurs', sub:'Veuillez remplir tous les champs. Les champs marqués * sont obligatoires.',
+    personal:'Données personnelles', vorname:'Prénom', nachname:'Nom de famille',
+    strasse:'Rue', nr:'No.', plz:'NPA', ort:'Localité',
+    handy:'Numéro de téléphone', email:'Adresse e-mail',
+    nickSect:'Pseudo & Protection des données',
+    nickCheck:"Je souhaite n'être mentionné que sous mon pseudo sur tous les documents publiés (Web, Instagram, logiciel de poker du club et statistiques).",
+    nickname:'Pseudo',
+    idSect:"Pièce d'identité (photo)", idHint:"Veuillez photographier le recto et le verso de votre pièce d'identité.",
+    idFront:'Recto', idBack:'Verso', photoTap:'Appuyer pour photographier',
+    sigSect:'Signature', sigHint:'Signez dans le champ avec votre doigt ou un stylet.',
+    sigHintTxt:'✍️ Signez ici',
+    submit:'✓ Envoyer l\'inscription',
+    successTitle:'Inscription réussie!',
+    successSub:'Vos données ont été transmises. Nous nous réjouissons de vous voir au prochain tournoi!',
+    errRequired:'Veuillez remplir tous les champs obligatoires.', errSig:'Veuillez signer.',
+    loading:'Création du PDF…', sending:'Envoi en cours…',
+    clear:'✕ Effacer',
+  },
+  en: {
+    title:'Player Registration', sub:'Please fill in all fields. Fields marked with * are required.',
+    personal:'Personal Information', vorname:'First Name', nachname:'Last Name',
+    strasse:'Street', nr:'No.', plz:'ZIP', ort:'City',
+    handy:'Mobile Number', email:'Email Address',
+    nickSect:'Nickname & Privacy',
+    nickCheck:'I wish to be mentioned only by my nickname on all published documents (Web, Instagram, poker software in the club and statistics).',
+    nickname:'Nickname',
+    idSect:'ID Card (Photo)', idHint:'Please photograph the front and back of your ID card.',
+    idFront:'Front Side', idBack:'Back Side', photoTap:'Tap to photograph',
+    sigSect:'Signature', sigHint:'Sign in the field with your finger or stylus.',
+    sigHintTxt:'✍️ Sign here',
+    submit:'✓ Submit Registration',
+    successTitle:'Registration Successful!',
+    successSub:'Your data has been submitted. We look forward to seeing you at the next tournament!',
+    errRequired:'Please fill in all required fields.', errSig:'Please sign.',
+    loading:'Creating PDF…', sending:'Sending…',
+    clear:'✕ Clear',
+  }
+};
+
+let lang = 'de';
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach((b,i) => b.classList.toggle('active', ['de','fr','en'][i]===l));
+  document.documentElement.lang = l;
+  const t = T[l];
+  document.getElementById('t-title').textContent = t.title;
+  document.getElementById('t-sub').innerHTML = t.sub;
+  document.getElementById('t-personal').textContent = t.personal;
+  setLabel('t-vorname', t.vorname, true);
+  setLabel('t-nachname', t.nachname, true);
+  setLabel('t-strasse', t.strasse, true);
+  document.getElementById('t-nr').textContent = t.nr;
+  setLabel('t-plz', t.plz, true);
+  setLabel('t-ort', t.ort, true);
+  setLabel('t-handy', t.handy, true);
+  setLabel('t-email', t.email, true);
+  document.getElementById('t-nick-sect').textContent = t.nickSect;
+  document.getElementById('t-nick-check').textContent = t.nickCheck;
+  document.getElementById('t-nickname').textContent = t.nickname;
+  document.getElementById('t-id-sect').textContent = t.idSect;
+  document.getElementById('t-id-hint').textContent = t.idHint;
+  document.getElementById('t-id-front').textContent = t.idFront;
+  document.getElementById('t-id-back').textContent = t.idBack;
+  document.getElementById('t-photo-tap').textContent = t.photoTap;
+  document.getElementById('t-photo-tap2').textContent = t.photoTap;
+  document.getElementById('t-sig-sect').textContent = t.sigSect;
+  document.getElementById('t-sig-hint').textContent = t.sigHint;
+  document.getElementById('sig-hint-txt').textContent = t.sigHintTxt;
+  document.getElementById('t-submit').textContent = t.submit;
+  document.getElementById('t-success-title').textContent = t.successTitle;
+  document.getElementById('t-success-sub').textContent = t.successSub;
+}
+
+function setLabel(id, text, req) {
+  const el = document.getElementById(id);
+  el.innerHTML = text + (req ? ' <span class="req">*</span>' : '');
+}
+
+// ── PHOTOS ──
+const photos = { front: null, back: null };
+
+function previewPhoto(side, input) {
+  if(!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    photos[side] = e.target.result;
+    const prev = document.getElementById('prev-' + side);
+    prev.innerHTML = `<img src="${e.target.result}" alt="">
+      <input type="file" accept="image/*" capture="environment" onchange="previewPhoto('${side}',this)" style="position:absolute;inset:0;opacity:0;cursor:pointer">`;
+    document.getElementById('t-clear-' + side).style.display = 'block';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function clearPhoto(side) {
+  photos[side] = null;
+  const prev = document.getElementById('prev-' + side);
+  const t = T[lang];
+  prev.innerHTML = `<div class="photo-icon">📷</div>
+    <div class="photo-hint">${t.photoTap}</div>
+    <input type="file" accept="image/*" capture="environment" onchange="previewPhoto('${side}',this)" style="position:absolute;inset:0;opacity:0;cursor:pointer">`;
+  document.getElementById('t-clear-' + side).style.display = 'none';
+}
+
+// ── SIGNATURE ──
+let sigDrawing = false, sigLX = 0, sigLY = 0, sigHasContent = false;
+
+function initSig() {
+  const canvas = document.getElementById('sigCanvas');
+  canvas.width = canvas.offsetWidth || 480;
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#0d1e3d'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const sx = canvas.width/r.width, sy = canvas.height/r.height;
+    if(e.touches) return {x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};
+    return {x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
+  }
+  function start(e){e.preventDefault();sigDrawing=true;const p=getPos(e);sigLX=p.x;sigLY=p.y;ctx.beginPath();ctx.moveTo(sigLX,sigLY);}
+  function draw(e){if(!sigDrawing)return;e.preventDefault();const p=getPos(e);ctx.beginPath();ctx.moveTo(sigLX,sigLY);ctx.lineTo(p.x,p.y);ctx.stroke();sigLX=p.x;sigLY=p.y;sigHasContent=true;document.getElementById('sig-hint-txt').style.display='none';}
+  function stop(){sigDrawing=false;}
+
+  canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',draw);
+  canvas.addEventListener('mouseup',stop);canvas.addEventListener('mouseleave',stop);
+  canvas.addEventListener('touchstart',start,{passive:false});
+  canvas.addEventListener('touchmove',draw,{passive:false});
+  canvas.addEventListener('touchend',stop);
+}
+
+function clearSig() {
+  const canvas = document.getElementById('sigCanvas');
+  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  sigHasContent = false;
+  document.getElementById('sig-hint-txt').style.display = '';
+}
+
+function getSigDataUrl() {
+  if(!sigHasContent) return null;
+  return document.getElementById('sigCanvas').toDataURL('image/png');
+}
+
+// ── VALIDATION ──
+function validate() {
+  const req = ['vorname','nachname','strasse','plz','ort','handy','email'];
+  let ok = true;
+  req.forEach(id => {
+    const el = document.getElementById(id);
+    const empty = !el.value.trim();
+    el.classList.toggle('err', empty);
+    if(empty) ok = false;
+  });
+  return ok;
+}
+
+// ── PDF BUILD ──
+function buildPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const PW=210, ML=15, CW=180;
+  const NAVY=[13,30,61], GOLD=[245,166,35], GRAY=[240,237,232], TEXT=[13,30,61], TEXT2=[90,100,120];
+
+  // Header
+  doc.setFillColor(...NAVY); doc.rect(0,0,PW,28,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(255,255,255);
+  doc.text('UNIQUE',ML,12); doc.setFontSize(7); doc.setTextColor(...GOLD);
+  doc.text('POKER & SPORT LOUNGE',ML,17);
+  doc.setFillColor(...GOLD); doc.roundedRect(PW-ML-60,6,60,16,2,2,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...NAVY);
+  const regTitle = lang==='fr'?'INSCRIPTION':lang==='en'?'REGISTRATION':'REGISTRIERUNG';
+  doc.text(regTitle,PW-ML-30,16,{align:'center'});
+
+  let y = 35;
+
+  // Info
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...TEXT2);
+  doc.text(new Date().toLocaleString('de-CH'), ML, y); y+=8;
+
+  function field(label, value, x, width) {
+    doc.setFillColor(...GRAY); doc.rect(x,y,width,14,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...TEXT2);
+    doc.text(label.toUpperCase(),x+3,y+5);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...TEXT);
+    doc.text(value||'—',x+3,y+11);
+  }
+
+  const t = T[lang];
+
+  // Row 1: Vorname / Nachname
+  field(t.vorname, document.getElementById('vorname').value, ML, CW/2-2);
+  field(t.nachname, document.getElementById('nachname').value, ML+CW/2+2, CW/2-2);
+  y+=16;
+
+  // Row 2: Strasse / Nr
+  field(t.strasse, document.getElementById('strasse').value, ML, CW*0.75-2);
+  field(t.nr, document.getElementById('nr').value, ML+CW*0.75+2, CW*0.25-2);
+  y+=16;
+
+  // Row 3: PLZ / Ort
+  field(t.plz, document.getElementById('plz').value, ML, CW*0.3-2);
+  field(t.ort, document.getElementById('ort').value, ML+CW*0.3+2, CW*0.7-2);
+  y+=16;
+
+  // Row 4: Handy / Email
+  field(t.handy, document.getElementById('handy').value, ML, CW/2-2);
+  field(t.email, document.getElementById('email').value, ML+CW/2+2, CW/2-2);
+  y+=16;
+
+  // Nickname
+  const nickOnly = document.getElementById('nick-check').checked;
+  const nnVal = document.getElementById('nickname').value;
+  field(t.nickname, nnVal || '—', ML, CW);
+  y+=16;
+
+  // Privacy checkbox
+  doc.setFillColor(nickOnly ? 220:240, nickOnly ? 255:237, nickOnly ? 220:232);
+  doc.rect(ML,y,CW,12,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(7);
+  doc.setTextColor(nickOnly?0:140, nickOnly?100:100, nickOnly?0:120);
+  doc.text((nickOnly?'☑':'☐') + ' ' + t.nickCheck, ML+3, y+7, {maxWidth:CW-6});
+  y+=14;
+
+  // Photos
+  y+=4;
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...NAVY);
+  doc.text(t.idSect.toUpperCase(), ML, y); y+=6;
+
+  const photoW = (CW-10)/2;
+  if(photos.front) {
+    try { doc.addImage(photos.front,'JPEG',ML,y,photoW,40); } catch(e){}
+  } else {
+    doc.setFillColor(...GRAY); doc.rect(ML,y,photoW,40,'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...TEXT2);
+    doc.text(t.idFront,ML+photoW/2,y+22,{align:'center'});
+  }
+  if(photos.back) {
+    try { doc.addImage(photos.back,'JPEG',ML+photoW+10,y,photoW,40); } catch(e){}
+  } else {
+    doc.setFillColor(...GRAY); doc.rect(ML+photoW+10,y,photoW,40,'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...TEXT2);
+    doc.text(t.idBack,ML+photoW+10+photoW/2,y+22,{align:'center'});
+  }
+  y+=46;
+
+  // Signature
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...NAVY);
+  doc.text(t.sigSect.toUpperCase(), ML, y); y+=6;
+  const sigData = getSigDataUrl();
+  if(sigData) {
+    doc.addImage(sigData,'PNG',ML,y,100,25);
+  } else {
+    doc.setFillColor(...GRAY); doc.rect(ML,y,CW,25,'F');
+  }
+  y+=27;
+
+  // Footer
+  doc.setFillColor(...NAVY); doc.rect(0,280,PW,17,'F');
+  doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(168,188,212);
+  doc.text('Bonnstrasse 22, 3186 Düdingen · poker@rpr.duedingen.ch · www.rpr.poker',PW/2,290,{align:'center'});
+
+  return doc;
+}
+
+// ── SUBMIT ──
+async function submitForm() {
+  if(!validate()) { showToast(T[lang].errRequired); return; }
+  if(!sigHasContent) { showToast(T[lang].errSig); return; }
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  showLoader(T[lang].loading);
+
+  await new Promise(r=>setTimeout(r,50));
+
+  try {
+    const doc = buildPDF();
+    const vorname = document.getElementById('vorname').value.trim();
+    const nachname = document.getElementById('nachname').value.trim();
+    const datum = new Date().toLocaleDateString('de-CH');
+    const filename = `Registrierung-${nachname}-${vorname}-${datum.replace(/\./g,'-')}.pdf`;
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+
+    // Save to Railway server
+    let pdfUrl = '';
+    try {
+      const resp = await fetch('/api/reg/save', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ pdfBase64, filename })
+      });
+      const data = await resp.json();
+      if(data.pdfUrl) pdfUrl = data.pdfUrl;
+    } catch(e) {}
+
+    // Send via EmailJS
+    showLoader(T[lang].sending);
+
+    const summary = `${T[lang].vorname}: ${vorname} ${nachname}
+${T[lang].strasse}: ${document.getElementById('strasse').value} ${document.getElementById('nr').value}
+${T[lang].plz}: ${document.getElementById('plz').value} ${document.getElementById('ort').value}
+${T[lang].handy}: ${document.getElementById('handy').value}
+${T[lang].email}: ${document.getElementById('email').value}
+${T[lang].nickname}: ${document.getElementById('nickname').value || '—'}
+Nickname only: ${document.getElementById('nick-check').checked ? 'Ja' : 'Nein'}`;
+
+    await emailjs.send('service_8eqgfmq', 'template_reg', {
+      name: vorname + ' ' + nachname,
+      datum,
+      summary,
+      pdf_url: pdfUrl || '(kein Link)',
+      lang: lang.toUpperCase(),
+    });
+
+    hideLoader();
+    document.getElementById('form-area').style.display = 'none';
+    document.getElementById('success-area').style.display = 'block';
+
+  } catch(e) {
+    hideLoader();
+    showToast('Fehler: ' + (e.message || 'Unbekannt'));
+    btn.disabled = false;
+  }
+}
+
+function showLoader(txt) {
+  document.getElementById('loader-txt').textContent = txt;
+  document.getElementById('loader').classList.add('show');
+}
+function hideLoader() { document.getElementById('loader').classList.remove('show'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+// Init
+window.addEventListener('load', () => {
+  initSig();
+  setLang('de');
+});
+</script>
+</body>
+</html>
