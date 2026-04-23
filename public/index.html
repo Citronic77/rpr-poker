@@ -133,6 +133,8 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
 .gastro-card-title{font-size:14px;font-weight:600;color:var(--text)}
 .gastro-card-sub{font-size:11px;color:var(--text2);line-height:1.4}
 .gastro-card-badge{position:absolute;top:8px;right:8px;background:var(--border2);color:var(--text2);font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+input[id^='icm-chips-']::-webkit-outer-spin-button,
+input[id^='icm-chips-']::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .icm-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .icm-name{flex:1;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .icm-input{width:110px;flex-shrink:0;font-size:13px;padding:5px 8px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:right}
@@ -894,17 +896,17 @@ function renderICMInputs() {
   }
 
   tbl.innerHTML = `
-    <div style="display:grid;grid-template-columns:28px 1fr 110px;gap:0;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;padding:0 4px 6px;border-bottom:.5px solid var(--border);margin-bottom:4px">
-      <div>#</div>
+    <div style="display:grid;grid-template-columns:42px 1fr 110px;gap:0;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;padding:0 4px 6px;border-bottom:.5px solid var(--border);margin-bottom:4px">
+      <div>Platz</div>
       <div>Spieler</div>
       <div style="text-align:right">Chip-Stand</div>
     </div>
     ${activePlayers.map((p, i) => `
-      <div style="display:grid;grid-template-columns:28px 1fr 110px;gap:0;align-items:center;padding:5px 4px;border-bottom:.5px solid var(--border)">
-        <div style="font-size:12px;font-weight:700;color:var(--text2)">${i+1}</div>
+      <div style="display:grid;grid-template-columns:42px 1fr 110px;gap:0;align-items:center;padding:5px 4px;border-bottom:.5px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--text2)">${p.seat || (i+1)}</div>
         <div style="font-size:13px;font-weight:500;color:#f0ede8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
         <input type="number" id="icm-chips-${p.id}" placeholder="0" min="0" step="100"
-          style="width:100%;font-size:13px;padding:5px 8px;border:.5px solid var(--border2);border-radius:var(--r);background:#2a2a30;color:#f0ede8;text-align:right">
+          style="width:100%;font-size:13px;padding:5px 8px;border:.5px solid var(--border2);border-radius:var(--r);background:#2a2a30;color:#f0ede8;text-align:right;-moz-appearance:textfield;appearance:textfield">
       </div>
     `).join('')}
     <div id="icm-results-table" style="margin-top:1rem"></div>`;
