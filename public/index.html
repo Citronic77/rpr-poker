@@ -884,39 +884,29 @@ function toggleICM() {
 }
 
 function renderICMInputs() {
-  // Use active players (not eliminated), any table
   const activePlayers = S.players
     ? S.players.filter(p => !S.eliminations.find(e => e.id === p.id))
     : [];
-  const payouts = S.payouts || [];
-
   const tbl = document.getElementById('icm-table');
   if(!activePlayers.length) {
     tbl.innerHTML = '<div style="font-size:12px;color:var(--text2)">Keine aktiven Spieler</div>';
     return;
   }
-  const ftPlayers = activePlayers;
 
-  const fmtChf = v => Math.round(v).toLocaleString('de-CH');
-
+  // Header + input rows (no Auszahlung/ICM yet — only after Berechnen)
   tbl.innerHTML = `
-    <div style="display:grid;grid-template-columns:28px 1fr 90px 90px 80px;gap:0;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;padding:0 2px 4px;border-bottom:.5px solid var(--border)">
-      <div>#</div>
+    <div style="display:grid;grid-template-columns:1fr 110px;gap:6px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;padding:0 2px 6px;border-bottom:.5px solid var(--border);margin-bottom:6px">
       <div>Spieler</div>
-      <div style="text-align:right">Auszahlung</div>
-      <div style="text-align:right">Chips</div>
-      <div style="text-align:right">ICM</div>
+      <div style="text-align:right">Chip-Stand</div>
     </div>
-    ${ftPlayers.map((p, i) => {
-      const payout = payouts[i] ? 'CHF ' + fmtChf(payouts[i].amount) : '—';
-      return `<div style="display:grid;grid-template-columns:28px 1fr 90px 90px 80px;gap:0;align-items:center;padding:5px 2px;border-bottom:.5px solid var(--border)">
-        <div style="font-size:12px;font-weight:600;color:var(--text2)">${i+1}</div>
+    ${activePlayers.map(p => `
+      <div style="display:grid;grid-template-columns:1fr 110px;gap:6px;align-items:center;padding:4px 2px;border-bottom:.5px solid var(--border)">
         <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
-        <div style="text-align:right;font-size:12px;color:var(--green);font-weight:500">${payout}</div>
-        <div style="text-align:right"><input type="number" id="icm-chips-${p.id}" placeholder="0" min="0" step="100" style="width:85px;font-size:12px;padding:4px 6px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:right"></div>
-        <div style="text-align:right;font-size:13px;font-weight:600;color:var(--green)" id="icm-val-${p.id}">—</div>
-      </div>`;
-    }).join('')}`;
+        <input type="number" id="icm-chips-${p.id}" placeholder="0" min="0" step="100"
+          style="width:100%;font-size:13px;padding:5px 8px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:right">
+      </div>
+    `).join('')}
+    <div id="icm-results-table" style="margin-top:1rem"></div>`;
 }
 
 function calcICM() {
@@ -939,10 +929,32 @@ function calcICM() {
   const prizes = payouts.slice(0, stacks.length).map(p => p.amount);
   const icmValues = icmCalc(stacks.map(p => p.chips), prizes);
 
-  stacks.forEach((p, i) => {
-    const el = document.getElementById('icm-val-' + p.id);
-    if(el) el.textContent = icmValues[i] > 0 ? 'CHF ' + icmValues[i].toFixed(0) : '—';
-  });
+  const fmtN = v => Math.round(v).toLocaleString('de-CH');
+
+  // Sort by chips descending for ranking
+  const ranked = stacks.map((p, i) => ({...p, icm: icmValues[i]}))
+    .sort((a, b) => b.chips - a.chips);
+
+  const resultsEl = document.getElementById('icm-results-table');
+  if(!resultsEl) return;
+
+  resultsEl.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Resultat</div>
+    <div style="display:grid;grid-template-columns:28px 1fr 72px 80px 72px;gap:0;font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;padding:0 2px 5px;border-bottom:.5px solid var(--border)">
+      <div>#</div><div>Spieler</div>
+      <div style="text-align:right">Auszahlung</div>
+      <div style="text-align:right">Chips</div>
+      <div style="text-align:right">ICM</div>
+    </div>
+    ${ranked.map((p, i) => `
+      <div style="display:grid;grid-template-columns:28px 1fr 72px 80px 72px;gap:0;align-items:center;padding:6px 2px;border-bottom:.5px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--text2)">${i+1}</div>
+        <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
+        <div style="text-align:right;font-size:12px;color:var(--green)">${prizes[i] ? fmtN(prizes[i]) : '—'}</div>
+        <div style="text-align:right;font-size:12px;color:var(--text2)">${fmtN(p.chips)}</div>
+        <div style="text-align:right;font-size:13px;font-weight:700;color:#d4af35">CHF ${fmtN(p.icm)}</div>
+      </div>
+    `).join('')}`;
 }
 
 // ICM algorithm
