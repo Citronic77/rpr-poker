@@ -158,6 +158,7 @@ let state = {
   reentries: 0,
   uniquePlayers: 0,
   totalBonus: 0,
+  payouts: [],
   pot: 0,
   totalBuyins: 0,
   totalUniquePlayers: 0,
@@ -300,6 +301,14 @@ function parseTDT(raw) {
   }
   const pot = Math.round(totalAmount - totalRake);
 
+  // ── 6. Parse payout structure ──
+  const payouts = [];
+  const prizeRx = /new GamePrize\(\{Description: "([^"]+)", Type: \d+, Recipient: (\d+), AmountType: \d+, Amount: [\d.]+.*?CalculatedAmount: ([\d.]+)/g;
+  let pm2;
+  while((pm2 = prizeRx.exec(raw)) !== null) {
+    payouts.push({ description: pm2[1], recipient: parseInt(pm2[2]), amount: parseFloat(pm2[3]) });
+  }
+
   // Build buyin count per player UUID
   const buyinCountPerPlayer = {};
   for (let i = 0; i < uuidPositions.length; i++) {
@@ -309,7 +318,7 @@ function parseTDT(raw) {
     buyinCountPerPlayer[uuid] = (block.match(/new GameBuyin\(\{/g) || []).length;
   }
 
-  return { name, players, tables, blinds, currentLevel, currentBlind, currentBreak, blindLevelNumber, totalBuyins, totalUniquePlayers, totalReentries, totalBonus, pot, buyinCountPerPlayer };
+  return { name, players, tables, blinds, currentLevel, currentBlind, currentBreak, blindLevelNumber, totalBuyins, totalUniquePlayers, totalReentries, totalBonus, pot, buyinCountPerPlayer, payouts };
 }
 
 // ── Broadcast to all clients ──
@@ -378,6 +387,7 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
     state.reentries = parsed.totalReentries;
     state.uniquePlayers = parsed.totalUniquePlayers;
     state.totalBonus = parsed.totalBonus;
+    state.payouts = parsed.payouts;
     state.pot = parsed.pot;
     state.totalBuyins = parsed.totalBuyins;
     state.totalUniquePlayers = parsed.totalUniquePlayers;
