@@ -983,65 +983,93 @@ function icmCalc(stacks, prizes) {
 }
 
 function openICMTab() {
-  const ftPlayers = S.players
+  // Use same data as calcICM — read current chip inputs
+  const activePlayers = S.players
     ? S.players.filter(p => !S.eliminations.find(e => e.id === p.id))
     : [];
   const payouts = S.payouts || [];
 
-  const stacks = ftPlayers.map(p => ({
+  const stacks = activePlayers.map(p => ({
     name: p.name,
+    seat: p.seat,
     chips: parseInt(document.getElementById('icm-chips-' + p.id)?.value || 0)
-  }));
+  })).filter(p => p.chips > 0);
+
+  if(!stacks.length) { toast('Bitte zuerst Chip-Stände eingeben', 'amber'); return; }
 
   const prizes = payouts.slice(0, stacks.length).map(p => p.amount);
-  const icmValues = stacks.some(p => p.chips > 0) ? icmCalc(stacks.map(p => p.chips), prizes) : null;
+  const icmValues = icmCalc(stacks.map(p => p.chips), prizes);
+
+  // Sort by chips desc
+  const ranked = stacks.map((p, i) => ({...p, icm: icmValues[i]}))
+    .sort((a, b) => b.chips - a.chips);
 
   const fmtN = v => Math.round(v).toLocaleString('de-CH');
+  const now = new Date().toLocaleString('de-CH');
 
   const html = `<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>ICM — RPR Poker</title>
+<title>ICM Deal — RPR Poker</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#0a0a0f; color:#f0ede8; padding:2rem; }
-h1 { font-size:22px; font-weight:700; color:#d4af35; margin-bottom:1.5rem; letter-spacing:.05em; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#0a0a0f; color:#f0ede8; padding:3rem 4rem; }
+h1 { font-size:42px; font-weight:700; color:#d4af35; margin-bottom:.25rem; letter-spacing:.05em; }
+.sub { font-size:16px; color:#6b6b7b; margin-bottom:3rem; }
 table { width:100%; border-collapse:collapse; }
-thead th { background:#1a1a2a; padding:10px 14px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; text-align:left; }
-thead th:not(:first-child):not(:nth-child(2)) { text-align:right; }
-tbody tr:nth-child(even) { background:rgba(255,255,255,.03); }
-tbody td { padding:10px 14px; font-size:14px; border-bottom:1px solid rgba(255,255,255,.06); }
-tbody td:not(:first-child):not(:nth-child(2)) { text-align:right; }
-.platz { font-weight:700; color:#9ca3af; width:36px; }
-.name { font-weight:500; }
-.payout { color:#1D9E75; font-weight:500; }
-.chips { color:#9ca3af; }
-.icm { color:#d4af35; font-weight:700; font-size:15px; }
-tfoot td { padding:10px 14px; font-size:12px; color:#9ca3af; border-top:1px solid rgba(255,255,255,.1); }
+thead th {
+  background:#1a1a2a; padding:18px 20px;
+  font-size:13px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.1em; color:#9ca3af; text-align:left;
+}
+thead th.r { text-align:right; }
+tbody tr { border-bottom:1px solid rgba(255,255,255,.06); }
+tbody tr:nth-child(even) { background:rgba(255,255,255,.02); }
+tbody td { padding:20px; font-size:22px; }
+tbody td.r { text-align:right; }
+.rank { font-size:28px; font-weight:900; color:#6b6b7b; width:60px; }
+.name { font-size:28px; font-weight:600; color:#f0ede8; }
+.chips { font-size:22px; color:#9ca3af; }
+.payout { font-size:22px; color:#1D9E75; font-weight:500; }
+.icm { font-size:32px; font-weight:800; color:#d4af35; }
+tfoot tr { border-top:2px solid rgba(255,255,255,.15); }
+tfoot td { padding:16px 20px; font-size:14px; color:#6b6b7b; }
+tfoot td.r { text-align:right; }
 </style>
 </head>
 <body>
 <h1>🧮 ICM Deal-Vorschlag</h1>
+<p class="sub">Berechnet ${now}</p>
 <table>
   <thead>
-    <tr><th>Platz</th><th>Spieler</th><th>Auszahlung</th><th>Chips</th><th>ICM</th></tr>
+    <tr>
+      <th>Rang</th>
+      <th>Spieler</th>
+      <th class="r">Chips</th>
+      <th class="r">Auszahlung</th>
+      <th class="r">ICM</th>
+    </tr>
   </thead>
   <tbody>
-    ${stacks.map((p, i) => `
+    ${ranked.map((p, i) => `
     <tr>
-      <td class="platz">${i+1}</td>
+      <td class="rank r">${i+1}</td>
       <td class="name">${p.name}</td>
-      <td class="payout">CHF ${prizes[i] ? fmtN(prizes[i]) : '—'}</td>
-      <td class="chips">${p.chips ? fmtN(p.chips) : '—'}</td>
-      <td class="icm">${icmValues ? 'CHF ' + fmtN(icmValues[i]) : '—'}</td>
+      <td class="chips r">${fmtN(p.chips)}</td>
+      <td class="payout r">${prizes[i] ? 'CHF ' + fmtN(prizes[i]) : '—'}</td>
+      <td class="icm r">CHF ${fmtN(p.icm)}</td>
     </tr>`).join('')}
   </tbody>
   <tfoot>
-    <tr><td colspan="2">Total</td><td>CHF ${fmtN(prizes.reduce((a,b)=>a+b,0))}</td><td>${stacks.some(p=>p.chips>0)?fmtN(stacks.reduce((a,p)=>a+p.chips,0)):''}</td><td>${icmValues?'CHF '+fmtN(icmValues.reduce((a,b)=>a+b,0)):''}</td></tr>
+    <tr>
+      <td colspan="2">Total</td>
+      <td class="r">${fmtN(ranked.reduce((a,p)=>a+p.chips,0))}</td>
+      <td class="r">CHF ${fmtN(prizes.reduce((a,b)=>a+b,0))}</td>
+      <td class="r">CHF ${fmtN(ranked.reduce((a,p)=>a+p.icm,0))}</td>
+    </tr>
   </tfoot>
 </table>
-<p style="margin-top:1.5rem;font-size:11px;color:#6b6b7b">Berechnet mit Independent Chip Model (ICM) · ${new Date().toLocaleString('de-CH')}</p>
 </body></html>`;
 
   const win = window.open('', '_blank');
