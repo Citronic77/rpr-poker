@@ -290,7 +290,10 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
       </div>
       <div id="icm-panel" style="display:none;padding:12px">
         <div id="icm-table"></div>
-        <button onclick="calcICM()" style="width:100%;margin-top:.75rem;padding:10px;font-size:14px;font-weight:500;border:none;border-radius:var(--r);background:var(--green);color:#fff;cursor:pointer">Berechnen</button>
+        <div style="display:flex;gap:8px;margin-top:.75rem">
+          <button onclick="calcICM()" style="flex:2;padding:10px;font-size:14px;font-weight:500;border:none;border-radius:var(--r);background:var(--green);color:#fff;cursor:pointer">Berechnen</button>
+          <button onclick="openICMTab()" style="flex:1;padding:10px;font-size:13px;font-weight:500;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);cursor:pointer">↗ Neuer Tab</button>
+        </div>
       </div>
     </div>
   </div>
@@ -943,49 +946,92 @@ function calcICM() {
 }
 
 // ICM algorithm
-function icm(stacks, prizes) {
+function icmCalc(stacks, prizes) {
   const n = stacks.length;
-  const total = stacks.reduce((a, b) => a + b, 0);
-
-  function equity(stacks, prizes, idx) {
-    if(prizes.length === 0 || stacks.every(s => s === 0)) return 0;
-    let result = 0;
-    const prize = prizes[0];
-    const remaining = prizes.slice(1);
-    for(let i = 0; i < stacks.length; i++) {
-      if(stacks[i] === 0) continue;
-      const prob = stacks[i] / total;
-      const newStacks = stacks.map((s, j) => j === i ? 0 : s);
-      const subEq = (i === idx) ? 0 : equity(newStacks, remaining, idx);
-      result += prob * (i === idx ? prize : subEq);
+  const values = new Array(n).fill(0);
+  function recurse(chips, prizeIdx, pathProb) {
+    if(prizeIdx >= prizes.length) return;
+    const total = chips.reduce((a, b) => a + b, 0);
+    if(total === 0) return;
+    for(let i = 0; i < n; i++) {
+      if(chips[i] === 0) continue;
+      const prob = chips[i] / total;
+      values[i] += pathProb * prob * prizes[prizeIdx];
+      const newChips = chips.slice();
+      newChips[i] = 0;
+      recurse(newChips, prizeIdx + 1, pathProb * prob);
     }
-    return result;
   }
+  recurse(stacks.slice(), 0, 1.0);
+  return values;
+}
 
-  // Simplified ICM using recursive probability
-  function icmCalc(chips, prizes) {
-    const n = chips.length;
-    const tot = chips.reduce((a, b) => a + b, 0);
-    const values = new Array(n).fill(0);
+function openICMTab() {
+  const ftTable = S.tables ? S.tables.find(t => t.toUpperCase().includes('FINAL')) : null;
+  const ftPlayers = ftTable && S.players
+    ? S.players.filter(p => p.table === ftTable && !S.eliminations.find(e => e.id === p.id))
+    : [];
+  const payouts = S.payouts || [];
 
-    function calc(remainingChips, remainingPrizes, depth) {
-      if(remainingPrizes.length === 0) return;
-      const prize = remainingPrizes[0];
-      const rest = remainingPrizes.slice(1);
-      const rtot = remainingChips.reduce((a, b) => a + b, 0);
-      for(let i = 0; i < n; i++) {
-        if(remainingChips[i] === 0) continue;
-        const prob = remainingChips[i] / rtot;
-        values[i] += prob * prize;
-        const newChips = remainingChips.map((c, j) => j === i ? 0 : c);
-        calc(newChips, rest, depth + 1);
-      }
-    }
-    calc(chips, prizes, 0);
-    return values;
-  }
+  const stacks = ftPlayers.map(p => ({
+    name: p.name,
+    chips: parseInt(document.getElementById('icm-chips-' + p.id)?.value || 0)
+  }));
 
-  return icmCalcInternal(stacks, prizes);
+  const prizes = payouts.slice(0, stacks.length).map(p => p.amount);
+  const icmValues = stacks.some(p => p.chips > 0) ? icmCalc(stacks.map(p => p.chips), prizes) : null;
+
+  const fmtN = v => Math.round(v).toLocaleString('de-CH');
+
+  const html = `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>ICM — RPR Poker</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#0a0a0f; color:#f0ede8; padding:2rem; }
+h1 { font-size:22px; font-weight:700; color:#d4af35; margin-bottom:1.5rem; letter-spacing:.05em; }
+table { width:100%; border-collapse:collapse; }
+thead th { background:#1a1a2a; padding:10px 14px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; text-align:left; }
+thead th:not(:first-child):not(:nth-child(2)) { text-align:right; }
+tbody tr:nth-child(even) { background:rgba(255,255,255,.03); }
+tbody td { padding:10px 14px; font-size:14px; border-bottom:1px solid rgba(255,255,255,.06); }
+tbody td:not(:first-child):not(:nth-child(2)) { text-align:right; }
+.platz { font-weight:700; color:#9ca3af; width:36px; }
+.name { font-weight:500; }
+.payout { color:#1D9E75; font-weight:500; }
+.chips { color:#9ca3af; }
+.icm { color:#d4af35; font-weight:700; font-size:15px; }
+tfoot td { padding:10px 14px; font-size:12px; color:#9ca3af; border-top:1px solid rgba(255,255,255,.1); }
+</style>
+</head>
+<body>
+<h1>🧮 ICM Deal-Vorschlag</h1>
+<table>
+  <thead>
+    <tr><th>Platz</th><th>Spieler</th><th>Auszahlung</th><th>Chips</th><th>ICM</th></tr>
+  </thead>
+  <tbody>
+    ${stacks.map((p, i) => `
+    <tr>
+      <td class="platz">${i+1}</td>
+      <td class="name">${p.name}</td>
+      <td class="payout">CHF ${prizes[i] ? fmtN(prizes[i]) : '—'}</td>
+      <td class="chips">${p.chips ? fmtN(p.chips) : '—'}</td>
+      <td class="icm">${icmValues ? 'CHF ' + fmtN(icmValues[i]) : '—'}</td>
+    </tr>`).join('')}
+  </tbody>
+  <tfoot>
+    <tr><td colspan="2">Total</td><td>CHF ${fmtN(prizes.reduce((a,b)=>a+b,0))}</td><td>${stacks.some(p=>p.chips>0)?fmtN(stacks.reduce((a,p)=>a+p.chips,0)):''}</td><td>${icmValues?'CHF '+fmtN(icmValues.reduce((a,b)=>a+b,0)):''}</td></tr>
+  </tfoot>
+</table>
+<p style="margin-top:1.5rem;font-size:11px;color:#6b6b7b">Berechnet mit Independent Chip Model (ICM) · ${new Date().toLocaleString('de-CH')}</p>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
 }
 
 function ftSetPotFromTDT() {
