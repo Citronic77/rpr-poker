@@ -133,6 +133,10 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
 .gastro-card-title{font-size:14px;font-weight:600;color:var(--text)}
 .gastro-card-sub{font-size:11px;color:var(--text2);line-height:1.4}
 .gastro-card-badge{position:absolute;top:8px;right:8px;background:var(--border2);color:var(--text2);font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.icm-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.icm-name{flex:1;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.icm-input{width:110px;flex-shrink:0;font-size:13px;padding:5px 8px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:right}
+.icm-result{width:80px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--green);text-align:right}
 .ft-seat{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:10px;display:flex;flex-direction:column;gap:6px}
 .ft-seat-num{font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase}
 .ft-seat-name{font-size:14px;font-weight:500;color:var(--text);min-height:20px}
@@ -329,6 +333,20 @@ input,select{width:100%;padding:8px 10px;border:.5px solid var(--border2);border
       <button onclick="testFribourgGoal()" style="width:100%;padding:12px;font-size:15px;font-weight:500;border:none;border-radius:var(--rl);background:#1a1a3a;color:#d4af35;cursor:pointer;border:.5px solid #d4af3555">
         🏒 Test: Fribourg Goal Animation
       </button>
+    </div>
+
+    <!-- ICM -->
+    <div style="margin-top:1rem;border:.5px solid var(--border);border-radius:var(--rl);overflow:hidden">
+      <div style="background:var(--bg2);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleICM()">
+        <div style="font-size:13px;font-weight:600">🧮 ICM Berechnung</div>
+        <span id="icm-toggle-icon" style="font-size:11px;color:var(--text2)">▼ Öffnen</span>
+      </div>
+      <div id="icm-panel" style="display:none;padding:12px">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:.75rem">Chip-Stände eingeben → fairer Geldwert (ICM)</div>
+        <div id="icm-inputs"></div>
+        <button onclick="calcICM()" style="width:100%;margin-top:.75rem;padding:10px;font-size:14px;font-weight:500;border:none;border-radius:var(--r);background:var(--green);color:#fff;cursor:pointer">Berechnen</button>
+        <div id="icm-results" style="margin-top:.75rem"></div>
+      </div>
     </div>
 
     <!-- Pot size -->
@@ -851,6 +869,124 @@ function testFribourgGoal() {
   fetch('/ft/fribourg-goal?home=FRI&away=DAV&hs=2&as=1')
     .then(() => toast('🏒 Test-Animation gesendet', 'green'))
     .catch(() => toast('FT Server nicht erreichbar', 'red'));
+}
+
+// ── ICM ──
+function toggleICM() {
+  const panel = document.getElementById('icm-panel');
+  const icon = document.getElementById('icm-toggle-icon');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  icon.textContent = open ? '▲ Schliessen' : '▼ Öffnen';
+  if(open) renderICMInputs();
+}
+
+function renderICMInputs() {
+  const ftTable = S.tables ? S.tables.find(t => t.toUpperCase().includes('FINAL')) : null;
+  const ftPlayers = ftTable && S.players ? S.players.filter(p => p.table === ftTable) : [];
+  const payouts = S.payouts || [];
+
+  const container = document.getElementById('icm-inputs');
+  if(!ftPlayers.length) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--text2)">Keine Spieler am Final Table</div>';
+    return;
+  }
+
+  container.innerHTML = ftPlayers.map((p, i) => `
+    <div class="icm-row">
+      <div class="icm-name">${p.name}</div>
+      <input class="icm-input" type="number" id="icm-chips-${p.id}" placeholder="Chips" min="0" step="100">
+      <div class="icm-result" id="icm-val-${p.id}">—</div>
+    </div>
+  `).join('');
+}
+
+function calcICM() {
+  const ftTable = S.tables ? S.tables.find(t => t.toUpperCase().includes('FINAL')) : null;
+  const ftPlayers = ftTable && S.players ? S.players.filter(p => p.table === ftTable) : [];
+  const payouts = S.payouts || [];
+
+  if(!ftPlayers.length) return;
+  if(!payouts.length) { toast('Keine Auszahlungsstruktur gefunden', 'red'); return; }
+
+  const stacks = ftPlayers.map(p => ({
+    id: p.id,
+    name: p.name,
+    chips: parseInt(document.getElementById('icm-chips-' + p.id)?.value || 0)
+  })).filter(p => p.chips > 0);
+
+  if(!stacks.length) { toast('Bitte Chip-Stände eingeben', 'amber'); return; }
+
+  const total = stacks.reduce((s, p) => s + p.chips, 0);
+  const prizes = payouts.slice(0, stacks.length).map(p => p.amount);
+
+  // ICM calculation
+  const icmValues = icm(stacks.map(p => p.chips), prizes);
+
+  // Show results
+  stacks.forEach((p, i) => {
+    const el = document.getElementById('icm-val-' + p.id);
+    if(el) el.textContent = 'CHF ' + icmValues[i].toFixed(0);
+  });
+
+  // Show deal suggestion
+  const results = document.getElementById('icm-results');
+  results.innerHTML = `
+    <div style="background:var(--bg2);border-radius:var(--r);padding:10px;font-size:12px">
+      <div style="font-weight:600;margin-bottom:6px;font-size:13px">Deal-Vorschlag (ICM):</div>
+      ${stacks.map((p, i) => `
+        <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:.5px solid var(--border)">
+          <span>${p.name}</span>
+          <strong>CHF ${icmValues[i].toFixed(0)}</strong>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+// ICM algorithm
+function icm(stacks, prizes) {
+  const n = stacks.length;
+  const total = stacks.reduce((a, b) => a + b, 0);
+
+  function equity(stacks, prizes, idx) {
+    if(prizes.length === 0 || stacks.every(s => s === 0)) return 0;
+    let result = 0;
+    const prize = prizes[0];
+    const remaining = prizes.slice(1);
+    for(let i = 0; i < stacks.length; i++) {
+      if(stacks[i] === 0) continue;
+      const prob = stacks[i] / total;
+      const newStacks = stacks.map((s, j) => j === i ? 0 : s);
+      const subEq = (i === idx) ? 0 : equity(newStacks, remaining, idx);
+      result += prob * (i === idx ? prize : subEq);
+    }
+    return result;
+  }
+
+  // Simplified ICM using recursive probability
+  function icmCalc(chips, prizes) {
+    const n = chips.length;
+    const tot = chips.reduce((a, b) => a + b, 0);
+    const values = new Array(n).fill(0);
+
+    function calc(remainingChips, remainingPrizes, depth) {
+      if(remainingPrizes.length === 0) return;
+      const prize = remainingPrizes[0];
+      const rest = remainingPrizes.slice(1);
+      const rtot = remainingChips.reduce((a, b) => a + b, 0);
+      for(let i = 0; i < n; i++) {
+        if(remainingChips[i] === 0) continue;
+        const prob = remainingChips[i] / rtot;
+        values[i] += prob * prize;
+        const newChips = remainingChips.map((c, j) => j === i ? 0 : c);
+        calc(newChips, rest, depth + 1);
+      }
+    }
+    calc(chips, prizes, 0);
+    return values;
+  }
+
+  return icmCalc(stacks, prizes);
 }
 
 function ftSetPotFromTDT() {
