@@ -884,17 +884,18 @@ function toggleICM() {
 }
 
 function renderICMInputs() {
-  const ftTable = S.tables ? S.tables.find(t => t.toUpperCase().includes('FINAL')) : null;
-  const ftPlayers = ftTable && S.players
-    ? S.players.filter(p => p.table === ftTable && !S.eliminations.find(e => e.id === p.id))
+  // Use active players (not eliminated), any table
+  const activePlayers = S.players
+    ? S.players.filter(p => !S.eliminations.find(e => e.id === p.id))
     : [];
   const payouts = S.payouts || [];
 
   const tbl = document.getElementById('icm-table');
-  if(!ftPlayers.length) {
-    tbl.innerHTML = '<div style="font-size:12px;color:var(--text2)">Keine Spieler am Final Table</div>';
+  if(!activePlayers.length) {
+    tbl.innerHTML = '<div style="font-size:12px;color:var(--text2)">Keine aktiven Spieler</div>';
     return;
   }
+  const ftPlayers = activePlayers;
 
   const fmtChf = v => Math.round(v).toLocaleString('de-CH');
 
@@ -919,13 +920,12 @@ function renderICMInputs() {
 }
 
 function calcICM() {
-  const ftTable = S.tables ? S.tables.find(t => t.toUpperCase().includes('FINAL')) : null;
-  const ftPlayers = ftTable && S.players
-    ? S.players.filter(p => p.table === ftTable && !S.eliminations.find(e => e.id === p.id))
+  const ftPlayers = S.players
+    ? S.players.filter(p => !S.eliminations.find(e => e.id === p.id))
     : [];
   const payouts = S.payouts || [];
 
-  if(!ftPlayers.length) return;
+  if(!ftPlayers.length) { toast('Keine aktiven Spieler', 'amber'); return; }
   if(!payouts.length) { toast('Keine Auszahlungsstruktur in .tdt', 'red'); return; }
 
   const stacks = ftPlayers.map(p => ({
@@ -967,9 +967,8 @@ function icmCalc(stacks, prizes) {
 }
 
 function openICMTab() {
-  const ftTable = S.tables ? S.tables.find(t => t.toUpperCase().includes('FINAL')) : null;
-  const ftPlayers = ftTable && S.players
-    ? S.players.filter(p => p.table === ftTable && !S.eliminations.find(e => e.id === p.id))
+  const ftPlayers = S.players
+    ? S.players.filter(p => !S.eliminations.find(e => e.id === p.id))
     : [];
   const payouts = S.payouts || [];
 
