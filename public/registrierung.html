@@ -95,14 +95,21 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 <body>
 
 <div class="hdr">
-  <div>
-    <div class="hdr-logo">UNIQUE</div>
-    <div class="hdr-sub" id="hdr-sub">Poker &amp; Sport Lounge</div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="javascript:history.back()" style="background:rgba(255,255,255,.15);border:none;border-radius:6px;padding:6px 12px;color:#fff;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap">← Zurück</a>
+    <div>
+      <div class="hdr-logo">UNIQUE</div>
+      <div class="hdr-sub" id="hdr-sub">Poker &amp; Sport Lounge</div>
+    </div>
   </div>
-  <div class="lang-btns">
+  <div class="lang-btns" style="flex-wrap:wrap;gap:5px;max-width:220px;justify-content:flex-end">
     <button class="lang-btn active" onclick="setLang('de')">DE</button>
     <button class="lang-btn" onclick="setLang('fr')">FR</button>
     <button class="lang-btn" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('it')">IT</button>
+    <button class="lang-btn" onclick="setLang('sq')">SQ</button>
+    <button class="lang-btn" onclick="setLang('pt')">PT</button>
+    <button class="lang-btn" onclick="setLang('tr')">TR</button>
   </div>
 </div>
 
@@ -290,6 +297,82 @@ const T = {
     errRequired:'Please fill in all required fields.', errSig:'Please sign.',
     loading:'Creating PDF…', sending:'Sending…',
     clear:'✕ Clear',
+  },
+  it: {
+    title:'Registrazione Giocatori', sub:'Si prega di compilare tutti i campi. I campi contrassegnati con * sono obbligatori.',
+    personal:'Dati Personali', vorname:'Nome', nachname:'Cognome',
+    strasse:'Via', nr:'N.', plz:'CAP', ort:'Città',
+    handy:'Numero di cellulare', email:'Indirizzo e-mail',
+    nickSect:'Nickname & Privacy',
+    nickCheck:"Desidero essere menzionato solo con il mio nickname su tutti i documenti pubblicati (Web, Instagram, software poker del club e statistiche).",
+    nickname:'Nickname',
+    idSect:'Documento d'identità (foto)', idHint:'Si prega di fotografare il fronte e il retro del documento d'identità.',
+    idFront:'Fronte', idBack:'Retro', photoTap:'Tocca per fotografare',
+    sigSect:'Firma', sigHint:'Firma nel campo con il dito o uno stilo.',
+    sigHintTxt:'✍️ Firma qui',
+    submit:'✓ Invia registrazione',
+    successTitle:'Registrazione riuscita!',
+    successSub:'I tuoi dati sono stati trasmessi. Non vediamo l'ora di vederti al prossimo torneo!',
+    errRequired:'Si prega di compilare tutti i campi obbligatori.', errSig:'Si prega di firmare.',
+    loading:'Creazione PDF…', sending:'Invio in corso…',
+    clear:'✕ Elimina',
+  },
+  sq: {
+    title:'Regjistrimi i Lojtarëve', sub:'Ju lutemi plotësoni të gjitha fushat. Fushat e shënuara me * janë të detyrueshme.',
+    personal:'Të dhëna Personale', vorname:'Emri', nachname:'Mbiemri',
+    strasse:'Rruga', nr:'Nr.', plz:'Kodi Postar', ort:'Qyteti',
+    handy:'Numri i celularit', email:'Adresa e-mail',
+    nickSect:'Pseudonim & Privatësia',
+    nickCheck:'Dëshiroj të përmendem vetëm me pseudonimin tim në të gjitha dokumentet e publikuara (Web, Instagram, softuer i pokerit në klub dhe statistika).',
+    nickname:'Pseudonim',
+    idSect:'Letërnjoftim (foto)', idHint:'Ju lutemi fotografoni anën e përparme dhe të pasme të letërnjoftimit tuaj.',
+    idFront:'Ana e përparme', idBack:'Ana e pasme', photoTap:'Prekni për të fotografuar',
+    sigSect:'Nënshkrimi', sigHint:'Nënshkruani në fushë me gisht ose stilolaps.',
+    sigHintTxt:'✍️ Nënshkruani këtu',
+    submit:'✓ Dërgo regjistrimin',
+    successTitle:'Regjistrimi u krye me sukses!',
+    successSub:'Të dhënat tuaja u transmetuan. Mezi presim t'ju shohim në turneun tjetër!',
+    errRequired:'Ju lutemi plotësoni të gjitha fushat e detyrueshme.', errSig:'Ju lutemi nënshkruani.',
+    loading:'Po krijohet PDF-i…', sending:'Po dërgohet…',
+    clear:'✕ Fshi',
+  },
+  pt: {
+    title:'Registo de Jogadores', sub:'Por favor, preencha todos os campos. Os campos marcados com * são obrigatórios.',
+    personal:'Dados Pessoais', vorname:'Primeiro Nome', nachname:'Apelido',
+    strasse:'Rua', nr:'N.º', plz:'Código Postal', ort:'Cidade',
+    handy:'Número de telemóvel', email:'Endereço de e-mail',
+    nickSect:'Nickname & Privacidade',
+    nickCheck:'Desejo ser mencionado apenas pelo meu nickname em todos os documentos publicados (Web, Instagram, software de poker do clube e estatísticas).',
+    nickname:'Nickname',
+    idSect:'Documento de identidade (foto)', idHint:'Por favor, fotografe a frente e o verso do seu documento de identidade.',
+    idFront:'Frente', idBack:'Verso', photoTap:'Toque para fotografar',
+    sigSect:'Assinatura', sigHint:'Assine no campo com o dedo ou uma caneta.',
+    sigHintTxt:'✍️ Assine aqui',
+    submit:'✓ Enviar registo',
+    successTitle:'Registo efectuado com sucesso!',
+    successSub:'Os seus dados foram transmitidos. Aguardamos vê-lo no próximo torneio!',
+    errRequired:'Por favor, preencha todos os campos obrigatórios.', errSig:'Por favor, assine.',
+    loading:'A criar PDF…', sending:'A enviar…',
+    clear:'✕ Limpar',
+  },
+  tr: {
+    title:'Oyuncu Kaydı', sub:'Lütfen tüm alanları doldurun. * ile işaretli alanlar zorunludur.',
+    personal:'Kişisel Bilgiler', vorname:'Ad', nachname:'Soyad',
+    strasse:'Sokak', nr:'No.', plz:'Posta Kodu', ort:'Şehir',
+    handy:'Cep Telefonu Numarası', email:'E-posta Adresi',
+    nickSect:'Takma Ad & Gizlilik',
+    nickCheck:'Tüm yayınlanan belgelerde (Web, Instagram, kulüpteki poker yazılımı ve istatistikler) yalnızca takma adımla anılmak istiyorum.',
+    nickname:'Takma Ad',
+    idSect:'Kimlik Kartı (Fotoğraf)', idHint:'Lütfen kimlik kartınızın ön ve arka yüzünü fotoğraflayın.',
+    idFront:'Ön Yüz', idBack:'Arka Yüz', photoTap:'Fotoğraf çekmek için dokunun',
+    sigSect:'İmza', sigHint:'Alanı parmağınız veya kalemle imzalayın.',
+    sigHintTxt:'✍️ Buraya imzalayın',
+    submit:'✓ Kaydı Gönder',
+    successTitle:'Kayıt Başarılı!',
+    successSub:'Verileriniz iletildi. Bir sonraki turnuvada sizi görmekten memnuniyet duyarız!',
+    errRequired:'Lütfen tüm zorunlu alanları doldurun.', errSig:'Lütfen imzalayın.',
+    loading:'PDF oluşturuluyor…', sending:'Gönderiliyor…',
+    clear:'✕ Temizle',
   }
 };
 
@@ -297,7 +380,7 @@ let lang = 'de';
 
 function setLang(l) {
   lang = l;
-  document.querySelectorAll('.lang-btn').forEach((b,i) => b.classList.toggle('active', ['de','fr','en'][i]===l));
+  document.querySelectorAll('.lang-btn').forEach((b,i) => b.classList.toggle('active', ['de','fr','en','it','sq','pt','tr'][i]===l));
   document.documentElement.lang = l;
   const t = T[l];
   document.getElementById('t-title').textContent = t.title;
