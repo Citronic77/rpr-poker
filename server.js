@@ -604,6 +604,66 @@ setInterval(() => {
   });
 }, 30000);
 
+// ── OneDrive Test ──
+app.get('/api/onedrive-test', async (req, res) => {
+  try {
+    const tenantId = process.env.MS_TENANT_ID;
+    const clientId = process.env.MS_CLIENT_ID;
+    const clientSecret = process.env.MS_CLIENT_SECRET;
+    const driveUser = process.env.MS_ONEDRIVE_USER || 'roger@lehmanncomputer.ch';
+
+    if(!tenantId || !clientId || !clientSecret) {
+      return res.json({ ok: false, error: 'Env variables missing' });
+    }
+
+    // Get token
+    const tokenRes = await fetch(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: clientId,
+        client_secret: clientSecret,
+        scope: 'https://graph.microsoft.com/.default'
+      })
+    });
+    const tokenData = await tokenRes.json();
+    if(!tokenData.access_token) return res.json({ ok: false, step: 'token', error: tokenData });
+
+    // Test: get user info
+    const userRes = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(driveUser)}`, {
+      headers: { 'Authorization': 'Bearer ' + tokenData.access_token }
+    });
+    const userData = await userRes.json();
+
+    // Test: get drive info
+    const driveRes = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(driveUser)}/drive`, {
+      headers: { 'Authorization': 'Bearer ' + tokenData.access_token }
+    });
+    const driveData = await driveRes.json();
+
+    // Test: upload small test file
+    const testBuf = Buffer.from('RPR Poker OneDrive Test');
+    const uploadRes = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(driveUser)}/drive/root:/RPR-Poker/test.txt:/content`, {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + tokenData.access_token, 'Content-Type': 'text/plain' },
+      body: testBuf
+    });
+    const uploadData = await uploadRes.json();
+
+    res.json({
+      ok: uploadRes.ok,
+      tokenOk: !!tokenData.access_token,
+      user: userData.displayName || userData.error?.message,
+      drive: driveData.name || driveData.error?.message,
+      upload: uploadRes.status,
+      uploadResult: uploadData.name || uploadData.error
+    });
+  } catch(e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+
 // ── Registrierung PDF ──
 const REG_PDF_DIR = path.join(__dirname, 'public', 'reg-pdfs');
 if (!fs.existsSync(REG_PDF_DIR)) fs.mkdirSync(REG_PDF_DIR, { recursive: true });
