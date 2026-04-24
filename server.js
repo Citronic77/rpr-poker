@@ -604,6 +604,18 @@ setInterval(() => {
   });
 }, 30000);
 
+// ── Env Debug ──
+app.get('/api/env-debug', (req, res) => {
+  res.json({
+    MS_TENANT_ID: process.env.MS_TENANT_ID ? 'SET (' + process.env.MS_TENANT_ID.substring(0,8) + '...)' : 'MISSING',
+    MS_CLIENT_ID: process.env.MS_CLIENT_ID ? 'SET (' + process.env.MS_CLIENT_ID.substring(0,8) + '...)' : 'MISSING',
+    MS_CLIENT_SECRET: process.env.MS_CLIENT_SECRET ? 'SET' : 'MISSING',
+    MS_ONEDRIVE_USER: process.env.MS_ONEDRIVE_USER || 'MISSING',
+    NODE_ENV: process.env.NODE_ENV || 'not set',
+    allKeys: Object.keys(process.env).filter(k => k.startsWith('MS_'))
+  });
+});
+
 // ── OneDrive Test ──
 app.get('/api/onedrive-test', async (req, res) => {
   try {
