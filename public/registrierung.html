@@ -92,13 +92,6 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 @media(max-width:400px){.field-row{grid-template-columns:1fr}.photo-section{flex-direction:column}}
 </style>
 <script>
-// Expose functions globally before DOM ready
-window.setLang = function(l) { _setLang(l); };
-window.clearSig = function() { if(typeof _clearSig === 'function') _clearSig(); };
-window.clearPhoto = function(s) { if(typeof _clearPhoto === 'function') _clearPhoto(s); };
-window.previewPhoto = function(s,i) { if(typeof _previewPhoto === 'function') _previewPhoto(s,i); };
-window.submitForm = function() { if(typeof _submitForm === 'function') _submitForm(); };
-
 // ── TRANSLATIONS ──
 const T = {
   de: {
@@ -132,7 +125,7 @@ const T = {
     idFront:'Recto', idBack:'Verso', photoTap:'Appuyer pour photographier',
     sigSect:'Signature', sigHint:'Signez dans le champ avec votre doigt ou un stylet.',
     sigHintTxt:'✍️ Signez ici',
-    submit:'✓ Envoyer l\'inscription',
+    submit:"✓ Envoyer l'inscription",
     successTitle:'Inscription réussie!',
     successSub:'Vos données ont été transmises. Nous nous réjouissons de vous voir au prochain tournoi!',
     errRequired:'Veuillez remplir tous les champs obligatoires.', errSig:'Veuillez signer.',
@@ -166,13 +159,13 @@ const T = {
     nickSect:'Nickname & Privacy',
     nickCheck:"Desidero essere menzionato solo con il mio nickname su tutti i documenti pubblicati (Web, Instagram, software poker del club e statistiche).",
     nickname:'Nickname',
-    idSect:'Documento d'identità (foto)', idHint:'Si prega di fotografare il fronte e il retro del documento d'identità.',
+    idSect:"Documento d'identit\u00e0 (foto)", idHint:"Si prega di fotografare il fronte e il retro del documento d'identit\u00e0.",
     idFront:'Fronte', idBack:'Retro', photoTap:'Tocca per fotografare',
     sigSect:'Firma', sigHint:'Firma nel campo con il dito o uno stilo.',
     sigHintTxt:'✍️ Firma qui',
     submit:'✓ Invia registrazione',
     successTitle:'Registrazione riuscita!',
-    successSub:'I tuoi dati sono stati trasmessi. Non vediamo l'ora di vederti al prossimo torneo!',
+    successSub:"I tuoi dati sono stati trasmessi. Non vediamo l'ora di vederti al prossimo torneo!",
     errRequired:'Si prega di compilare tutti i campi obbligatori.', errSig:'Si prega di firmare.',
     loading:'Creazione PDF…', sending:'Invio in corso…',
     clear:'✕ Elimina',
@@ -191,7 +184,7 @@ const T = {
     sigHintTxt:'✍️ Nënshkruani këtu',
     submit:'✓ Dërgo regjistrimin',
     successTitle:'Regjistrimi u krye me sukses!',
-    successSub:'Të dhënat tuaja u transmetuan. Mezi presim t'ju shohim në turneun tjetër!',
+    successSub:"Të dhënat tuaja u transmetuan. Mezi presim t'ju shohim në turneun tjetër!",
     errRequired:'Ju lutemi plotësoni të gjitha fushat e detyrueshme.', errSig:'Ju lutemi nënshkruani.',
     loading:'Po krijohet PDF-i…', sending:'Po dërgohet…',
     clear:'✕ Fshi',
@@ -238,7 +231,7 @@ const T = {
 
 let lang = 'de';
 
-function _setLang(l) {
+function setLang(l) {
   lang = l;
   document.querySelectorAll('.lang-btn').forEach((b,i) => b.classList.toggle('active', ['de','fr','en','it','sq','pt','tr'][i]===l));
   document.documentElement.lang = l;
@@ -279,7 +272,7 @@ function setLabel(id, text, req) {
 // ── PHOTOS ──
 const photos = { front: null, back: null };
 
-function _previewPhoto(side, input) {
+function previewPhoto(side, input) {
   if(!input.files[0]) return;
   const reader = new FileReader();
   reader.onload = e => {
@@ -292,7 +285,7 @@ function _previewPhoto(side, input) {
   reader.readAsDataURL(input.files[0]);
 }
 
-function _clearPhoto(side) {
+function clearPhoto(side) {
   photos[side] = null;
   const prev = document.getElementById('prev-' + side);
   const t = T[lang];
@@ -328,7 +321,7 @@ function initSig() {
   canvas.addEventListener('touchend',stop);
 }
 
-function _clearSig() {
+function clearSig() {
   const canvas = document.getElementById('sigCanvas');
   canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
   sigHasContent = false;
@@ -462,7 +455,7 @@ function buildPDF() {
 }
 
 // ── SUBMIT ──
-async function _submitForm() {
+async function submitForm() {
   if(!validate()) { showToast(T[lang].errRequired); return; }
   if(!sigHasContent) { showToast(T[lang].errSig); return; }
 
@@ -536,7 +529,7 @@ function showToast(msg) {
 // Init
 document.addEventListener('DOMContentLoaded', () => {
   initSig();
-  _setLang('de');
+  setLang('de');
 });
 </script>
 </head>
