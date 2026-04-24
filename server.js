@@ -9,7 +9,65 @@ const os = require('os');
 const { exec } = require('child_process');
 const nodemailer = require('nodemailer');
 
-const FT_SERVER = 'http://167.172.169.206:3000'; // Final Table server
+const FT_SERVER = 'http://167.172.169.206:3000';
+
+// ── OneDrive Upload via Microsoft Graph ──
+async function uploadToOneDrive(buffer, filename, subfolder) {
+  try {
+    const tenantId = process.env.MS_TENANT_ID;
+    const clientId = process.env.MS_CLIENT_ID;
+    const clientSecret = process.env.MS_CLIENT_SECRET;
+    const driveFolder = process.env.MS_ONEDRIVE_FOLDER || 'RPR-Poker';
+
+    if(!tenantId || !clientId || !clientSecret) {
+      console.warn('OneDrive: Env variables not set, skipping upload');
+      return null;
+    }
+
+    // 1. Get access token
+    const tokenRes = await fetch(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: clientId,
+        client_secret: clientSecret,
+        scope: 'https://graph.microsoft.com/.default'
+      })
+    });
+    const tokenData = await tokenRes.json();
+    const token = tokenData.access_token;
+    if(!token) { console.warn('OneDrive: No token received', tokenData); return null; }
+
+    // 2. Upload file to OneDrive (specific user)
+    const driveUser = process.env.MS_ONEDRIVE_USER || 'roger@lehmanncomputer.ch';
+    const folder = subfolder ? `${driveFolder}/${subfolder}` : driveFolder;
+    const uploadUrl = `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(driveUser)}/drive/root:/${folder}/${filename}:/content`;
+
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/pdf'
+      },
+      body: buffer
+    });
+
+    if(!uploadRes.ok) {
+      const err = await uploadRes.text();
+      console.warn('OneDrive upload failed:', uploadRes.status, err);
+      return null;
+    }
+
+    const fileData = await uploadRes.json();
+    console.log('OneDrive upload OK:', fileData.name);
+    return fileData.webUrl || null;
+
+  } catch(e) {
+    console.warn('OneDrive upload error:', e.message);
+    return null;
+  }
+} // Final Table server
 
 // ── Gastro-Abrechnung Konfiguration ──
 const GASTRO_CFG_PATH = path.join(__dirname, 'gastro-config.json');
@@ -557,6 +615,8 @@ app.post('/api/reg/save', express.json({ limit: '20mb' }), (req, res) => {
     const pdfBuffer = Buffer.from(pdfBase64, 'base64');
     const filePath = path.join(REG_PDF_DIR, path.basename(filename));
     fs.writeFileSync(filePath, pdfBuffer);
+    // Upload to OneDrive async
+    uploadToOneDrive(pdfBuffer, path.basename(filename), 'Registrierungen').catch(()=>{});
     const host = req.get('host');
     const proto = host.includes('railway.app') ? 'https' : req.protocol;
     const pdfUrl = proto + '://' + host + '/reg-pdf/' + encodeURIComponent(path.basename(filename));
@@ -636,6 +696,8 @@ app.post('/api/gastro/send', express.json({ limit: '20mb' }), async (req, res) =
   try {
     const publicPdfPath = path.join(GASTRO_PDF_DIR, filename);
     fs.writeFileSync(publicPdfPath, pdfBuffer);
+    // Upload to OneDrive async (don't block response)
+    uploadToOneDrive(pdfBuffer, filename, 'Gastro').catch(()=>{});
     // Force https on Railway (req.protocol may return http behind proxy)
     const host = req.get('host');
     const proto = host.includes('railway.app') ? 'https' : req.protocol;
