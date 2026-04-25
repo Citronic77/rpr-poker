@@ -616,6 +616,64 @@ app.get('/api/env-debug', (req, res) => {
   });
 });
 
+// ── Quittung speichern (von externem PHP-Server) ──
+app.post('/api/save-quittung', express.json({ limit: '5mb' }), async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const { zahlungsart, betrag, bonnr, datum, zeit, mitarbeiter, tischid, items } = req.body;
+  if (!betrag) return res.status(400).json({ ok: false, error: 'Kein Betrag' });
+  try {
+    const mwst = (betrag / 1.081 * 0.081).toFixed(2);
+    const zahlLabels = { bar: 'Bar', karte: 'Kreditkarte', twint: 'TWINT' };
+    const zahlLabel = zahlLabels[zahlungsart] || zahlungsart;
+    let itemsText = '';
+    if (items && items.length) {
+      items.forEach(item => {
+        const name = (item.name + (item.rabatt ? ' (-' + item.rabatt + '%)' : '')).substring(0, 28).padEnd(28);
+        itemsText += '  ' + name + ' Fr. ' + parseFloat(item.preis).toFixed(2) + '\n';
+        if (item.optionen) item.optionen.forEach(o => { itemsText += '    + ' + o + '\n'; });
+      });
+    }
+    const datumStr2 = datum || new Date().toLocaleDateString('de-CH');
+    const zeitStr = zeit || new Date().toLocaleTimeString('de-CH');
+    const bonText = [
+      '================================',
+      '     UNIQUE Poker & Sport       ',
+      '   Bonnstrasse 22, Duedingen    ',
+      '================================',
+      'Datum:       ' + datumStr2,
+      'Zeit:        ' + zeitStr,
+      'Bon-Nr.:     ' + (bonnr || ''),
+      tischid ? 'Tisch:       ' + tischid : null,
+      mitarbeiter ? 'Mitarbeiter: ' + mitarbeiter : null,
+      '--------------------------------',
+      itemsText,
+      '================================',
+      'TOTAL        Fr. ' + parseFloat(betrag).toFixed(2),
+      'inkl. MwSt 8.1%   Fr. ' + mwst,
+      '--------------------------------',
+      '[ ' + zahlLabel.toUpperCase() + ' ]',
+      'Bezahlt      Fr. ' + parseFloat(betrag).toFixed(2),
+      '================================',
+      '  Vielen Dank fuer Ihren Besuch!',
+      '================================',
+    ].filter(l => l !== null).join('\n');
+
+    const datumFile = datumStr2.replace(/\./g, '-');
+    const filename = 'Quittung-' + datumFile + '-' + (bonnr || Date.now()) + '-' + zahlungsart + '.txt';
+    const buffer = Buffer.from(bonText, 'utf-8');
+    const odUrl = await uploadToOneDrive(buffer, filename, 'Quittungen');
+    res.json({ ok: true, filename, onedrive: !!odUrl });
+  } catch(e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.options('/api/save-quittung', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.sendStatus(200);
+});
+
 // ── OneDrive Test ──
 app.get('/api/onedrive-test', async (req, res) => {
   try {
