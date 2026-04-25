@@ -217,6 +217,7 @@ let state = {
   uniquePlayers: 0,
   totalBonus: 0,
   payouts: [],
+  isBounty: false,
   pot: 0,
   totalBuyins: 0,
   totalUniquePlayers: 0,
@@ -376,7 +377,8 @@ function parseTDT(raw) {
     buyinCountPerPlayer[uuid] = (block.match(/new GameBuyin\(\{/g) || []).length;
   }
 
-  return { name, players, tables, blinds, currentLevel, currentBlind, currentBreak, blindLevelNumber, totalBuyins, totalUniquePlayers, totalReentries, totalBonus, pot, buyinCountPerPlayer, payouts };
+  const isBounty = /BountyChipCost: [1-9]/.test(raw) || /PersonalBounty: [1-9]/.test(raw);
+  return { name, players, tables, blinds, currentLevel, currentBlind, currentBreak, blindLevelNumber, totalBuyins, totalUniquePlayers, totalReentries, totalBonus, pot, buyinCountPerPlayer, payouts, isBounty };
 }
 
 // ── Broadcast to all clients ──
@@ -446,6 +448,7 @@ app.post('/upload', upload.single('tdt'), (req, res) => {
     state.uniquePlayers = parsed.totalUniquePlayers;
     state.totalBonus = parsed.totalBonus;
     state.payouts = parsed.payouts;
+    state.isBounty = parsed.isBounty;
     state.pot = parsed.pot;
     state.totalBuyins = parsed.totalBuyins;
     state.totalUniquePlayers = parsed.totalUniquePlayers;
@@ -486,7 +489,7 @@ wss.on('connection', ws => {
           const player = state.players.find(p => p.id === playerId);
           const seat = player ? player.seat : null;
           const currentBuyinCounts = state.lastBuyinCounts || {};
-          state.eliminations.push({ id: playerId, name: playerName, table, seat, time, pos: activePlayers, buyinsAtElim: currentBuyinCounts[playerId] || 1 });
+          state.eliminations.push({ id: playerId, name: playerName, table, seat, time, pos: activePlayers, buyinsAtElim: currentBuyinCounts[playerId] || 1, hitmanId: hitmanId || null, hitmanName: hitmanName || null });
           broadcastState();
         }
       } else if (msg.type === 'undo') {
