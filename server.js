@@ -482,7 +482,7 @@ wss.on('connection', ws => {
     try {
       const msg = JSON.parse(raw);
       if (msg.type === 'eliminate') {
-        const { playerId, playerName, table, time } = msg;
+        const { playerId, playerName, table, time, hitmanId, hitmanName } = msg;
         if (!state.eliminations.find(e => e.id === playerId)) {
           // pos = number of players still active at moment of elimination = their finishing place
           const activePlayers = state.players.length - state.eliminations.length;
