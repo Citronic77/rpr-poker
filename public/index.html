@@ -212,6 +212,17 @@ input[id^='icm-chips-']::-webkit-inner-spin-button{-webkit-appearance:none;margi
         </div>
       </div>
     </div>
+    <!-- HITMAN MODAL -->
+    <div id="hitman-ov" style="display:none" class="overlay">
+      <div class="dialog">
+        <div style="font-size:30px;margin-bottom:.5rem">🎯</div>
+        <h3>Wer hat eliminiert?</h3>
+        <p id="hitman-msg" style="margin-bottom:1rem"></p>
+        <div id="hitman-btns" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;margin-bottom:1rem"></div>
+        <button class="btn" onclick="skipHitman()">Überspringen</button>
+      </div>
+    </div>
+
     <div id="undo-ov" style="display:none" class="overlay">
       <div class="dialog">
         <h3>Rückgängig machen?</h3>
@@ -277,7 +288,7 @@ input[id^='icm-chips-']::-webkit-inner-spin-button{-webkit-appearance:none;margi
       <div class="section-label" style="margin-top:1rem">Ausscheidungen</div>
       <div class="card">
         <table class="etable">
-          <thead><tr><th>Platz</th><th>Spieler</th><th>Tisch</th><th>Sitz</th><th>Uhrzeit</th><th></th></tr></thead>
+          <thead><tr><th>Platz</th><th>Spieler</th><th>Tisch</th><th>Sitz</th><th>Uhrzeit</th><th id="hitman-col" style="display:none">Hitman 🎯</th><th></th></tr></thead>
           <tbody id="f-elims"></tbody>
         </table>
         <div id="f-empty" class="empty">Noch keine Ausscheidungen</div>
