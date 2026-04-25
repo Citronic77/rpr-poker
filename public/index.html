@@ -692,7 +692,7 @@ function confirmElim(){
   if(!pendingElim) return;
   const p = findById(pendingElim);
   document.getElementById('elim-ov').style.display = 'none';
-  if(S.isBounty) {
+  if(S.isBounty === true) {
     // Show hitman selection
     showHitmanModal(p);
   } else {
@@ -709,22 +709,36 @@ function showHitmanModal(eliminated) {
   );
   document.getElementById('hitman-msg').textContent =
     '"' + eliminated.name + '" — wer hat ihn eliminiert?';
-  document.getElementById('hitman-btns').innerHTML = tablePlayers.map(p =>
-    `<button class="btn" style="text-align:left;padding:10px 14px;font-size:14px"
-      onclick="selectHitman('${encodeURIComponent(p.id)}','${encodeURIComponent(p.name)}')">
+  const hitmanBtns = tablePlayers.map((p,i) => {
+    window._hitmanPlayers = window._hitmanPlayers || {};
+    window._hitmanPlayers['h'+i] = {id:p.id, name:p.name};
+    return `<button class="btn" style="text-align:left;padding:10px 14px;font-size:14px"
+      onclick="selectHitmanIdx('h${i}')">
       🎯 ${p.name} <span style="font-size:11px;color:var(--text2)">(${p.table} · Sitz ${p.seat})</span>
-    </button>`
-  ).join('');
+    </button>`;
+  });
+  document.getElementById('hitman-btns').innerHTML = hitmanBtns.join('');
   document.getElementById('hitman-ov').style.display = 'flex';
 }
 
-function selectHitman(hitmanSid, hitmanName) {
+function selectHitmanIdx(key) {
+  const player = (window._hitmanPlayers || {})[key];
+  if(!player) return;
   if(!pendingElim) return;
   const p = findById(pendingElim);
-  const hitmanId = decodeURIComponent(hitmanSid);
-  const hitmanNameDecoded = decodeURIComponent(hitmanName);
   wsSend({type:'eliminate', playerId:p.id, playerName:p.name, table:p.table,
-          time:ftime(new Date()), hitmanId, hitmanName:hitmanNameDecoded});
+          time:ftime(new Date()), hitmanId:player.id, hitmanName:player.name});
+  document.getElementById('hitman-ov').style.display = 'none';
+  pendingElim = null;
+}
+
+function selectHitman(hitmanSid, hitmanNameEnc) {
+  if(!pendingElim) return;
+  const p = findById(pendingElim);
+  const hId = decodeURIComponent(hitmanSid);
+  const hName = decodeURIComponent(hitmanNameEnc);
+  wsSend({type:'eliminate', playerId:p.id, playerName:p.name, table:p.table,
+          time:ftime(new Date()), hitmanId:hId, hitmanName:hName});
   document.getElementById('hitman-ov').style.display = 'none';
   pendingElim = null;
 }
