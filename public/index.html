@@ -243,6 +243,21 @@ input[id^='icm-chips-']::-webkit-inner-spin-button{-webkit-appearance:none;margi
       <div class="waiting-sub">Sobald die Batch-Datei die .tdt hochgeladen hat,<br>erscheint hier das Live-Dashboard.</div>
     </div>
     <div id="floor-content" style="display:none">
+      <!-- Bounty Toggle -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--bg2);border:.5px solid var(--border);border-radius:var(--rl);margin-bottom:.75rem">
+        <div>
+          <div style="font-size:13px;font-weight:600">🎯 Bounty-Turnier</div>
+          <div style="font-size:11px;color:var(--text2)">Hitman-Auswahl beim Eliminieren</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer">
+          <input type="checkbox" id="bounty-toggle" onchange="toggleBounty(this.checked)"
+            style="opacity:0;width:0;height:0;position:absolute">
+          <span id="bounty-slider" style="position:absolute;inset:0;border-radius:99px;background:var(--border2);transition:.3s;display:flex;align-items:center">
+            <span id="bounty-knob" style="position:absolute;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.3)"></span>
+          </span>
+        </label>
+      </div>
+
       <div class="sync-bar">
         <div class="sync-dot ok" id="sd-f"></div>
         <div style="flex:1">
@@ -1203,6 +1218,15 @@ function renderGastroData() {
       el.textContent = '🔴 ' + loans.length + ' aktive Ausleihe' + (loans.length > 1 ? 'n' : '');
     }
   } catch(e) { el.style.display = 'none'; }
+}
+
+function toggleBounty(on) {
+  S.isBounty = on;
+  const slider = document.getElementById('bounty-slider');
+  const knob = document.getElementById('bounty-knob');
+  slider.style.background = on ? '#E24B4A' : 'var(--border2)';
+  knob.style.left = on ? '25px' : '3px';
+  toast(on ? '🎯 Bounty-Modus aktiviert' : 'Bounty-Modus deaktiviert', on ? 'red' : 'amber');
 }
 
 function toggleNotif(){
