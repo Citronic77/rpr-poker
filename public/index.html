@@ -691,14 +691,20 @@ function cancelElim(){ document.getElementById('elim-ov').style.display = 'none'
 function confirmElim(){
   if(!pendingElim) return;
   const p = findById(pendingElim);
+  if(!p) { pendingElim = null; return; }
   document.getElementById('elim-ov').style.display = 'none';
   if(S.isBounty === true) {
-    // Show hitman selection
     showHitmanModal(p);
   } else {
-    wsSend({type:'eliminate', playerId:p.id, playerName:p.name, table:p.table, time:ftime(new Date())});
-    pendingElim = null;
+    doEliminate(p, null, null);
   }
+}
+
+function doEliminate(p, hitmanId, hitmanName) {
+  const msg = {type:'eliminate', playerId:p.id, playerName:p.name, table:p.table, time:ftime(new Date())};
+  if(hitmanId) { msg.hitmanId = hitmanId; msg.hitmanName = hitmanName; }
+  wsSend(msg);
+  pendingElim = null;
 }
 
 function showHitmanModal(eliminated) {
@@ -723,13 +729,11 @@ function showHitmanModal(eliminated) {
 
 function selectHitmanIdx(key) {
   const player = (window._hitmanPlayers || {})[key];
-  if(!player) return;
-  if(!pendingElim) return;
+  if(!player || !pendingElim) return;
   const p = findById(pendingElim);
-  wsSend({type:'eliminate', playerId:p.id, playerName:p.name, table:p.table,
-          time:ftime(new Date()), hitmanId:player.id, hitmanName:player.name});
+  if(!p) { pendingElim = null; return; }
   document.getElementById('hitman-ov').style.display = 'none';
-  pendingElim = null;
+  doEliminate(p, player.id, player.name);
 }
 
 function selectHitman(hitmanSid, hitmanNameEnc) {
@@ -746,9 +750,9 @@ function selectHitman(hitmanSid, hitmanNameEnc) {
 function skipHitman() {
   if(!pendingElim) return;
   const p = findById(pendingElim);
-  wsSend({type:'eliminate', playerId:p.id, playerName:p.name, table:p.table, time:ftime(new Date())});
+  if(!p) { pendingElim = null; return; }
   document.getElementById('hitman-ov').style.display = 'none';
-  pendingElim = null;
+  doEliminate(p, null, null);
 }
 
 function openUndo(sid){
