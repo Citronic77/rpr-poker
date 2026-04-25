@@ -691,8 +691,49 @@ function cancelElim(){ document.getElementById('elim-ov').style.display = 'none'
 function confirmElim(){
   if(!pendingElim) return;
   const p = findById(pendingElim);
-  wsSend({type:'eliminate', playerId:p.id, playerName:p.name, table:p.table, time:ftime(new Date())});
   document.getElementById('elim-ov').style.display = 'none';
+  if(S.isBounty) {
+    // Show hitman selection
+    showHitmanModal(p);
+  } else {
+    wsSend({type:'eliminate', playerId:p.id, playerName:p.name, table:p.table, time:ftime(new Date())});
+    pendingElim = null;
+  }
+}
+
+function showHitmanModal(eliminated) {
+  // Active players at same table (excluding the eliminated player)
+  const tablePlayers = S.players.filter(p =>
+    p.id !== eliminated.id &&
+    !S.eliminations.find(e => e.id === p.id)
+  );
+  document.getElementById('hitman-msg').textContent =
+    '"' + eliminated.name + '" — wer hat ihn eliminiert?';
+  document.getElementById('hitman-btns').innerHTML = tablePlayers.map(p =>
+    `<button class="btn" style="text-align:left;padding:10px 14px;font-size:14px"
+      onclick="selectHitman('${encodeURIComponent(p.id)}','${encodeURIComponent(p.name)}')">
+      🎯 ${p.name} <span style="font-size:11px;color:var(--text2)">(${p.table} · Sitz ${p.seat})</span>
+    </button>`
+  ).join('');
+  document.getElementById('hitman-ov').style.display = 'flex';
+}
+
+function selectHitman(hitmanSid, hitmanName) {
+  if(!pendingElim) return;
+  const p = findById(pendingElim);
+  const hitmanId = decodeURIComponent(hitmanSid);
+  const hitmanNameDecoded = decodeURIComponent(hitmanName);
+  wsSend({type:'eliminate', playerId:p.id, playerName:p.name, table:p.table,
+          time:ftime(new Date()), hitmanId, hitmanName:hitmanNameDecoded});
+  document.getElementById('hitman-ov').style.display = 'none';
+  pendingElim = null;
+}
+
+function skipHitman() {
+  if(!pendingElim) return;
+  const p = findById(pendingElim);
+  wsSend({type:'eliminate', playerId:p.id, playerName:p.name, table:p.table, time:ftime(new Date())});
+  document.getElementById('hitman-ov').style.display = 'none';
   pendingElim = null;
 }
 
@@ -759,6 +800,10 @@ function renderFloor(){
     </div>`;
   }).join('');
 
+  // Show hitman column if bounty tournament
+  const hitmanCol = document.getElementById('hitman-col');
+  if(hitmanCol) hitmanCol.style.display = S.isBounty ? 'table-cell' : 'none';
+
   const tbody = document.getElementById('f-elims');
   const empty = document.getElementById('f-empty');
   if(!S.eliminations.length){ tbody.innerHTML = ''; empty.style.display = 'block'; }
@@ -773,6 +818,7 @@ function renderFloor(){
         <td>${e.table}</td>
         <td style="color:var(--text2)">${e.seat != null ? 'Sitz '+e.seat : '—'}</td>
         <td>${e.time}</td>
+        <td style="display:${S.isBounty?'table-cell':'none'};color:var(--gold);font-weight:500">${e.hitmanName ? '🎯 '+e.hitmanName : '—'}</td>
         <td><button class="undo-row" onclick="floorUndo('${sid}')">↩</button></td>
       </tr>`;
     }).join('');
