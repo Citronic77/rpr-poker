@@ -447,6 +447,7 @@ function tColor(n){const u=n.toUpperCase();for(const k in TC){if(u.includes(k))r
 function ftime(d){return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
 
 let S = {tourneyName:'',tables:[],players:[],eliminations:[],lastUpdate:null};
+let bountyMode = false; // Manual bounty toggle - independent from server state
 let newIds = new Set();
 let pendingElim = null, pendingUndo = null;
 let notifEnabled = true;
@@ -719,7 +720,7 @@ function confirmElim(){
   const p = findById(pendingElim);
   if(!p) { pendingElim = null; return; }
   document.getElementById('elim-ov').style.display = 'none';
-  if(S.isBounty === true) {
+  if(bountyMode === true) {
     showHitmanModal(p);
   } else {
     doEliminate(p, null, null);
@@ -846,7 +847,7 @@ function renderFloor(){
 
   // Show hitman column if bounty tournament
   const hitmanCol = document.getElementById('hitman-col');
-  if(hitmanCol) hitmanCol.style.display = S.isBounty ? 'table-cell' : 'none';
+  if(hitmanCol) hitmanCol.style.display = bountyMode ? 'table-cell' : 'none';
 
   const tbody = document.getElementById('f-elims');
   const empty = document.getElementById('f-empty');
@@ -862,7 +863,7 @@ function renderFloor(){
         <td>${e.table}</td>
         <td style="color:var(--text2)">${e.seat != null ? 'Sitz '+e.seat : '—'}</td>
         <td>${e.time}</td>
-        <td style="display:${S.isBounty?'table-cell':'none'};color:var(--gold);font-weight:500">${e.hitmanName ? '🎯 '+e.hitmanName : '—'}</td>
+        <td style="display:${bountyMode?'table-cell':'none'};color:var(--gold);font-weight:500">${e.hitmanName ? '🎯 '+e.hitmanName : '—'}</td>
         <td><button class="undo-row" onclick="floorUndo('${sid}')">↩</button></td>
       </tr>`;
     }).join('');
@@ -1221,7 +1222,7 @@ function renderGastroData() {
 }
 
 function toggleBounty(on) {
-  S.isBounty = on;
+  bountyMode = on;
   const slider = document.getElementById('bounty-slider');
   const knob = document.getElementById('bounty-knob');
   slider.style.background = on ? '#E24B4A' : 'var(--border2)';
