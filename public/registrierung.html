@@ -508,8 +508,10 @@ Nickname only: ${document.getElementById('nick-check').checked ? 'Ja' : 'Nein'}`
     const nickname = document.getElementById('nickname').value.trim();
     const handy = document.getElementById('handy').value.trim();
 
-    // Format: nickname TAB vorname TAB nachname 8xTAB handy 2xTAB
-    const qrContent = nickname + '\t' + vorname + '\t' + nachname + '\t\t\t\t\t\t\t\t' + handy + '\t\t';
+    // If no nickname, use Nachname + Vorname as nickname
+    const effectiveNick = nickname || (nachname + ' ' + vorname);
+    // Format: nickname TAB vorname TAB nachname 8xTAB handy 1xTAB
+    const qrContent = effectiveNick + '\t' + vorname + '\t' + nachname + '\t\t\t\t\t\t\t\t' + handy + '\t';
 
     // Save registration to server for the Gastro tab
     fetch('/api/reg/add', {
