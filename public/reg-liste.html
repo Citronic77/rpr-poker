@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neue Registrierungen — UNIQUE</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:#f0ede8; color:#0d1e3d; min-height:100vh;
+}
+.hdr {
+  background:#0d1e3d; padding:14px 1.25rem;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.hdr-logo { font-size:20px; font-weight:900; color:#fff; letter-spacing:.15em; }
+.hdr-sub { font-size:10px; color:#f5a623; letter-spacing:.2em; text-transform:uppercase; margin-top:1px; }
+.back-btn {
+  background:rgba(255,255,255,.15); border:none; border-radius:6px;
+  color:#fff; padding:6px 14px; font-size:13px; font-weight:600; cursor:pointer; text-decoration:none;
+}
+.page { max-width:600px; margin:0 auto; padding:1.5rem 1rem 3rem; }
+.page-title { font-size:20px; font-weight:700; margin-bottom:.25rem; }
+.page-sub { font-size:13px; color:#6b7280; margin-bottom:1.5rem; }
+
+.reg-card {
+  background:#fff; border-radius:12px; border:1px solid #e0ddd8;
+  padding:1.25rem; margin-bottom:1rem;
+  display:flex; align-items:center; gap:1.25rem;
+}
+.reg-info { flex:1 }
+.reg-name { font-size:18px; font-weight:700; color:#0d1e3d; }
+.reg-nick { font-size:13px; color:#6b7280; margin-top:2px; }
+.reg-meta { font-size:11px; color:#9ca3af; margin-top:6px; }
+.reg-phone { font-size:13px; font-weight:500; color:#0d1e3d; margin-top:4px; }
+.qr-wrap { flex-shrink:0; }
+.empty { text-align:center; padding:3rem; color:#9ca3af; font-size:14px; }
+.refresh-btn {
+  display:block; width:100%; padding:12px; margin-top:1rem;
+  background:none; border:1.5px solid #0d1e3d; border-radius:8px;
+  font-size:14px; font-weight:600; color:#0d1e3d; cursor:pointer;
+}
+.refresh-btn:hover { background:#0d1e3d; color:#fff; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="javascript:history.back()" class="back-btn">← Zurück</a>
+    <div>
+      <div class="hdr-logo">UNIQUE</div>
+      <div class="hdr-sub">Neue Registrierungen</div>
+    </div>
+  </div>
+  <div style="background:#f5a623;color:#0d1e3d;padding:6px 14px;border-radius:3px;font-weight:700;font-size:13px">📋 Letzte 5</div>
+</div>
+
+<div class="page">
+  <div class="page-title">Neue Spieler</div>
+  <div class="page-sub">Die letzten 5 Registrierungen mit QR-Code</div>
+  <div id="list"></div>
+  <button class="refresh-btn" onclick="loadRegs()">↻ Aktualisieren</button>
+</div>
+
+<script>
+function loadRegs() {
+  fetch('/api/reg/list')
+    .then(r => r.json())
+    .then(data => renderList(data))
+    .catch(() => {
+      document.getElementById('list').innerHTML = '<div class="empty">⚠️ Keine Verbindung zum Server</div>';
+    });
+}
+
+function renderList(regs) {
+  const list = document.getElementById('list');
+  if (!regs || !regs.length) {
+    list.innerHTML = '<div class="empty">Noch keine Registrierungen seit dem letzten Server-Start.</div>';
+    return;
+  }
+  list.innerHTML = regs.map((r, i) => `
+    <div class="reg-card">
+      <div class="reg-info">
+        <div class="reg-name">${r.vorname} ${r.nachname}</div>
+        ${r.nickname ? `<div class="reg-nick">🎯 ${r.nickname}</div>` : ''}
+        <div class="reg-phone">📱 ${r.handy || '—'}</div>
+        <div class="reg-meta">${r.datum || ''} ${r.zeit || ''}</div>
+      </div>
+      <div class="qr-wrap" id="qr-${i}"></div>
+    </div>
+  `).join('');
+
+  // Generate QR codes
+  regs.forEach((r, i) => {
+    if (!r.qrContent) return;
+    try {
+      new QRCode(document.getElementById('qr-' + i), {
+        text: r.qrContent,
+        width: 100,
+        height: 100,
+        colorDark: '#0d1e3d',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e) {}
+  });
+}
+
+loadRegs();
+// Auto-refresh every 30 seconds
+setInterval(loadRegs, 30000);
+</script>
+</body>
+</html>
