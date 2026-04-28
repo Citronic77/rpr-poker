@@ -737,6 +737,22 @@ app.get('/api/onedrive-test', async (req, res) => {
   }
 });
 
+// ── Registrierungen Liste (in-memory, max 20) ──
+let regList = [];
+
+app.post('/api/reg/add', express.json(), (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const { vorname, nachname, nickname, handy, datum, zeit, qrContent } = req.body;
+  regList.unshift({ vorname, nachname, nickname, handy, datum, zeit, qrContent, id: Date.now() });
+  if (regList.length > 20) regList = regList.slice(0, 20);
+  res.json({ ok: true, count: regList.length });
+});
+
+app.get('/api/reg/list', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.json(regList.slice(0, 5));
+});
+
 // ── Registrierung PDF ──
 const REG_PDF_DIR = path.join(__dirname, 'public', 'reg-pdfs');
 if (!fs.existsSync(REG_PDF_DIR)) fs.mkdirSync(REG_PDF_DIR, { recursive: true });
