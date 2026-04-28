@@ -6,6 +6,7 @@
 <title>UNIQUE Poker — Registrierung</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>emailjs.init('4laI9xZsiK1acmVxt');</script>
 <style>
@@ -504,6 +505,26 @@ Nickname only: ${document.getElementById('nick-check').checked ? 'Ja' : 'Nein'}`
     });
 
     hideLoader();
+    const nickname = document.getElementById('nickname').value.trim();
+    const vorname = document.getElementById('vorname').value.trim();
+    const nachname = document.getElementById('nachname').value.trim();
+    const handy = document.getElementById('handy').value.trim();
+
+    // Format: nickname TAB vorname TAB nachname 8xTAB handy 2xTAB
+    const qrContent = nickname + '\t' + vorname + '\t' + nachname + '\t\t\t\t\t\t\t\t' + handy + '\t\t';
+
+    // Save registration to server for the Gastro tab
+    fetch('/api/reg/add', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        vorname, nachname, nickname, handy,
+        datum: new Date().toLocaleDateString('de-CH'),
+        zeit: new Date().toLocaleTimeString('de-CH', {hour:'2-digit', minute:'2-digit'}),
+        qrContent
+      })
+    }).catch(() => {});
+
     document.getElementById('form-area').style.display = 'none';
     document.getElementById('success-area').style.display = 'block';
 
