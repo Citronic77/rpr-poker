@@ -620,7 +620,7 @@ app.get('/api/env-debug', (req, res) => {
 });
 
 // ── Synology Surveillance Station Proxy ──
-const SYNO_URL = process.env.SYNO_URL || 'https://rpr-graffiti.quickconnect.to';
+const SYNO_URL = process.env.SYNO_URL || 'https://rpr-graffiti.de7.quickconnect.to';
 const SYNO_USER = process.env.SYNO_USER || '';
 const SYNO_PASS = process.env.SYNO_PASS || '';
 
