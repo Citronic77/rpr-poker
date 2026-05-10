@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Einkaufsliste — UNIQUE</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d1e3d;--gold:#d4af35;
+  --bg:#f0ede8;--card:#fff;
+  --border:#e0ddd8;--border2:#c8c4bc;
+  --text:#0d1e3d;--text2:#6b7280;--text3:#9ca3af;
+  --green:#16a34a;--green-l:#f0fdf4;--green-b:#86efac;
+  --red:#dc2626;--r:8px;--rl:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+.hdr{background:var(--navy);padding:12px 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hdr-logo{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:.15em}
+.hdr-sub{font-size:10px;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-top:1px}
+.back-btn{background:rgba(255,255,255,.15);border:none;border-radius:var(--r);color:#fff;padding:6px 14px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer}
+
+.page{max-width:540px;margin:0 auto;padding:1.25rem 1rem 4rem}
+
+/* ADD FORM */
+.add-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:1rem 1.25rem;margin-bottom:1rem}
+.add-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.75rem}
+.add-row{display:flex;gap:8px}
+.add-name{flex:1;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:15px;font-family:'Barlow',sans-serif;color:var(--text);background:#fff;outline:none}
+.add-name:focus{border-color:var(--gold)}
+.add-qty{width:70px;padding:10px 8px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:15px;font-family:'Barlow',sans-serif;color:var(--text);background:#fff;outline:none;text-align:center}
+.add-qty:focus{border-color:var(--gold)}
+.add-qty::-webkit-inner-spin-button,.add-qty::-webkit-outer-spin-button{-webkit-appearance:none}
+.add-btn{padding:10px 16px;background:var(--navy);color:#fff;border:none;border-radius:var(--r);font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.add-btn:hover{background:#1a3060}
+
+/* FILTERS */
+.filters{display:flex;gap:6px;margin-bottom:1rem}
+.f-btn{flex:1;padding:7px;text-align:center;font-size:13px;font-weight:600;border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;background:var(--card);color:var(--text2);transition:all .15s}
+.f-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.f-btn:hover:not(.active){background:var(--bg);border-color:var(--navy);color:var(--navy)}
+
+/* STATS */
+.stats{display:flex;gap:8px;margin-bottom:1rem}
+.stat{flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;text-align:center}
+.stat-n{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--navy)}
+.stat-l{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
+
+/* LIST */
+.list-empty{text-align:center;padding:3rem 1rem;color:var(--text2);background:var(--card);border:1px solid var(--border);border-radius:var(--rl)}
+.list-empty .icon{font-size:48px;margin-bottom:.75rem;display:block}
+.list-empty p{font-size:14px;line-height:1.6}
+
+.item{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:0;margin-bottom:8px;display:flex;align-items:stretch;overflow:hidden;transition:opacity .2s,transform .2s}
+.item.done{opacity:.6}
+.item-check{width:52px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#f8f7f4;border-right:1px solid var(--border);flex-shrink:0;transition:background .15s;font-size:22px}
+.item-check:hover{background:var(--green-l)}
+.item.done .item-check{background:var(--green-l)}
+.item-body{flex:1;padding:10px 14px;display:flex;align-items:center;gap:10px;min-width:0}
+.item-name{flex:1;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item.done .item-name{text-decoration:line-through;color:var(--text3)}
+.item-qty{background:var(--bg);border:1px solid var(--border2);border-radius:99px;padding:3px 10px;font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap;flex-shrink:0}
+.item.done .item-qty{color:var(--text3)}
+.item-actions{display:flex;align-items:center;gap:0;flex-shrink:0}
+.item-edit{width:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:16px;padding:10px 4px;transition:color .15s}
+.item-edit:hover{color:var(--navy)}
+.item-del{width:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:16px;padding:10px 4px;transition:color .15s;border-left:1px solid var(--border)}
+.item-del:hover{color:var(--red)}
+
+/* EDIT MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center;padding:0}
+.modal.open{display:flex}
+.modal-inner{background:var(--card);border-radius:var(--rl) var(--rl) 0 0;padding:1.5rem;width:100%;max-width:540px}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);margin-bottom:1rem}
+.modal-row{display:flex;gap:8px;margin-bottom:1rem}
+.modal-save{flex:1;padding:12px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em}
+.modal-cancel{padding:12px 16px;background:none;border:1px solid var(--border2);border-radius:var(--r);color:var(--text2);cursor:pointer;font-size:14px}
+
+/* CLEAR DONE */
+.clear-done{width:100%;margin-top:.5rem;padding:10px;background:none;border:1px solid var(--border2);border-radius:var(--r);color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.clear-done:hover{border-color:var(--red);color:var(--red)}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="javascript:history.back()" class="back-btn">← Zurück</a>
+    <div><div class="hdr-logo">UNIQUE</div><div class="hdr-sub">Einkaufsliste</div></div>
+  </div>
+  <div style="background:var(--gold);color:var(--navy);padding:5px 12px;border-radius:3px;font-weight:700;font-size:12px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em" id="hdr-count">🛒 0</div>
+</div>
+
+<div class="page">
+
+  <!-- ADD FORM -->
+  <div class="add-card">
+    <div class="add-title">Artikel hinzufügen</div>
+    <div class="add-row">
+      <input class="add-name" type="text" id="newName" placeholder="Bezeichnung..." maxlength="60" onkeydown="if(event.key==='Enter')addItem()">
+      <input class="add-qty" type="number" id="newQty" placeholder="Anz." min="1" max="999" value="1" onkeydown="if(event.key==='Enter')addItem()">
+      <button class="add-btn" onclick="addItem()">＋</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">Total</div></div>
+    <div class="stat"><div class="stat-n" id="s-open" style="color:var(--navy)">0</div><div class="stat-l">Offen</div></div>
+    <div class="stat"><div class="stat-n" id="s-done" style="color:var(--green)">0</div><div class="stat-l">Gekauft</div></div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <div class="f-btn active" id="f-all" onclick="setFilter('all')">Alle</div>
+    <div class="f-btn" id="f-open" onclick="setFilter('open')">🔲 Offen</div>
+    <div class="f-btn" id="f-done" onclick="setFilter('done')">✅ Gekauft</div>
+  </div>
+
+  <!-- LIST -->
+  <div id="list"></div>
+  <button class="clear-done" id="clearDoneBtn" onclick="clearDone()" style="display:none">🗑️ Alle gekauften Artikel löschen</button>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal" id="editModal">
+  <div class="modal-inner">
+    <div class="modal-title">✏️ Artikel bearbeiten</div>
+    <div class="modal-row">
+      <input class="add-name" type="text" id="editName" placeholder="Bezeichnung..." maxlength="60">
+      <input class="add-qty" type="number" id="editQty" placeholder="Anz." min="1" max="999">
+    </div>
+    <div class="modal-row">
+      <button class="modal-cancel" onclick="closeEdit()">Abbrechen</button>
+      <button class="modal-save" onclick="saveEdit()">✓ Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = 'uq_einkaufsliste';
+let items = [];
+let filter = 'all';
+let editId = null;
+
+function load() {
+  try { items = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { items = []; }
+}
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(items));
+}
+
+function addItem() {
+  const name = document.getElementById('newName').value.trim();
+  const qty = parseInt(document.getElementById('newQty').value) || 1;
+  if(!name) { document.getElementById('newName').focus(); return; }
+  items.unshift({ id: Date.now(), name, qty, done: false });
+  save();
+  document.getElementById('newName').value = '';
+  document.getElementById('newQty').value = '1';
+  document.getElementById('newName').focus();
+  render();
+}
+
+function toggleDone(id) {
+  const item = items.find(i=>i.id===id);
+  if(item) { item.done = !item.done; save(); render(); }
+}
+
+function deleteItem(id) {
+  items = items.filter(i=>i.id!==id);
+  save(); render();
+}
+
+function clearDone() {
+  if(!confirm('Alle gekauften Artikel löschen?')) return;
+  items = items.filter(i=>!i.done);
+  save(); render();
+}
+
+function openEdit(id) {
+  const item = items.find(i=>i.id===id);
+  if(!item) return;
+  editId = id;
+  document.getElementById('editName').value = item.name;
+  document.getElementById('editQty').value = item.qty;
+  document.getElementById('editModal').classList.add('open');
+  setTimeout(()=>document.getElementById('editName').focus(), 100);
+}
+
+function closeEdit() {
+  editId = null;
+  document.getElementById('editModal').classList.remove('open');
+}
+
+function saveEdit() {
+  const item = items.find(i=>i.id===editId);
+  if(!item) return;
+  const name = document.getElementById('editName').value.trim();
+  const qty = parseInt(document.getElementById('editQty').value) || 1;
+  if(!name) return;
+  item.name = name; item.qty = qty;
+  save(); closeEdit(); render();
+}
+
+function setFilter(f) {
+  filter = f;
+  ['all','open','done'].forEach(x => document.getElementById('f-'+x).classList.toggle('active', x===f));
+  render();
+}
+
+function render() {
+  const total = items.length;
+  const done = items.filter(i=>i.done).length;
+  const open = total - done;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-open').textContent = open;
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('hdr-count').textContent = '🛒 ' + open;
+  document.getElementById('clearDoneBtn').style.display = done > 0 ? 'flex' : 'none';
+
+  const visible = items.filter(i => {
+    if(filter === 'open') return !i.done;
+    if(filter === 'done') return i.done;
+    return true;
+  });
+
+  const list = document.getElementById('list');
+  if(!visible.length) {
+    const msgs = {
+      all: { icon:'🛒', text:'Liste ist leer.<br>Artikel oben hinzufügen.' },
+      open: { icon:'✅', text:'Alle Artikel wurden gekauft!' },
+      done: { icon:'🔲', text:'Noch nichts gekauft.' }
+    };
+    const m = msgs[filter];
+    list.innerHTML = `<div class="list-empty"><span class="icon">${m.icon}</span><p>${m.text}</p></div>`;
+    return;
+  }
+
+  // Sort: open first, then done
+  const sorted = [...visible].sort((a,b) => a.done-b.done);
+
+  list.innerHTML = sorted.map(item => `
+    <div class="item ${item.done?'done':''}" id="item-${item.id}">
+      <div class="item-check" onclick="toggleDone(${item.id})" title="${item.done?'Als offen markieren':'Als gekauft markieren'}">
+        ${item.done ? '✅' : '🔲'}
+      </div>
+      <div class="item-body">
+        <div class="item-name">${escHtml(item.name)}</div>
+        <div class="item-qty">${item.qty}×</div>
+      </div>
+      <div class="item-actions">
+        <div class="item-edit" onclick="openEdit(${item.id})" title="Bearbeiten">✏️</div>
+        <div class="item-del" onclick="deleteItem(${item.id})" title="Löschen">🗑️</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Close edit on backdrop click
+document.getElementById('editModal').addEventListener('click', e => {
+  if(e.target===document.getElementById('editModal')) closeEdit();
+});
+
+load();
+render();
+</script>
+</body>
+</html>
