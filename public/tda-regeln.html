@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TDA Regeln — UNIQUE Poker</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d1e3d;--navy2:#1a3060;
+  --gold:#d4af35;--gold2:#f5cc50;
+  --bg:#f0ede8;--card:#fff;
+  --border:#e0ddd8;--border2:#c8c4bc;
+  --text:#0d1e3d;--text2:#5a6478;--text3:#9ca3af;
+  --green:#16a34a;--red:#dc2626;
+  --r:6px;--rl:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+.hdr{background:var(--navy);padding:12px 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hdr-logo{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:.15em}
+.hdr-sub{font-size:10px;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-top:1px}
+.back-btn{background:rgba(255,255,255,.15);border:none;border-radius:var(--r);color:#fff;padding:6px 14px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer}
+
+.search-bar{background:var(--navy2);padding:.75rem 1.25rem;position:sticky;top:57px;z-index:99;border-bottom:1px solid rgba(255,255,255,.1)}
+.search-wrap{max-width:760px;margin:0 auto;position:relative}
+.search-input{width:100%;padding:10px 14px 10px 40px;border:none;border-radius:var(--rl);font-size:14px;font-family:'Barlow',sans-serif;background:rgba(255,255,255,.12);color:#fff;outline:none}
+.search-input::placeholder{color:rgba(255,255,255,.4)}
+.search-input:focus{background:rgba(255,255,255,.18)}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
+.search-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.5);font-size:18px;cursor:pointer;display:none}
+.search-count{color:rgba(255,255,255,.6);font-size:12px;margin-top:4px}
+
+.page{max-width:760px;margin:0 auto;padding:1.25rem 1rem 4rem}
+
+/* CATEGORIES */
+.cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem}
+.cat-tab{padding:5px 12px;border:.5px solid var(--border2);border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;background:var(--card);color:var(--text2);transition:all .15s;white-space:nowrap}
+.cat-tab:hover{border-color:var(--navy);color:var(--navy)}
+.cat-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* RULE CARDS */
+.rule-section{margin-bottom:1.5rem}
+.section-hdr{background:var(--navy);color:#fff;border-radius:var(--rl) var(--rl) 0 0;padding:10px 1rem;display:flex;align-items:center;gap:10px}
+.section-icon{font-size:18px}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.section-count{background:var(--gold);color:var(--navy);border-radius:99px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:auto}
+
+.rule-card{background:var(--card);border:1px solid var(--border);border-top:none;padding:1rem;transition:background .1s}
+.rule-card:last-child{border-radius:0 0 var(--rl) var(--rl)}
+.rule-card:hover{background:#fafaf7}
+.rule-card.hidden{display:none}
+.rule-card.highlight{background:#fffbeb}
+
+.rule-num{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.rule-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3}
+.rule-body{font-size:13px;color:var(--text2);line-height:1.7}
+.rule-body strong{color:var(--text);font-weight:600}
+.rule-body em{color:var(--navy);font-style:normal;font-weight:600}
+.rule-tag{display:inline-block;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700;margin-right:4px;margin-bottom:4px}
+.tag-important{background:#fef2f2;color:var(--red);border:1px solid #fca5a5}
+.tag-floor{background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd}
+.tag-penalty{background:#fef9c3;color:#854d0e;border:1px solid #fde047}
+.tag-new{background:#f0fdf4;color:var(--green);border:1px solid #86efac}
+
+.empty-search{text-align:center;padding:3rem;color:var(--text2);display:none}
+
+mark{background:#fde047;color:var(--navy);border-radius:2px;padding:0 1px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="javascript:history.back()" class="back-btn">← Zurück</a>
+    <div><div class="hdr-logo">UNIQUE</div><div class="hdr-sub">TDA Regeln</div></div>
+  </div>
+  <div style="background:var(--gold);color:var(--navy);padding:5px 12px;border-radius:3px;font-weight:700;font-size:12px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em">📋 TDA 2022</div>
+</div>
+
+<div class="search-bar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" type="text" id="searchInput" placeholder="Regel suchen... (z.B. Misdeal, All-In, Showdown)" oninput="doSearch(this.value)">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+    <div class="search-count" id="searchCount"></div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="cat-tabs" id="catTabs">
+    <div class="cat-tab active" onclick="filterCat('all')">Alle Regeln</div>
+    <div class="cat-tab" onclick="filterCat('allgemein')">⚙️ Allgemein</div>
+    <div class="cat-tab" onclick="filterCat('blinds')">🔄 Blinds & Antes</div>
+    <div class="cat-tab" onclick="filterCat('karten')">🃏 Karten</div>
+    <div class="cat-tab" onclick="filterCat('einsatz')">💰 Einsätze</div>
+    <div class="cat-tab" onclick="filterCat('showdown')">🏆 Showdown</div>
+    <div class="cat-tab" onclick="filterCat('strafen')">⚠️ Strafen</div>
+    <div class="cat-tab" onclick="filterCat('allin')">🎯 All-In</div>
+  </div>
+
+  <div id="empty-search" class="empty-search">🔍 Keine Regeln gefunden für "<span id="searchTerm"></span>"</div>
+  <div id="rules-container"></div>
+</div>
+
+<script>
+const RULES = [
+  // ── ALLGEMEIN ──
+  { cat:'allgemein', num:'TDA 1', title:'Offizieller Regelrahmen', tags:[], body:'Die TDA-Regeln gelten für alle Turniere, die nach TDA-Standards ausgetragen werden. Hausspezifische Zusatzregeln sind zulässig, dürfen aber den TDA-Regeln nicht widersprechen. <strong>Der Floor-Entscheid ist endgültig.</strong>' },
+  { cat:'allgemein', num:'TDA 2', title:'Spieler-Eigenverantwortung', tags:['important'], body:'Spieler sind selbst dafür verantwortlich, ihre Hand zu schützen, die Einsätze korrekt zu platzieren, Änderungen am Board wahrzunehmen und sich über verbleibende Chips und Pot-Grösse zu informieren. Unwissenheit schützt vor Regelanwendung nicht.' },
+  { cat:'allgemein', num:'TDA 3', title:'Englisch am Tisch', tags:['floor'], body:'<strong>English only at the table</strong> während das Spiel läuft. Spieler, die in einer anderen Sprache über das aktive Spiel sprechen, können verwarnt oder bestraft werden. Gilt auch für Kommentare zu noch aktiven Händen.' },
+  { cat:'allgemein', num:'TDA 4', title:'Äthik und Kollusion', tags:['important'], body:'Kollusion, Absprachen zum Schaden anderer Spieler und jede Form unethischen Verhaltens ist verboten und kann zur sofortigen Disqualifikation führen. <strong>Chip Dumping</strong> (absichtliches Verlieren von Chips) wird bestraft.' },
+  { cat:'allgemein', num:'TDA 5', title:'Electronic Devices', tags:[], body:'Mobiltelefone und andere Geräte dürfen am Tisch nicht laut gestellt sein. Das Telefonieren am Tisch ist während aktiver Hände nicht erlaubt. Kopfhörer dürfen verwendet werden, müssen aber bei Aufforderung abgenommen werden.' },
+  { cat:'allgemein', num:'TDA 6', title:'Floor-Entscheid', tags:['floor'], body:'Der Floor kann in jeder Situation entscheiden, die nicht ausdrücklich durch eine Regel gedeckt ist. Dabei gilt der Grundsatz: <em>«Spirit of the Game»</em>. Entscheidungen sollen fair, konsistent und im Sinne des Turnierspiels getroffen werden.' },
+  { cat:'allgemein', num:'TDA 7', title:'Soft Play', tags:['important'], body:'Soft Play (bewusstes Schonen eines Spielers) ist verboten. Spieler müssen stets im besten Interesse ihres eigenen Stacks agieren. Insbesondere zwischen befreundeten Spielern an kurzen Tischen wird Soft Play aktiv überwacht.' },
+  { cat:'allgemein', num:'TDA 8', title:'Rabbit Hunting', tags:[], body:'Rabbit Hunting (Aufdecken nicht mehr gespielter Karten nach Ende einer Hand) ist nach Floor-Ermessen erlaubt oder verboten. Die Hausregel ist bindend.' },
+
+  // ── BLINDS & ANTES ──
+  { cat:'blinds', num:'TDA 10', title:'Verpasste Blinds', tags:[], body:'Spieler, die ihren Big Blind verpassen, müssen beim nächsten Einstieg sowohl Small Blind als auch Big Blind nachzahlen, oder sie warten bis der Button an ihnen vorbei ist. <strong>Ein verpasster Big Blind wird als Dead Blind ins Pot gestellt.</strong>' },
+  { cat:'blinds', num:'TDA 11', title:'Ante-Regelung', tags:[], body:'Antes werden von jedem Spieler vor jeder Hand bezahlt. Bei fehlenden Chips werden anteilig Antes akzeptiert. Im Big Blind Ante-Format (BB-Ante) zahlt nur der Big Blind eine Ante in Höhe des Big Blinds.' },
+  { cat:'blinds', num:'TDA 12', title:'Blindlevel-Änderung', tags:['floor'], body:'Die Blinds erhöhen sich automatisch laut Turnierstruktur. <strong>Hände, die vor dem Level-Up begonnen wurden</strong> (erste Karte ausgeteilt), werden noch zum alten Level gespielt. Der Floor bestimmt den genauen Zeitpunkt.' },
+  { cat:'blinds', num:'TDA 13', title:'Straddle', tags:[], body:'Ein Straddle ist ein freiwilliger, blindes Raise vor dem Austeilen. Er muss doppelter Big Blind betragen und ist nur für den Spieler links des BB erlaubt (UTG), sofern die Hausregel Straddles erlaubt.' },
+  { cat:'blinds', num:'TDA 14', title:'Button-Regelung bei Bustout', tags:[], body:'Wenn ein Spieler ausscheidet, wandert der Button normal weiter. Kein Spieler erhält zweimal hintereinander den Button. Die Dead-Button-Regel kann hausweise angewendet werden.' },
+
+  // ── KARTEN ──
+  { cat:'karten', num:'TDA 20', title:'Misdeal', tags:['floor'], body:'Ein Misdeal liegt vor wenn: die erste oder zweite Karte offen ausgeteilt wurde, falsche Anzahl Karten ausgeteilt wurde, oder der Button falsch positioniert war. <strong>Bei einem Misdeal werden alle Karten eingesammelt und neu ausgeteilt.</strong> Blinds bleiben bestehen.' },
+  { cat:'karten', num:'TDA 21', title:'Tote Hand (Dead Hand)', tags:['important'], body:'Eine Hand ist tot wenn sie: mit weniger als 2 Karten gespielt wird, unlesbar ist, mit dem Muckvoucher in Kontakt kommt, oder absichtlich vom Tisch geworfen wurde. Eine tote Hand hat kein Anrecht auf den Pot.' },
+  { cat:'karten', num:'TDA 22', title:'Karten-Schutz', tags:[], body:'Spieler müssen ihre Karten mit einem Protector schützen. Wird eine Karte ohne Schutz durch eine andere Karte oder den Dealer berührt oder vermischt, kann die Hand als tot erklärt werden. <strong>Verantwortung liegt beim Spieler.</strong>' },
+  { cat:'karten', num:'TDA 23', title:'Aufgedeckte Karten beim Austeilen', tags:['floor'], body:'Wird beim Austeilen eine Karte offen ausgeteilt (exposed card), wird diese offen auf den Tisch gelegt. Bei der ersten oder zweiten Karte: Misdeal. Bei anderen Karten: Die Karte wird als Burn verwendet, der betroffene Spieler erhält eine neue Karte am Ende der Austeile.' },
+  { cat:'karten', num:'TDA 24', title:'Board-Karten', tags:[], body:'Flop, Turn und River-Karten (Community Cards) werden ordnungsgemäss nach Burn ausgeteilt. Wird eine Karte frühzeitig aufgedeckt (exposed card im Board), entscheidet der Floor über das weitere Vorgehen.' },
+  { cat:'karten', num:'TDA 25', title:'Extra-Karte im Deck', tags:['floor'], body:'Wird eine Extra-Karte im Deck entdeckt, wird die Hand annulliert. Das Pot-Geld wird an die Spieler zurückgegeben entsprechend ihrer Einsätze in der Hand.' },
+
+  // ── EINSÄTZE ──
+  { cat:'einsatz', num:'TDA 30', title:'Verbale Ansagen sind bindend', tags:['important'], body:'<strong>Verbale Ansagen am Tisch sind bindend</strong>, sofern der Spieler am Zug ist. «Call», «Raise», «Fold» etc. sind gültige Aktionen, auch wenn die Chips noch nicht bewegt wurden. Ausnahmen: wenn ein anderer Spieler noch am Handeln war.' },
+  { cat:'einsatz', num:'TDA 31', title:'Chips-Forward-Regel', tags:[], body:'Sobald Chips die Linie überschreiten oder klar auf den Tisch bewegt wurden, gilt die Aktion als abgeschlossen. <strong>Einzel-Chip-Regel:</strong> Ein einzelner Chip ohne verbale Ansage gilt als Call, nie als Raise — ausser es ist genug für einen vollständigen Raise.' },
+  { cat:'einsatz', num:'TDA 32', title:'String Bet', tags:['important'], body:'Ein String Bet liegt vor wenn ein Spieler Chips in mehreren Bewegungen setzt oder raist, ohne zuvor den Betrag zu nennen. String Bets sind ungültig — die Aktion wird auf den ersten Teil zurückgesetzt (meist Call oder Check). Verbale Ansage des Betrags verhindert einen String Bet.' },
+  { cat:'einsatz', num:'TDA 33', title:'Minimum Raise', tags:[], body:'Der Minimum-Raise muss mindestens so gross sein wie der letzte Raise in dieser Runde. Beispiel: BB = 100, Raise auf 300 (Raise um 200). Nächster Raise muss mindestens 500 betragen (Raise um weitere 200 oder mehr).' },
+  { cat:'einsatz', num:'TDA 34', title:'Raise-Untergrenze bei All-In', tags:[], body:'Ein All-In unter dem Minimum-Raise re-öffnet das Betting nicht für Spieler, die bereits gecallt haben. Für Spieler, die noch kein Raise gesehen haben, bleibt die volle Raise-Option erhalten.' },
+  { cat:'einsatz', num:'TDA 35', title:'Übergrosse Einzelchip', tags:[], body:'Wirft ein Spieler einen einzelnen übergrossen Chip ohne verbale Ansage, gilt es als Call. Die Antwort ist immer Call (nie automatisches Raise). Zu viel bezahlte Chips werden zurückgegeben.' },
+  { cat:'einsatz', num:'TDA 36', title:'No-Limit Bet-Regelung', tags:[], body:'Im No-Limit Texas Hold\'em kann ein Spieler jederzeit all seine Chips setzen. Es gibt kein Maximum. Das Minimum-Bet entspricht dem Big Blind.' },
+  { cat:'einsatz', num:'TDA 37', title:'Pot-Limit Berechnung', tags:[], body:'Im Pot-Limit ist der maximale Raise: aktueller Pot + alle Einsätze auf dem Tisch + der Call-Betrag des Raisers. Der Floor kann die Berechnung auf Anfrage bestätigen.' },
+
+  // ── SHOWDOWN ──
+  { cat:'showdown', num:'TDA 40', title:'Karten sprechen', tags:['important'], body:'<strong>Karten sprechen (Cards Speak):</strong> Der beste Händling gewinnt, unabhängig davon, was der Spieler sagt. Spieler und Floor sind gleichermassen berechtigt, eine bessere Hand zu identifizieren. Ein Spieler kann nicht auf eine Gewinnhand verzichten.' },
+  { cat:'showdown', num:'TDA 41', title:'Showdown-Reihenfolge', tags:[], body:'Beim Showdown deckt zuerst der Spieler auf, der als letzter geraist hat. Bei einem Limp-through (keine Raises) zeigt der Spieler links des Dealers zuerst auf. Spieler können ihre Karten jederzeit aufdecken.' },
+  { cat:'showdown', num:'TDA 42', title:'Mucken im Showdown', tags:[], body:'Ein Spieler kann im Showdown mucken, wenn er sieht, dass er verliert. <strong>Aber:</strong> Wenn ein Spieler aufgefordert wird seine Hand zu zeigen (z.B. bei All-In), muss er die Karten zeigen. Wer nicht zeigt, gewinnt nicht.' },
+  { cat:'showdown', num:'TDA 43', title:'One Player per Hand', tags:['important'], body:'Jeder Spieler agiert für sich allein. <strong>Es ist streng verboten</strong>, während einer aktiven Hand Ratschläge von aussen anzunehmen oder anderen Spielern Hinweise zu geben. Dies gilt auch für Zuschauer und bereits ausgeschiedene Spieler.' },
+  { cat:'showdown', num:'TDA 44', title:'All-In Showdown', tags:[], body:'Bei einem All-In müssen alle Spieler, die noch in der Hand sind, ihre Karten aufdecken, sobald kein weiteres Betting mehr möglich ist (beide Spieler all-in oder alle gecallt). Eine frühzeitige Aufdeckung ist möglich und wird empfohlen.' },
+  { cat:'showdown', num:'TDA 45', title:'Side Pots', tags:['floor'], body:'Bei mehreren All-Ins werden Side Pots erstellt. Jeder Spieler kann nur den Pot gewinnen, zu dem er beigetragen hat. Der Floor erklärt auf Anfrage die Side-Pot-Struktur.' },
+  { cat:'showdown', num:'TDA 46', title:'Rabbit Hunting im Showdown', tags:[], body:'Nach Beendigung einer Hand auf Anfrage aller beteiligten Spieler kann der Dealer die verbleibenden Karten aufdecken (Rabbit Hunting), sofern die Hausregel dies erlaubt.' },
+
+  // ── STRAFEN ──
+  { cat:'strafen', num:'TDA 50', title:'Penalty-System', tags:['penalty'], body:'Strafen werden nach schwerem Regelbruch verhängt: <strong>1. Verwarnung → 2. One-Round Penalty → 3. Multiple Round Penalty → 4. Disqualifikation.</strong> Der Floor kann je nach Schwere direkt zu höheren Strafen eskalieren.' },
+  { cat:'strafen', num:'TDA 51', title:'Round-Away-Penalty', tags:['penalty'], body:'Bei einer Round-Away-Penalty muss der Spieler den Tisch für die entsprechende Anzahl Hände verlassen. Seine Blinds werden weiterhin gepostet. Der Spieler darf erst zurück, wenn die Strafe abgesessen ist.' },
+  { cat:'strafen', num:'TDA 52', title:'Angle Shooting', tags:['important', 'penalty'], body:'Angle Shooting — das absichtliche Ausnutzen von Regelunklarheiten oder Mehrdeutigkeiten zum eigenen Vorteil — wird bestraft. Typische Beispiele: falsche Chips-Counts, absichtliches Verlangsamen, täuschende Handgesten.' },
+  { cat:'strafen', num:'TDA 53', title:'Mobil & Ablenkung', tags:['penalty'], body:'Spieler, die wiederholt Hände verlangsamen durch Mobiltelefon-Nutzung, können verwarnt und bei Wiederholung bestraft werden. Das Spiel soll in einem angemessenen Tempo ablaufen.' },
+  { cat:'strafen', num:'TDA 54', title:'Unsportliches Verhalten', tags:['important','penalty'], body:'Beleidigungen, Drohungen, Wutausbrüche oder unangemessenes Verhalten werden nicht toleriert. <strong>Schwere Verstösse führen zur sofortigen Disqualifikation</strong> ohne Rückerstattung des Buy-Ins.' },
+  { cat:'strafen', num:'TDA 55', title:'Chip-Manipulation', tags:['penalty'], body:'Das absichtliche Verbergen von Chips (z.B. hohe Chips hinter niedrigen verstecken) ist verboten. Chips müssen jederzeit sichtbar für alle Spieler am Tisch sein. Spieler auf Anfrage müssen ihren Stack-Count nennen.' },
+  { cat:'strafen', num:'TDA 56', title:'Slow Roll', tags:[], body:'Ein Slow Roll (absichtliches Verzögern beim Aufdecken einer Gewinnhand) ist unethisch und kann mit einer Verwarnung belegt werden, gilt aber nicht zwingend als regelwidriges Vergehen. Hausregeln können strenger sein.' },
+
+  // ── ALL-IN ──
+  { cat:'allin', num:'TDA 60', title:'All-In Definition', tags:[], body:'Ein Spieler ist All-In, wenn er alle seine Chips gesetzt hat. Ein All-In-Spieler kann den Pot nicht weiter gewinnen als er selbst beigetragen hat. Der Überschuss geht in einen Side Pot.' },
+  { cat:'allin', num:'TDA 61', title:'All-In unter dem Minimum', tags:[], body:'Ein All-In, der nicht das Minimum-Raise erreicht, wird als Call behandelt. Es re-öffnet das Betting nicht für Spieler, die bereits geraist und gecallt haben.' },
+  { cat:'allin', num:'TDA 62', title:'Karten aufdecken bei All-In', tags:['important'], body:'<strong>Wenn alle Spieler All-In sind und kein weiteres Betting möglich ist, müssen alle Hände aufgedeckt werden.</strong> Das Aufdecken kann auch schon beim Flop oder Turn erfolgen, wenn keine weiteren Einsätze möglich sind.' },
+  { cat:'allin', num:'TDA 63', title:'Side Pot Berechnung', tags:['floor'], body:'Side Pots werden berechnet: Der All-In-Spieler kann maximal (eigener All-In × Anzahl Mitspieler) gewinnen. Jeder überschüssige Betrag geht in einen separaten Side Pot, an dem der All-In-Spieler nicht teilnimmt.' },
+  { cat:'allin', num:'TDA 64', title:'Run It Twice / Multiple', tags:[], body:'Das Austeilen des Boards mehrfach (Run it Twice/Three) ist nur erlaubt, wenn alle beteiligten Spieler einverstanden sind UND die Hausregel dies explizit erlaubt. In den meisten Turnieren ist dies nicht gestattet.' },
+  { cat:'allin', num:'TDA 65', title:'Chipsprechen bei All-In', tags:[], body:'Bei einem All-In darf ein Spieler seinen genauen Chip-Count verlangen. Der Dealer oder Floor gibt auf Anfrage eine genaue Zählung. Ungefähre Angaben des Gegners sind keine Verletzung, solange keine absichtliche Täuschung vorliegt.' },
+  { cat:'allin', num:'TDA 66', title:'Last Action bei All-In', tags:[], body:'Wenn ein Spieler All-In geht und alle anderen Spieler callen oder folden, endet die Betting-Runde. Bei Fold zu einem All-In: Der All-In-Spieler muss seine Karten nicht zeigen, es sei denn, es ist ein Heads-Up-Showdown.' },
+];
+
+let activecat = 'all';
+let searchTerm = '';
+
+function renderRules() {
+  const container = document.getElementById('rules-container');
+  const sections = {};
+  const catNames = {
+    allgemein:{title:'Allgemeine Regeln',icon:'⚙️'},
+    blinds:{title:'Blinds & Antes',icon:'🔄'},
+    karten:{title:'Karten & Misdeal',icon:'🃏'},
+    einsatz:{title:'Einsätze & Betting',icon:'💰'},
+    showdown:{title:'Showdown',icon:'🏆'},
+    strafen:{title:'Strafen & Verhalten',icon:'⚠️'},
+    allin:{title:'All-In Regeln',icon:'🎯'},
+  };
+
+  // Filter
+  const filtered = RULES.filter(r => {
+    const catMatch = activecat === 'all' || r.cat === activecat;
+    if(!catMatch) return false;
+    if(!searchTerm) return true;
+    const q = searchTerm.toLowerCase();
+    return r.title.toLowerCase().includes(q) || r.body.toLowerCase().includes(q) || r.num.toLowerCase().includes(q);
+  });
+
+  // Group by category
+  filtered.forEach(r => {
+    if(!sections[r.cat]) sections[r.cat] = [];
+    sections[r.cat].push(r);
+  });
+
+  const empty = document.getElementById('empty-search');
+  if(filtered.length === 0) {
+    empty.style.display = 'block';
+    document.getElementById('searchTerm').textContent = searchTerm;
+    container.innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  let count = 0;
+  container.innerHTML = Object.entries(sections).map(([cat, rules]) => {
+    count += rules.length;
+    const info = catNames[cat];
+    return `<div class="rule-section">
+      <div class="section-hdr">
+        <span class="section-icon">${info.icon}</span>
+        <span class="section-title">${info.title}</span>
+        <span class="section-count">${rules.length}</span>
+      </div>
+      ${rules.map(r => `
+        <div class="rule-card">
+          <div class="rule-num">${r.num}</div>
+          <div class="rule-title">${highlight(r.title)}</div>
+          ${r.tags.map(t => {
+            const cls = {important:'tag-important',floor:'tag-floor',penalty:'tag-penalty',new:'tag-new'}[t]||'';
+            const lbl = {important:'Wichtig',floor:'Floor',penalty:'Strafe',new:'Neu'}[t]||t;
+            return `<span class="rule-tag ${cls}">${lbl}</span>`;
+          }).join('')}
+          <div class="rule-body">${highlight(r.body)}</div>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+
+  document.getElementById('searchCount').textContent = searchTerm ? `${count} Regel${count===1?'':'n'} gefunden` : '';
+}
+
+function highlight(text) {
+  if(!searchTerm) return text;
+  const q = searchTerm.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return text.replace(new RegExp(`(${q})`, 'gi'), '<mark>$1</mark>');
+}
+
+function doSearch(val) {
+  searchTerm = val.trim();
+  document.getElementById('searchClear').style.display = val ? 'block' : 'none';
+  renderRules();
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+  searchTerm = '';
+  renderRules();
+}
+
+function filterCat(cat) {
+  activecat = cat;
+  document.querySelectorAll('.cat-tab').forEach((t,i) => {
+    t.classList.toggle('active', ['all','allgemein','blinds','karten','einsatz','showdown','strafen','allin'][i] === cat);
+  });
+  renderRules();
+}
+
+renderRules();
+</script>
+</body>
+</html>
