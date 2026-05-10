@@ -643,12 +643,22 @@ let resolvedSynoUrl = null;
 async function resolveQuickConnect(qcId) {
   if (resolvedSynoUrl) return resolvedSynoUrl;
   
-  // QuickConnect resolution API
-  const qcRes = await fetch(`https://global.quickconnect.to/Serv.php?id=${qcId}`, {
-    headers: { 'User-Agent': 'Mozilla/5.0' }
+  // QuickConnect resolution API (POST with JSON body)
+  const qcRes = await fetch('https://global.quickconnect.to/Serv.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' },
+    body: JSON.stringify({
+      version: 1,
+      command: 'get_server_info',
+      stop_when_error: false,
+      stop_when_success: false,
+      id: qcId,
+      serverID: qcId,
+      additional: ['is_running','is_online','network','ddns','relay_region','request_tunnel']
+    })
   });
   const qcData = await qcRes.json();
-  console.log('QuickConnect response:', JSON.stringify(qcData).substring(0, 300));
+  console.log('QuickConnect response:', JSON.stringify(qcData).substring(0, 500));
 
   // Try direct server first (LAN/external)
   const env = qcData.env || {};
@@ -736,7 +746,11 @@ app.get('/api/syno-debug', async (req, res) => {
   try {
     const qcId = process.env.SYNO_QC_ID || 'rpr-graffiti';
     // Step 1: get QuickConnect info
-    const qcRes = await fetch(`https://global.quickconnect.to/Serv.php?id=${qcId}`);
+    const qcRes = await fetch('https://global.quickconnect.to/Serv.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ version:1, command:'get_server_info', id:qcId, serverID:qcId })
+    });
     const qcData = await qcRes.json();
     // Step 2: try to resolve
     resolvedSynoUrl = null; // force re-resolve
