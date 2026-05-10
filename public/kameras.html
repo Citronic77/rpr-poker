@@ -110,8 +110,11 @@ async function login() {
     await loadCams();
   } catch(e) {
     document.getElementById('cs').innerHTML = '<span class="cs-err">✕ Getrennt</span>';
-    document.getElementById('certInfo').style.display = 'block';
-    setMsg(`<div class="err">⚠️ Verbindung fehlgeschlagen. Bitte zuerst das Zertifikat akzeptieren (Link oben).</div>`);
+    const isCors = e.message.includes('fetch') || e.message.includes('CORS') || e.message.includes('Network');
+    document.getElementById('certInfo').style.display = isCors ? 'block' : 'none';
+    setMsg(`<div class="err">⚠️ Fehler: <code>${e.message}</code><br><br>
+      <button onclick="testConn()" style="padding:6px 14px;background:var(--navy);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">🔍 Verbindung testen</button>
+    </div>`);
   }
 }
 
@@ -181,6 +184,22 @@ function setMsg(h) { document.getElementById('msg').innerHTML = h; }
 function t(d) { return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
 function icon(n) { if (!n) return '📹'; const l=n.toLowerCase(); if(l.includes('final')) return '🏆'; if(l.includes('kasse')) return '💰'; return '📹'; }
 function esc(s) { return (s||'').replace(/'/g, "\\'"); }
+
+async function testConn() {
+  const url = BASE + '/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=' + encodeURIComponent(USER) + '&passwd=' + encodeURIComponent(PASS) + '&session=SurveillanceStation&format=sid';
+  try {
+    const r = await fetch(url, {mode:'cors'});
+    const t = await r.text();
+    const h = [...r.headers.entries()].map(([k,v])=>k+': '+v).join('<br>');
+    setMsg(`<div class="err" style="background:#f0fdf4;border-color:#86efac;color:#166534">
+      ✓ Antwort erhalten (${r.status})<br>
+      <code style="font-size:10px">${t.substring(0,200)}</code><br><br>
+      <b>Headers:</b><br><code style="font-size:10px">${h}</code>
+    </div>`);
+  } catch(e2) {
+    setMsg(`<div class="err">Fehler: ${e2.message}<br>URL: ${url}</div>`);
+  }
+}
 
 document.getElementById('pw').addEventListener('click', e => { if(e.target===document.getElementById('pw')) closeP(); });
 window.addEventListener('load', () => login());
