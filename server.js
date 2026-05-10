@@ -745,22 +745,23 @@ async function synoApi(params) {
 app.get('/api/syno-debug', async (req, res) => {
   try {
     const qcId = process.env.SYNO_QC_ID || 'rpr-graffiti';
-    const qcRes = await fetch('https://global.quickconnect.to/Serv.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ version:1, command:'get_server_info', id:qcId, serverID:qcId,
-        additional:['is_running','is_online','network','ddns','relay_region','request_tunnel','register_tunnel'] })
-    });
-    const qcData = await qcRes.json();
-    // Show full response for debugging
-    res.json({ 
-      ok: true,
-      qcRaw: qcData,
-      env: qcData.env,
-      server: qcData.server,
-      service: qcData.service,
-      sites: qcData.sites,
-    });
+    // Try regional servers (de7 is the known working one)
+    const servers = ['de7.quickconnect.to', 'global.quickconnect.to', 'dec.quickconnect.to'];
+    const results = {};
+    for (const srv of servers) {
+      try {
+        const r = await fetch(`https://${srv}/Serv.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ version:1, command:'get_server_info', id:qcId, serverID:qcId,
+            additional:['is_running','is_online','network','ddns','relay_region','request_tunnel'] }),
+          signal: AbortSignal.timeout(8000)
+        });
+        const d = await r.json();
+        results[srv] = { errno: d.errno, server: d.server, env: d.env, service: d.service };
+      } catch(e) { results[srv] = { error: e.message }; }
+    }
+    res.json({ ok: true, results });
   } catch(e) {
     res.json({ error: e.message });
   }
