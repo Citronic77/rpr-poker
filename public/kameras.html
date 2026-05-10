@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kamera-Aufnahmen — UNIQUE</title>
+<style>
+:root {
+  --navy:#0d1e3d; --gold:#f5a623; --bg:#f0ede8; --card:#fff;
+  --border:#e0ddd8; --text:#0d1e3d; --text2:#6b7280;
+  --green:#16a34a; --red:#dc2626;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.hdr{background:var(--navy);padding:14px 1.25rem;display:flex;align-items:center;justify-content:space-between}
+.hdr-logo{font-size:20px;font-weight:900;color:#fff;letter-spacing:.15em}
+.hdr-sub{font-size:10px;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-top:1px}
+.back-btn{background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none}
+.page{max-width:700px;margin:0 auto;padding:1.5rem 1rem 3rem}
+
+/* FILTERS */
+.filters{display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap}
+.filter-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
+.filter-group label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2)}
+.filter-group select,.filter-group input{
+  border:1.5px solid var(--border);border-radius:6px;padding:8px 10px;
+  font-size:14px;color:var(--text);background:#fff;outline:none;width:100%
+}
+.filter-group select:focus,.filter-group input:focus{border-color:var(--gold)}
+.btn-search{align-self:flex-end;padding:9px 20px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer}
+.btn-search:hover{background:#1a3060}
+
+/* RESULTS */
+.rec-list{display:flex;flex-direction:column;gap:8px}
+.rec-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 1rem;display:flex;align-items:center;gap:12px}
+.rec-cam{width:36px;height:36px;border-radius:8px;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.rec-info{flex:1}
+.rec-name{font-size:14px;font-weight:600}
+.rec-time{font-size:12px;color:var(--text2);margin-top:2px}
+.rec-size{font-size:11px;color:var(--text2)}
+.btn-play{padding:7px 16px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-play:hover{background:#0f6e56}
+.empty{text-align:center;padding:3rem;color:var(--text2);font-size:14px;background:var(--card);border-radius:10px;border:1px solid var(--border)}
+.loading{text-align:center;padding:3rem;color:var(--text2);font-size:14px}
+.error-box{background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:1rem;color:var(--red);font-size:13px;margin-bottom:1rem}
+
+/* PLAYER */
+.player-wrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;align-items:center;justify-content:center;padding:1rem}
+.player-wrap.open{display:flex}
+.player-inner{background:#000;border-radius:12px;overflow:hidden;width:100%;max-width:800px}
+.player-hdr{background:#111;padding:10px 1rem;display:flex;align-items:center;justify-content:space-between}
+.player-title{color:#fff;font-size:14px;font-weight:600}
+.player-close{background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;line-height:1}
+.player-hdr .btn-dl{padding:5px 12px;background:var(--gold);color:var(--navy);border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none}
+video{width:100%;max-height:70vh;display:block}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="javascript:history.back()" class="back-btn">← Zurück</a>
+    <div>
+      <div class="hdr-logo">UNIQUE</div>
+      <div class="hdr-sub">Kamera-Aufnahmen</div>
+    </div>
+  </div>
+  <div style="background:var(--gold);color:var(--navy);padding:6px 14px;border-radius:3px;font-weight:700;font-size:13px">📹 Surveillance</div>
+</div>
+
+<div class="page">
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Kamera</label>
+      <select id="selCamera">
+        <option value="">— Alle Kameras —</option>
+        <option value="">1-FINAL</option>
+        <option value="">2-RED</option>
+        <option value="">3-Green</option>
+        <option value="">4-Yellow</option>
+        <option value="">5-Cyan</option>
+        <option value="">6-BLUE</option>
+        <option value="">Kasse</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Datum</label>
+      <input type="date" id="selDate">
+    </div>
+    <button class="btn-search" onclick="search()">🔍 Suchen</button>
+  </div>
+
+  <div id="status"></div>
+  <div id="results"></div>
+</div>
+
+<!-- VIDEO PLAYER -->
+<div class="player-wrap" id="playerWrap">
+  <div class="player-inner">
+    <div class="player-hdr">
+      <span class="player-title" id="playerTitle">Aufnahme</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <a id="playerDl" href="#" class="btn-dl" target="_blank">⬇ Download</a>
+        <button class="player-close" onclick="closePlayer()">✕</button>
+      </div>
+    </div>
+    <video id="playerVideo" controls></video>
+  </div>
+</div>
+
+<script>
+// Set today as default date
+document.getElementById('selDate').value = new Date().toISOString().split('T')[0];
+
+// Load cameras from server
+async function loadCameras() {
+  try {
+    const res = await fetch('/api/cameras');
+    const data = await res.json();
+    if (!data.ok || !data.cameras) return;
+    const sel = document.getElementById('selCamera');
+    sel.innerHTML = '<option value="">— Alle Kameras —</option>'
+      + data.cameras.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  } catch(e) {
+    console.warn('Kameras konnten nicht geladen werden');
+  }
+}
+
+async function search() {
+  const cameraId = document.getElementById('selCamera').value;
+  const date = document.getElementById('selDate').value;
+  const status = document.getElementById('status');
+  const results = document.getElementById('results');
+
+  status.innerHTML = '';
+  results.innerHTML = '<div class="loading">🔄 Aufnahmen werden geladen…</div>';
+
+  try {
+    let url = '/api/recordings?date=' + encodeURIComponent(date);
+    if (cameraId) url += '&cameraId=' + cameraId;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok) {
+      status.innerHTML = `<div class="error-box">⚠️ Fehler: ${data.error || 'Unbekannt'}. Bitte Synology-Verbindung prüfen.</div>`;
+      results.innerHTML = '';
+      return;
+    }
+
+    const recs = data.recordings || [];
+    if (!recs.length) {
+      results.innerHTML = '<div class="empty">📭 Keine Aufnahmen für diesen Tag / diese Kamera gefunden.</div>';
+      return;
+    }
+
+    results.innerHTML = '<div class="rec-list">' + recs.map(r => {
+      const start = new Date(r.startTime * 1000);
+      const stop = new Date(r.stopTime * 1000);
+      const dur = Math.round((r.stopTime - r.startTime) / 60);
+      const size = r.size ? (r.size / 1024 / 1024).toFixed(1) + ' MB' : '';
+      const camIcon = getCamIcon(r.cameraName);
+      return `<div class="rec-card">
+        <div class="rec-cam">${camIcon}</div>
+        <div class="rec-info">
+          <div class="rec-name">${r.cameraName || 'Kamera'}</div>
+          <div class="rec-time">${formatTime(start)} – ${formatTime(stop)} · ${dur} Min</div>
+          ${size ? `<div class="rec-size">${size}</div>` : ''}
+        </div>
+        <button class="btn-play" onclick="playRec(${r.id}, '${escHtml(r.cameraName)}', '${formatTime(start)}')">▶ Abspielen</button>
+      </div>`;
+    }).join('') + '</div>';
+
+  } catch(e) {
+    status.innerHTML = `<div class="error-box">⚠️ Verbindungsfehler: ${e.message}</div>`;
+    results.innerHTML = '';
+  }
+}
+
+async function playRec(id, cameraName, time) {
+  document.getElementById('playerTitle').textContent = cameraName + ' · ' + time;
+  document.getElementById('playerVideo').src = '';
+
+  try {
+    const res = await fetch('/api/recording-url?id=' + id);
+    const data = await res.json();
+    if (!data.ok) { alert('Aufnahme konnte nicht geladen werden.'); return; }
+    document.getElementById('playerVideo').src = data.url;
+    document.getElementById('playerDl').href = data.url;
+    document.getElementById('playerWrap').classList.add('open');
+    document.getElementById('playerVideo').play().catch(()=>{});
+  } catch(e) {
+    alert('Fehler: ' + e.message);
+  }
+}
+
+function closePlayer() {
+  document.getElementById('playerVideo').pause();
+  document.getElementById('playerVideo').src = '';
+  document.getElementById('playerWrap').classList.remove('open');
+}
+
+function formatTime(d) {
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+function getCamIcon(name) {
+  if (!name) return '📹';
+  const n = name.toLowerCase();
+  if (n.includes('final')) return '🏆';
+  if (n.includes('kasse')) return '💰';
+  return '📹';
+}
+
+function escHtml(s) {
+  return (s || '').replace(/'/g, "\\'");
+}
+
+// Close player on background click
+document.getElementById('playerWrap').addEventListener('click', function(e) {
+  if (e.target === this) closePlayer();
+});
+
+loadCameras();
+</script>
+</body>
+</html>
