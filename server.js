@@ -619,6 +619,100 @@ app.get('/api/env-debug', (req, res) => {
   });
 });
 
+// ── Synology Surveillance Station Proxy ──
+const SYNO_URL = process.env.SYNO_URL || 'https://rpr-graffiti.quickconnect.to';
+const SYNO_USER = process.env.SYNO_USER || '';
+const SYNO_PASS = process.env.SYNO_PASS || '';
+
+const CAMERAS = [
+  { id: null, name: '1-FINAL' },
+  { id: null, name: '2-RED' },
+  { id: null, name: '3-Green' },
+  { id: null, name: '4-Yellow' },
+  { id: null, name: '5-Cyan' },
+  { id: null, name: '6-BLUE' },
+  { id: null, name: 'Kasse' },
+];
+
+let synoSid = null;
+let synoSidExpiry = 0;
+
+async function synoLogin() {
+  if (synoSid && Date.now() < synoSidExpiry) return synoSid;
+  const url = `${SYNO_URL}/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=${encodeURIComponent(SYNO_USER)}&passwd=${encodeURIComponent(SYNO_PASS)}&session=SurveillanceStation&format=sid`;
+  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+  const data = await res.json();
+  if (data.success) {
+    synoSid = data.data.sid;
+    synoSidExpiry = Date.now() + 20 * 60 * 1000; // 20 min
+    console.log('Synology login OK');
+    return synoSid;
+  }
+  throw new Error('Synology login failed: ' + JSON.stringify(data));
+}
+
+async function synoApi(params) {
+  const sid = await synoLogin();
+  const qs = new URLSearchParams({ ...params, sid }).toString();
+  const res = await fetch(`${SYNO_URL}/webapi/entry.cgi?${qs}`, {
+    headers: { 'User-Agent': 'Mozilla/5.0' }
+  });
+  return res.json();
+}
+
+// GET /api/cameras — list all cameras
+app.get('/api/cameras', async (req, res) => {
+  try {
+    const data = await synoApi({ api: 'SYNO.SurveillanceStation.Camera', version: '9', method: 'List' });
+    if (!data.success) return res.status(502).json({ ok: false, error: data });
+    const cameras = data.data.cameras.map(c => ({ id: c.id, name: c.name }));
+    res.json({ ok: true, cameras });
+  } catch(e) { res.status(502).json({ ok: false, error: e.message }); }
+});
+
+// GET /api/recordings?cameraId=X&date=YYYY-MM-DD
+app.get('/api/recordings', async (req, res) => {
+  try {
+    const { cameraId, date } = req.query;
+    const d = date ? new Date(date) : new Date();
+    d.setHours(0,0,0,0);
+    const fromTime = Math.floor(d.getTime() / 1000);
+    const toTime = fromTime + 86400;
+
+    const data = await synoApi({
+      api: 'SYNO.SurveillanceStation.Recording',
+      version: '5',
+      method: 'List',
+      cameraIds: cameraId || '',
+      fromTime,
+      toTime,
+      offset: 0,
+      limit: 50,
+    });
+    if (!data.success) return res.status(502).json({ ok: false, error: data });
+    const recs = (data.data.recordings || []).map(r => ({
+      id: r.id,
+      cameraId: r.cameraId,
+      cameraName: r.cameraName,
+      startTime: r.startTime,
+      stopTime: r.stopTime,
+      size: r.size,
+    }));
+    res.json({ ok: true, recordings: recs });
+  } catch(e) { res.status(502).json({ ok: false, error: e.message }); }
+});
+
+// GET /api/recording-url?id=X — get playback/download URL
+app.get('/api/recording-url', async (req, res) => {
+  try {
+    const sid = await synoLogin();
+    const { id } = req.query;
+    // Direct download URL from Surveillance Station
+    const url = `${SYNO_URL}/webapi/entry.cgi?api=SYNO.SurveillanceStation.Recording&version=5&method=Download&id=${id}&sid=${sid}`;
+    res.json({ ok: true, url });
+  } catch(e) { res.status(502).json({ ok: false, error: e.message }); }
+});
+
 // ── Quittung speichern (von externem PHP-Server) ──
 app.post('/api/save-quittung', express.json({ limit: '5mb' }), async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
