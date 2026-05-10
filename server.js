@@ -660,6 +660,28 @@ async function synoApi(params) {
   return res.json();
 }
 
+// Debug: test Synology connection
+app.get('/api/syno-debug', async (req, res) => {
+  const url = SYNO_URL + '/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=' 
+    + encodeURIComponent(SYNO_USER) + '&passwd=' + encodeURIComponent(SYNO_PASS) 
+    + '&session=SurveillanceStation&format=sid';
+  try {
+    const r = await fetch(url, { headers: {'User-Agent':'Mozilla/5.0'}, redirect:'follow' });
+    const status = r.status;
+    const contentType = r.headers.get('content-type');
+    const text = await r.text();
+    res.json({ 
+      url: SYNO_URL,
+      status, 
+      contentType, 
+      preview: text.substring(0, 300),
+      isJson: text.trim().startsWith('{')
+    });
+  } catch(e) {
+    res.json({ error: e.message, url: SYNO_URL });
+  }
+});
+
 // GET /api/cameras — list all cameras
 app.get('/api/cameras', async (req, res) => {
   try {
