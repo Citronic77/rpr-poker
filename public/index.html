@@ -612,10 +612,32 @@ function renderDealerSel() {
   const sel = document.getElementById('dealer-sel');
   const cur = sel.value;
   const TABLE_ORDER = ['FINAL','RED','GREEN','YELLOW','CYAN','BLUE','PURPLE'];
+  const TABLE_NAMES = {
+    FINAL: 'Table FINAL',
+    RED: 'Table 2 RED',
+    GREEN: 'Table 3 GREEN',
+    YELLOW: 'Table 4 YELLOW',
+    CYAN: 'Table 5 CYAN',
+    BLUE: 'Table 6 BLUE',
+    PURPLE: 'Table 7 PURPLE'
+  };
   function tblRank(n){ const u=n.toUpperCase(); const i=TABLE_ORDER.findIndex(k=>u.includes(k)); return i===-1?99:i; }
-  const sorted = [...S.tables].sort((a,b) => tblRank(a) - tblRank(b));
-  sel.innerHTML = '<option value="">-- Tisch wählen --</option>' + sorted.map(t => `<option value="${t}">${t}</option>`).join('') + (sorted.length ? '<option value="__ALL__">── Alle Tische ──</option>' : '');
-  if(cur === '__ALL__' || (cur && S.tables.includes(cur))) sel.value = cur;
+
+  // Merge: tables from .tdt + fixed table names (in case tournament not started yet)
+  const allTables = [...S.tables];
+  TABLE_ORDER.forEach(key => {
+    const exists = allTables.some(t => t.toUpperCase().includes(key));
+    if(!exists) allTables.push(TABLE_NAMES[key]);
+  });
+  const sorted = allTables.sort((a,b) => tblRank(a) - tblRank(b));
+
+  sel.innerHTML = '<option value="">-- Tisch wählen --</option>'
+    + sorted.map(t => {
+        const hasPlayers = S.tables.includes(t);
+        return `<option value="${t}">${t}${!hasPlayers ? ' (leer)' : ''}</option>`;
+      }).join('')
+    + '<option value="__ALL__">── Alle Tische ──</option>';
+  if(cur === '__ALL__' || sorted.includes(cur)) sel.value = cur;
   renderDealer();
 }
 
