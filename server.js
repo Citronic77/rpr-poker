@@ -637,14 +637,85 @@ const CAMERAS = [
 let synoSid = null;
 let synoSidExpiry = 0;
 
+// Resolve actual Synology server URL via QuickConnect API
+let resolvedSynoUrl = null;
+
+async function resolveQuickConnect(qcId) {
+  if (resolvedSynoUrl) return resolvedSynoUrl;
+  
+  // QuickConnect resolution API
+  const qcRes = await fetch(`https://global.quickconnect.to/Serv.php?id=${qcId}`, {
+    headers: { 'User-Agent': 'Mozilla/5.0' }
+  });
+  const qcData = await qcRes.json();
+  console.log('QuickConnect response:', JSON.stringify(qcData).substring(0, 300));
+
+  // Try direct server first (LAN/external)
+  const env = qcData.env || {};
+  const relayRegion = qcData.relay_region || {};
+  
+  // Build candidate URLs
+  const candidates = [];
+  
+  // Direct HTTPS
+  if (env.control_host && env.https_port) {
+    candidates.push(`https://${env.control_host}:${env.https_port}`);
+  }
+  // Direct HTTP
+  if (env.control_host && env.http_port) {
+    candidates.push(`http://${env.control_host}:${env.http_port}`);
+  }
+  // Relay servers
+  if (qcData.service && qcData.service.relay_ip) {
+    const relayIp = qcData.service.relay_ip;
+    const relayHttps = qcData.service.relay_dn_https_port || 443;
+    candidates.push(`https://${relayIp}:${relayHttps}`);
+  }
+  // Server info
+  if (qcData.server && qcData.server.interface) {
+    for (const iface of qcData.server.interface) {
+      if (iface.ipv4 && iface.https_port) {
+        candidates.push(`https://${iface.ipv4}:${iface.https_port}`);
+      }
+    }
+  }
+  
+  console.log('QuickConnect candidates:', candidates);
+  
+  // Test each candidate
+  for (const url of candidates) {
+    try {
+      const testRes = await fetch(url + '/webapi/auth.cgi?api=SYNO.API.Info&version=1&method=query', {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(5000)
+      });
+      const testData = await testRes.json();
+      if (testData.success !== undefined) {
+        console.log('Synology found at:', url);
+        resolvedSynoUrl = url;
+        return url;
+      }
+    } catch(e) {
+      console.log('Candidate failed:', url, e.message);
+    }
+  }
+  
+  throw new Error('Could not find Synology server via QuickConnect');
+}
+
 async function synoLogin() {
   if (synoSid && Date.now() < synoSidExpiry) return synoSid;
-  const url = `${SYNO_URL}/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=${encodeURIComponent(SYNO_USER)}&passwd=${encodeURIComponent(SYNO_PASS)}&session=SurveillanceStation&format=sid`;
+  
+  // Resolve QuickConnect ID from URL
+  const qcId = process.env.SYNO_QC_ID || 'rpr-graffiti';
+  const baseUrl = await resolveQuickConnect(qcId);
+  
+  const url = `${baseUrl}/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=${encodeURIComponent(SYNO_USER)}&passwd=${encodeURIComponent(SYNO_PASS)}&session=SurveillanceStation&format=sid`;
   const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
   const data = await res.json();
   if (data.success) {
     synoSid = data.data.sid;
-    synoSidExpiry = Date.now() + 20 * 60 * 1000; // 20 min
+    synoSidExpiry = Date.now() + 20 * 60 * 1000;
     console.log('Synology login OK');
     return synoSid;
   }
@@ -662,23 +733,17 @@ async function synoApi(params) {
 
 // Debug: test Synology connection
 app.get('/api/syno-debug', async (req, res) => {
-  const url = SYNO_URL + '/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=' 
-    + encodeURIComponent(SYNO_USER) + '&passwd=' + encodeURIComponent(SYNO_PASS) 
-    + '&session=SurveillanceStation&format=sid';
   try {
-    const r = await fetch(url, { headers: {'User-Agent':'Mozilla/5.0'}, redirect:'follow' });
-    const status = r.status;
-    const contentType = r.headers.get('content-type');
-    const text = await r.text();
-    res.json({ 
-      url: SYNO_URL,
-      status, 
-      contentType, 
-      preview: text.substring(0, 300),
-      isJson: text.trim().startsWith('{')
-    });
+    const qcId = process.env.SYNO_QC_ID || 'rpr-graffiti';
+    // Step 1: get QuickConnect info
+    const qcRes = await fetch(`https://global.quickconnect.to/Serv.php?id=${qcId}`);
+    const qcData = await qcRes.json();
+    // Step 2: try to resolve
+    resolvedSynoUrl = null; // force re-resolve
+    const baseUrl = await resolveQuickConnect(qcId);
+    res.json({ ok: true, resolvedUrl: baseUrl, qcData: JSON.stringify(qcData).substring(0,500) });
   } catch(e) {
-    res.json({ error: e.message, url: SYNO_URL });
+    res.json({ error: e.message });
   }
 });
 
