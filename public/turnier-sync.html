@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Turnier-Daten — UNIQUE</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d1e3d;--navy2:#1a3060;
+  --gold:#d4af35;--gold2:#f5cc50;
+  --bg:#f0ede8;--card:#fff;
+  --border:#e0ddd8;--border2:#c8c4bc;
+  --text:#0d1e3d;--text2:#6b7280;--text3:#9ca3af;
+  --green:#16a34a;--green-l:#f0fdf4;
+  --red:#dc2626;--red-l:#fef2f2;
+  --r:8px;--rl:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+.hdr{background:var(--navy);padding:12px 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hdr-logo{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:.15em}
+.hdr-sub{font-size:10px;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-top:1px}
+.back-btn{background:rgba(255,255,255,.15);border:none;border-radius:var(--r);color:#fff;padding:6px 14px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer}
+
+.page{max-width:600px;margin:0 auto;padding:1.25rem 1rem 4rem}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.75rem}
+
+/* TABLE */
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:1rem}
+.tbl-hdr{display:grid;grid-template-columns:1fr 100px 48px 40px;gap:0;background:var(--navy);padding:10px 14px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.tbl-hdr-sel{text-align:center}
+.tbl-row{display:grid;grid-template-columns:1fr 100px 48px 40px;gap:0;align-items:center;padding:8px 14px;border-top:1px solid var(--border);transition:background .1s}
+.tbl-row:hover{background:#fafaf7}
+.tbl-row.selected{background:#fffbeb}
+.tbl-row input[type=text],.tbl-row input[type=number]{width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;font-family:'Barlow',sans-serif;color:var(--text);background:#fff;outline:none;transition:border-color .15s}
+.tbl-row input:focus{border-color:var(--gold)}
+.tbl-row.selected input{border-color:#fcd34d;background:#fffef5}
+.tbl-row-sel{display:flex;justify-content:center;align-items:center}
+.radio-wrap{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.radio-wrap.checked{border-color:var(--gold);background:var(--gold)}
+.radio-dot{width:8px;height:8px;border-radius:50%;background:#fff;display:none}
+.radio-wrap.checked .radio-dot{display:block}
+.tbl-row-del{display:flex;justify-content:center;align-items:center}
+.del-btn{background:none;border:none;cursor:pointer;font-size:16px;color:var(--text3);padding:4px;border-radius:var(--r);transition:all .15s}
+.del-btn:hover{color:var(--red);background:var(--red-l)}
+
+.tbl-empty{padding:2rem;text-align:center;color:var(--text2);font-size:14px}
+
+/* ACTIONS */
+.actions{display:flex;gap:8px}
+.btn-add{flex:1;padding:12px;background:none;border:1.5px solid var(--border2);border-radius:var(--rl);font-size:15px;font-weight:600;color:var(--navy);cursor:pointer;font-family:'Barlow',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.btn-add:hover{border-color:var(--navy);background:#f0ede8}
+.btn-save{flex:2;padding:12px;background:var(--gold);border:none;border-radius:var(--rl);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:.05em;color:var(--navy);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s}
+.btn-save:hover{background:var(--gold2)}
+.btn-save:disabled{opacity:.45;cursor:not-allowed}
+
+/* STATUS */
+.status{padding:10px 14px;border-radius:var(--r);font-size:13px;margin-bottom:1rem;display:none}
+.status.ok{background:var(--green-l);color:var(--green);border:1px solid #86efac;display:flex;align-items:center;gap:8px}
+.status.err{background:var(--red-l);color:var(--red);border:1px solid #fca5a5;display:flex;align-items:center;gap:8px}
+
+/* ACTIVE BADGE */
+.active-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:1rem 1.25rem;margin-bottom:1rem}
+.active-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.active-label{font-size:12px;color:var(--text2);text-transform:uppercase;font-weight:600;letter-spacing:.06em}
+.active-val{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:var(--navy);text-align:right}
+.active-buyin{color:var(--gold);font-size:15px;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="javascript:history.back()" class="back-btn">← Zurück</a>
+    <div><div class="hdr-logo">UNIQUE</div><div class="hdr-sub">Turnier-Daten</div></div>
+  </div>
+  <div style="background:var(--gold);color:var(--navy);padding:5px 12px;border-radius:3px;font-weight:700;font-size:12px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em">🏆 SYNC</div>
+</div>
+
+<div class="page">
+
+  <!-- AKTIVES TURNIER -->
+  <div class="active-wrap" id="activeWrap" style="display:none">
+    <div class="section-title">Aktives Turnier</div>
+    <div class="active-row">
+      <div>
+        <div class="active-label">Checkraise</div>
+        <div class="active-val" id="activeCR">—</div>
+      </div>
+      <div style="text-align:right">
+        <div class="active-label">Buy-In</div>
+        <div class="active-buyin" id="activeBuyin">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status" id="status"></div>
+
+  <!-- TABLE -->
+  <div class="section-title">Turnier-Liste</div>
+  <div class="tbl-wrap">
+    <div class="tbl-hdr">
+      <div>Checkraise</div>
+      <div>Buy-In</div>
+      <div class="tbl-hdr-sel">Aktiv</div>
+      <div></div>
+    </div>
+    <div id="tbody">
+      <div class="tbl-empty">⏳ Lade Daten...</div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn-add" onclick="addRow()">➕ Neue Zeile</button>
+    <button class="btn-save" id="saveBtn" onclick="saveData()">💾 Speichern</button>
+  </div>
+
+</div>
+
+<script>
+const API_BASE = 'https://mathematix.ch/sync/api';
+let data = [];
+
+async function fetchData() {
+  try {
+    const res = await fetch(API_BASE + '/get_data.php');
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+    render();
+  } catch(e) {
+    showStatus('err', '⚠️ Fehler beim Laden: ' + e.message);
+    document.getElementById('tbody').innerHTML = '<div class="tbl-empty">Daten konnten nicht geladen werden.<br><small>' + e.message + '</small></div>';
+  }
+}
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  if(!data.length) {
+    tbody.innerHTML = '<div class="tbl-empty">Noch keine Einträge. Neue Zeile hinzufügen.</div>';
+    document.getElementById('activeWrap').style.display = 'none';
+    return;
+  }
+
+  tbody.innerHTML = data.map((item, i) => `
+    <div class="tbl-row ${item.selected ? 'selected' : ''}" id="row-${i}">
+      <div><input type="text" value="${escHtml(item.CR||'')}" placeholder="Checkraise..." oninput="update(${i},'CR',this.value)"></div>
+      <div><input type="text" value="${escHtml(item.Buyin||'')}" placeholder="CHF..." oninput="update(${i},'Buyin',this.value)" style="width:100%"></div>
+      <div class="tbl-row-sel">
+        <div class="radio-wrap ${item.selected?'checked':''}" onclick="selectRow(${i})">
+          <div class="radio-dot"></div>
+        </div>
+      </div>
+      <div class="tbl-row-del">
+        <button class="del-btn" onclick="deleteRow(${i})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Active tournament display
+  const active = data.find(d => d.selected);
+  const wrap = document.getElementById('activeWrap');
+  if(active) {
+    document.getElementById('activeCR').textContent = active.CR || '—';
+    document.getElementById('activeBuyin').textContent = active.Buyin ? 'CHF ' + active.Buyin : '—';
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function update(index, key, value) {
+  data[index][key] = value;
+}
+
+function selectRow(index) {
+  data.forEach((entry, i) => entry.selected = (i === index));
+  render();
+}
+
+function deleteRow(index) {
+  if(confirm('Diesen Eintrag wirklich löschen?')) {
+    data.splice(index, 1);
+    render();
+  }
+}
+
+function addRow() {
+  data.push({ CR: '', Buyin: '', selected: false });
+  render();
+  // Focus new row input
+  setTimeout(() => {
+    const rows = document.querySelectorAll('.tbl-row input[type=text]');
+    if(rows.length) rows[rows.length - 2].focus();
+  }, 50);
+}
+
+async function saveData() {
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Speichern...';
+  try {
+    const res = await fetch(API_BASE + '/save_data.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    showStatus('ok', '✅ Daten erfolgreich gespeichert!');
+  } catch(e) {
+    showStatus('err', '⚠️ Fehler beim Speichern: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '💾 Speichern';
+  }
+}
+
+function showStatus(type, msg) {
+  const el = document.getElementById('status');
+  el.className = 'status ' + type;
+  el.textContent = msg;
+  el.style.display = 'flex';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+fetchData();
+</script>
+</body>
+</html>
