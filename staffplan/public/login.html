@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPR Staff Plan — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:#0a0c10;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
+.card{background:#111318;border:1px solid #2a2e38;border-radius:12px;padding:2.5rem;width:min(400px,100%)}
+.logo{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:#fff;letter-spacing:.2em;text-align:center}
+.logo-sub{font-size:11px;color:#d4af35;letter-spacing:.2em;text-transform:uppercase;text-align:center;margin-top:4px;margin-bottom:2rem}
+.title{font-size:16px;font-weight:600;color:#f0ede8;margin-bottom:1.5rem;text-align:center}
+label{display:block;font-size:12px;font-weight:600;color:#8b909e;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+input{width:100%;padding:12px 14px;background:#1a1d24;border:1.5px solid #2a2e38;border-radius:8px;color:#f0ede8;font-size:15px;font-family:'Barlow',sans-serif;outline:none;margin-bottom:1.25rem;transition:border-color .15s}
+input:focus{border-color:#d4af35}
+.btn{width:100%;padding:14px;background:#d4af35;color:#0a0c10;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:.05em;cursor:pointer;transition:background .15s}
+.btn:hover{background:#f5cc50}
+.error{background:#2a1010;border:1px solid #e05252;border-radius:6px;padding:10px 14px;color:#f07070;font-size:13px;margin-bottom:1rem;display:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">RPR</div>
+  <div class="logo-sub">Poker & Sport Lounge</div>
+  <div class="title">Staff Planung — Anmeldung</div>
+  <div class="error" id="err"></div>
+  <label>E-Mail</label>
+  <input type="email" id="email" placeholder="name@example.com" autofocus>
+  <label>Passwort</label>
+  <input type="password" id="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+  <button class="btn" onclick="login()">Anmelden</button>
+</div>
+<script>
+async function login() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const err = document.getElementById('err');
+  err.style.display = 'none';
+  if (!email || !password) { err.textContent = 'Bitte alle Felder ausfüllen.'; err.style.display = 'block'; return; }
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error || 'Fehler beim Anmelden'; err.style.display = 'block'; return; }
+    localStorage.setItem('sp_token', data.token);
+    localStorage.setItem('sp_user', JSON.stringify(data.user));
+    window.location.href = '/';
+  } catch(e) {
+    err.textContent = 'Verbindungsfehler'; err.style.display = 'block';
+  }
+}
+// Redirect if already logged in
+if (localStorage.getItem('sp_token')) window.location.href = '/';
+</script>
+</body>
+</html>
