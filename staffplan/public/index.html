@@ -181,12 +181,6 @@ async function renderEvent(ev) {
   return '<div class="event-card"><div class="event-hdr"><div><div class="event-name">'+ev.name+'</div><div class="event-meta">'+d+' - '+ev.uhrzeit+' Uhr</div></div><div class="flex"><span class="badge badge-'+(ev.status==='open'?'open':'closed')+'">'+(ev.status==='open'?'Offen':'Geschlossen')+'</span>'+adminBtns+'</div></div><div class="event-body"><div class="shift-grid">'+boxes+'</div></div></div>';
 }
 
-    const jobHtml = (u.jobs||[u.job]||[]).map(j=>'<span class="'+JC[j]+'">'+(JL[j]||j)+'</span>').join(' ');
-    return '<tr><td>'+u.name+'</td><td>'+u.email+'</td><td>'+jobHtml+'</td><td>'+(u.role==='admin'?'Admin':'Mitarbeiter')+'</td><td>'+(u.role!=='admin'?'<button class="btn btn-red" data-del-user="'+u.id+'">Loeschen</button>':'')+'</td></tr>';
-  }).join('') || '<tr><td colspan="5" class="empty">Keine Mitarbeiter</td></tr>';
-}
-
-}
 
 async function loadUsers() {
   const users = await api('GET','/api/users');
