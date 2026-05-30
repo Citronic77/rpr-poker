@@ -922,6 +922,15 @@ app.post('/api/gastro/send', express.json({ limit: '20mb' }), async (req, res) =
   res.status(200).json({ ok: true, results, errors: results.errors, pdfUrl: pdfDownloadUrl });
 });
 
+// ── Einkaufsliste API (sync über alle Geräte) ──
+let einkaufsliste = [];
+
+app.get('/api/einkaufsliste', (req, res) => res.json(einkaufsliste));
+app.post('/api/einkaufsliste', express.json(), (req, res) => {
+  einkaufsliste = req.body || [];
+  res.json({ ok: true });
+});
+
 server.listen(PORT, () => {
   console.log(`Poker Tournament Manager läuft auf http://localhost:${PORT}`);
 });
