@@ -110,7 +110,7 @@ tr:hover td{background:var(--bg3)}
   </div>
 
   <!-- ADMIN TAB -->
-  <div id="tab-admin" style="display:none">
+  <div id="content-admin" style="display:none">
     <div class="form-card">
       <div class="section-title">Neuer Mitarbeiter</div>
       <div class="form-row">
@@ -167,6 +167,7 @@ function init() {
   document.getElementById('hdr-name').textContent = currentUser.name;
   if (currentUser.role === 'admin') {
     document.getElementById('tab-admin').style.display = 'block';
+    document.getElementById('content-admin').style.display = 'none';
     document.getElementById('create-event-form').style.display = 'block';
     // Set today's date
     document.getElementById('ev-datum').value = new Date().toISOString().split('T')[0];
@@ -182,7 +183,7 @@ function logout() {
 
 function showTab(t) {
   document.getElementById('tab-events').style.display = t === 'events' ? 'block' : 'none';
-  document.getElementById('tab-admin').style.display = t === 'admin' ? 'block' : 'none';
+  document.getElementById('content-admin').style.display = t === 'admin' ? 'block' : 'none';
   document.querySelectorAll('.tabs .tab').forEach((el,i) => {
     el.classList.toggle('active', (i===0&&t==='events')||(i===1&&t==='admin'));
   });
