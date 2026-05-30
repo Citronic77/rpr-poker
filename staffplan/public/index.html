@@ -138,11 +138,19 @@ function showTab(t) {
 }
 
 async function loadEvents() {
-  const events = await api('GET','/api/events');
   const cont = document.getElementById('events-list');
-  if (!events.length) { cont.innerHTML = '<div class="empty">Noch keine Anlaesse.</div>'; return; }
-  const cards = await Promise.all(events.map(ev => renderEvent(ev)));
-  cont.innerHTML = cards.join('');
+  try {
+    const events = await api('GET','/api/events');
+    if (!Array.isArray(events)) {
+      cont.innerHTML = '<div class="empty">Fehler: '+JSON.stringify(events)+'</div>';
+      return;
+    }
+    if (!events.length) { cont.innerHTML = '<div class="empty">Noch keine Anlaesse.</div>'; return; }
+    const cards = await Promise.all(events.map(ev => renderEvent(ev)));
+    cont.innerHTML = cards.join('');
+  } catch(e) {
+    cont.innerHTML = '<div class="empty">Fehler beim Laden: '+e.message+'</div>';
+  }
 }
 
 async function renderEvent(ev) {
