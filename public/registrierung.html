@@ -411,7 +411,7 @@ function buildPDF() {
   doc.rect(ML,y,CW,12,'F');
   doc.setFont('helvetica','bold'); doc.setFontSize(7);
   doc.setTextColor(nickOnly?0:140, nickOnly?100:100, nickOnly?0:120);
-  doc.text((nickOnly?'☑':'☐') + ' ' + t.nickCheck, ML+3, y+7, {maxWidth:CW-6});
+  doc.text((nickOnly?'[X]':'[ ]') + ' ' + t.nickCheck, ML+3, y+7, {maxWidth:CW-6});
   y+=14;
 
   // Photos
