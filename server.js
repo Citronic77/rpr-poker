@@ -7,7 +7,7 @@ async function sendPush(title, message, priority) {
     const resp = await fetch(`https://ntfy.sh/${topic}`, {
       method: 'POST',
       headers: {
-        'Title': title,
+        'Title': encodeURIComponent(title),
         'Priority': priority || 'default',
         'Content-Type': 'text/plain'
       },
