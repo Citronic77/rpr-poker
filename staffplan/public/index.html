@@ -287,19 +287,31 @@ function renderEventCard(ev, shifts) {
 }
 
 async function createEvent() {
+  const name = document.getElementById('ev-name').value.trim();
+  const datum = document.getElementById('ev-datum').value;
+  const uhrzeit = document.getElementById('ev-uhrzeit').value;
+  if (!name) { alert('Bitte Turniername eingeben.'); return; }
+  if (!datum) { alert('Bitte Datum wählen.'); return; }
+  if (!uhrzeit) { alert('Bitte Uhrzeit eingeben.'); return; }
   const body = {
-    name: document.getElementById('ev-name').value.trim(),
-    datum: document.getElementById('ev-datum').value,
-    uhrzeit: document.getElementById('ev-uhrzeit').value,
-    floorman_needed: parseInt(document.getElementById('ev-floor').value),
-    dealer_needed: parseInt(document.getElementById('ev-dealer').value),
-    gastro_needed: parseInt(document.getElementById('ev-gastro').value),
-    kueche_needed: parseInt(document.getElementById('ev-kueche').value)
+    name, datum, uhrzeit,
+    floorman_needed: parseInt(document.getElementById('ev-floor').value) || 1,
+    dealer_needed: parseInt(document.getElementById('ev-dealer').value) || 4,
+    gastro_needed: parseInt(document.getElementById('ev-gastro').value) || 2,
+    kueche_needed: parseInt(document.getElementById('ev-kueche').value) || 1
   };
-  if (!body.name || !body.datum) { alert('Name und Datum sind erforderlich.'); return; }
-  const res = await api('POST', '/api/events', body);
-  if (res.id) { document.getElementById('ev-name').value = ''; loadEvents(); }
-  else alert(res.error || 'Fehler');
+  try {
+    const res = await api('POST', '/api/events', body);
+    if (res.id) {
+      document.getElementById('ev-name').value = '';
+      await loadEvents();
+      alert('✅ Anlass erstellt!');
+    } else {
+      alert('Fehler: ' + (res.error || 'Unbekannt'));
+    }
+  } catch(e) {
+    alert('Verbindungsfehler: ' + e.message);
+  }
 }
 
 async function deleteEvent(id) {
