@@ -512,7 +512,8 @@ wss.on('connection', ws => {
           broadcastState();
           // Push Notification via ntfy.sh
           const remaining = state.players.length - state.eliminations.length;
-          let msg = `Platz ${activePlayers} | Tisch ${table}, Sitz ${seat} | ${remaining} Spieler verbleiben`;
+          const tischNr = String(table).match(/\d+/)?.[0] || table;
+          let msg = `Rang ${activePlayers} | Tisch ${tischNr}, Platz ${seat} | ${remaining} Spieler verbleiben`;
           if (hitmanName) msg += ` | Hitman: ${hitmanName}`;
           sendPush(`${playerName} eliminiert`, msg, activePlayers <= 10 ? 'high' : 'default');
         }
