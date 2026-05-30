@@ -33,7 +33,7 @@ async function initDb() {
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'staff',
-      job TEXT NOT NULL DEFAULT 'dealer',
+      jobs TEXT[] NOT NULL DEFAULT '{dealer}',
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
     CREATE TABLE IF NOT EXISTS events (
@@ -61,8 +61,8 @@ async function initDb() {
   const admins = await query("SELECT id FROM users WHERE role='admin'");
   if (!admins.length) {
     const hash = bcrypt.hashSync('admin123', 10);
-    await query("INSERT INTO users (name,email,password,role,job) VALUES ($1,$2,$3,$4,$5)",
-      ['Administrator','admin@rpr.poker',hash,'admin','admin']);
+    await query("INSERT INTO users (name,email,password,role,jobs) VALUES ($1,$2,$3,$4,$5)",
+      ['Administrator','admin@rpr.poker',hash,'admin',['admin']]);
     console.log('Admin erstellt: admin@rpr.poker / admin123');
   }
 }
@@ -86,8 +86,8 @@ app.post('/api/auth/login', async (req, res) => {
   const user = rows[0];
   if (!user || !bcrypt.compareSync(password, user.password))
     return res.status(401).json({error:'Falsche E-Mail oder Passwort'});
-  const token = jwt.sign({id:user.id,name:user.name,role:user.role,job:user.job}, JWT_SECRET, {expiresIn:'7d'});
-  res.json({token, user:{id:user.id,name:user.name,role:user.role,job:user.job}});
+  const token = jwt.sign({id:user.id,name:user.name,role:user.role,jobs:user.jobs}, JWT_SECRET, {expiresIn:'7d'});
+  res.json({token, user:{id:user.id,name:user.name,role:user.role,jobs:user.jobs}});
 });
 
 // ── Users ──
@@ -97,14 +97,15 @@ app.get('/api/users', auth, adminOnly, async (req, res) => {
 });
 
 app.post('/api/users', auth, adminOnly, async (req, res) => {
-  const {name,email,password,role,job} = req.body;
+  const {name,email,password,role,jobs} = req.body;
   if (!name||!email||!password) return res.status(400).json({error:'Fehlende Felder'});
   try {
     const hash = bcrypt.hashSync(password, 10);
+    const jobsArr = Array.isArray(jobs) && jobs.length ? jobs : ['dealer'];
     const rows = await query(
-      'INSERT INTO users (name,email,password,role,job) VALUES ($1,$2,$3,$4,$5) RETURNING id',
-      [name, email, hash, role||'staff', job||'dealer']);
-    res.json({id:rows[0].id, name, email, role:role||'staff', job:job||'dealer'});
+      'INSERT INTO users (name,email,password,role,jobs) VALUES ($1,$2,$3,$4,$5) RETURNING id',
+      [name, email, hash, role||'staff', jobsArr]);
+    res.json({id:rows[0].id, name, email, role:role||'staff', jobs:jobsArr});
   } catch(e) { res.status(400).json({error:'E-Mail bereits vorhanden'}); }
 });
 
@@ -158,6 +159,9 @@ app.post('/api/events/:id/shifts', auth, async (req, res) => {
   if (ev.status !== 'open') return res.status(400).json({error:'Anlass nicht offen'});
   const cnt = await query('SELECT COUNT(*) as c FROM shifts WHERE event_id=$1 AND job=$2', [eventId, job]);
   if (parseInt(cnt[0].c) >= ev[`${job}_needed`]) return res.status(400).json({error:'Schicht voll'});
+  const userRow = await query('SELECT jobs,role FROM users WHERE id=$1',[req.user.id]);
+  const userJobs = userRow[0]?.jobs || [];
+  if (userRow[0]?.role !== 'admin' && !userJobs.includes(job)) return res.status(403).json({error:'Keine Berechtigung fuer diese Funktion'});
   try {
     const rows = await query('INSERT INTO shifts (event_id,user_id,job) VALUES ($1,$2,$3) RETURNING id',
       [eventId, req.user.id, job]);
