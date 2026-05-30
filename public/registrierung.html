@@ -459,6 +459,8 @@ function buildPDF() {
 async function submitForm() {
   if(!validate()) { showToast(T[lang].errRequired); return; }
   if(!sigHasContent) { showToast(T[lang].errSig); return; }
+  if(!photos.front) { showToast(T[lang].errPhotoFront || 'Bitte Vorderseite fotografieren.'); return; }
+  if(!photos.back)  { showToast(T[lang].errPhotoBack  || 'Bitte Rückseite fotografieren.');  return; }
 
   const btn = document.getElementById('btnSubmit');
   btn.disabled = true;
