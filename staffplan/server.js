@@ -88,7 +88,7 @@ function adminOnly(req, res, next) {
 // ── Auth Route ──
 app.post('/api/auth/login', async (req, res) => {
   const {email, password} = req.body;
-  const rows = await query('SELECT * FROM users WHERE email=$1', [email]);
+  const rows = await query('SELECT id,name,email,password,role,jobs FROM users WHERE email=$1', [email]);
   const user = rows[0];
   if (!user || !bcrypt.compareSync(password, user.password))
     return res.status(401).json({error:'Falsche E-Mail oder Passwort'});
@@ -98,7 +98,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 // ── Users ──
 app.get('/api/users', auth, adminOnly, async (req, res) => {
-  const rows = await query('SELECT id,name,email,role,job FROM users ORDER BY name');
+  const rows = await query('SELECT id,name,email,role,jobs FROM users ORDER BY name');
   res.json(rows);
 });
 
