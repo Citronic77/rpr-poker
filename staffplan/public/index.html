@@ -91,13 +91,13 @@ th{color:var(--text2);font-size:11px;text-transform:uppercase;background:var(--b
         <div class="fg"><label>Name</label><input id="u-name" placeholder="Vorname Nachname"></div>
         <div class="fg"><label>E-Mail</label><input type="email" id="u-email"></div>
         <div class="fg"><label>Passwort</label><input type="password" id="u-pass"></div>
-        <div class="fg"><label>Funktion</label>
-          <select id="u-job">
-            <option value="floorman">Floorman</option>
-            <option value="dealer" selected>Dealer</option>
-            <option value="gastro">Gastro</option>
-            <option value="kueche">Kueche</option>
-          </select>
+        <div class="fg"><label>Funktionen</label>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+            <label style="text-transform:none;letter-spacing:0;font-size:13px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="u-job-fl" value="floorman"> Floorman</label>
+            <label style="text-transform:none;letter-spacing:0;font-size:13px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="u-job-de" value="dealer" checked> Dealer</label>
+            <label style="text-transform:none;letter-spacing:0;font-size:13px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="u-job-ga" value="gastro"> Gastro</label>
+            <label style="text-transform:none;letter-spacing:0;font-size:13px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="u-job-ku" value="kueche"> Kueche</label>
+          </div>
         </div>
         <div class="fg"><label>Rolle</label>
           <select id="u-role">
@@ -158,7 +158,8 @@ async function renderEvent(ev) {
     if (!needed) continue;
     const js = shifts.filter(s=>s.job===job);
     const full = js.length>=needed;
-    const canSign = ev.status==='open' && !isPast && !userShift && !full && (isAdmin || user.job===job);
+    const userJobs = user.jobs || [user.job] || [];
+    const canSign = ev.status==='open' && !isPast && !userShift && !full && (isAdmin || userJobs.includes(job));
     boxes += '<div class="shift-box"><div class="shift-title"><span class="'+JC[job]+'">'+JL[job]+'</span><span style="color:var(--text2)">'+js.length+'/'+needed+'</span></div>';
     for (let i=0;i<needed;i++) {
       const s=js[i];
@@ -174,7 +175,14 @@ async function renderEvent(ev) {
 
 async function loadUsers() {
   const users = await api('GET','/api/users');
-  document.getElementById('users-body').innerHTML = users.map(u=>'<tr><td>'+u.name+'</td><td>'+u.email+'</td><td><span class="'+JC[u.job]+'">'+JL[u.job]+'</span></td><td>'+(u.role==='admin'?'Admin':'Mitarbeiter')+'</td><td>'+(u.role!=='admin'?'<button class="btn btn-red" data-del-user="'+u.id+'">Loeschen</button>':'')+'</td></tr>').join('') || '<tr><td colspan="5" class="empty">Keine Mitarbeiter</td></tr>';
+async function loadUsers() {
+  const users = await api('GET','/api/users');
+  document.getElementById('users-body').innerHTML = users.map(u => {
+    const jobHtml = (u.jobs||[u.job]||[]).map(j=>'<span class="'+JC[j]+'">'+(JL[j]||j)+'</span>').join(' ');
+    return '<tr><td>'+u.name+'</td><td>'+u.email+'</td><td>'+jobHtml+'</td><td>'+(u.role==='admin'?'Admin':'Mitarbeiter')+'</td><td>'+(u.role!=='admin'?'<button class="btn btn-red" data-del-user="'+u.id+'">Loeschen</button>':'')+'</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="empty">Keine Mitarbeiter</td></tr>';
+}
+
 }
 
 // Event delegation
@@ -208,7 +216,10 @@ document.addEventListener('click', async function(e) {
     const email=document.getElementById('u-email').value.trim();
     const password=document.getElementById('u-pass').value;
     if (!name||!email||!password) { alert('Alle Felder ausfullen'); return; }
-    const res = await api('POST','/api/users',{name,email,password,job:document.getElementById('u-job').value,role:document.getElementById('u-role').value});
+    const jobs = ['floorman','dealer','gastro','kueche']
+      .filter(j => document.getElementById('u-job-'+j.substring(0,2)).checked);
+    if (!jobs.length) { alert('Bitte mindestens eine Funktion waehlen'); return; }
+    const res = await api('POST','/api/users',{name,email,password,jobs,role:document.getElementById('u-role').value});
     if (res.id) { document.getElementById('u-name').value=''; document.getElementById('u-email').value=''; document.getElementById('u-pass').value=''; loadUsers(); }
     else alert(res.error||'Fehler');
   }
