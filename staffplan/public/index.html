@@ -6,379 +6,258 @@
 <title>RPR Staff Plan</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0c10;--bg2:#111318;--bg3:#1a1d24;--bg4:#22262f;--border:#2a2e38;--text:#f0ede8;--text2:#8b909e;--gold:#d4af35;--green:#1D9E75;--red:#e05252;--blue:#4a90d9;--navy:#0d1e3d;--r:8px}
+:root{--bg:#0a0c10;--bg2:#111318;--bg3:#1a1d24;--border:#2a2e38;--text:#f0ede8;--text2:#8b909e;--gold:#d4af35;--green:#1D9E75;--red:#e05252;--navy:#0d1e3d;--r:8px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-/* HEADER */
 .hdr{background:var(--navy);padding:12px 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(212,175,53,.2)}
 .hdr-logo{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:.15em}
 .hdr-sub{font-size:10px;color:var(--gold);letter-spacing:.2em;text-transform:uppercase}
 .hdr-user{font-size:13px;color:var(--text2);display:flex;align-items:center;gap:10px}
-.hdr-user span{color:var(--text);font-weight:600}
-.btn-logout{background:rgba(255,255,255,.1);border:none;border-radius:var(--r);color:#fff;padding:5px 12px;font-size:12px;cursor:pointer}
-/* TABS */
-.tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:0;padding:0 1.5rem}
-.tab{padding:14px 20px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.hdr-user b{color:var(--text)}
+button.logout{background:rgba(255,255,255,.1);border:none;border-radius:var(--r);color:#fff;padding:5px 12px;font-size:12px;cursor:pointer}
+.tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;padding:0 1.5rem}
+.tab{padding:14px 20px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
-.tab:hover:not(.active){color:var(--text)}
-/* CONTENT */
 .page{max-width:960px;margin:0 auto;padding:1.5rem 1rem 4rem}
-.section-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.75rem}
-/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.fg{display:flex;flex-direction:column;gap:5px}
+label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.08em}
+input,select{padding:10px 12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;font-family:'Barlow',sans-serif;outline:none}
+input:focus,select:focus{border-color:var(--gold)}
+.btn{padding:10px 20px;border:none;border-radius:var(--r);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;cursor:pointer}
+.btn-gold{background:var(--gold);color:#0a0c10}
+.btn-red{background:#3a1a1a;color:var(--red);border:1px solid var(--red);font-size:12px;padding:5px 10px}
+.btn-green{background:var(--green);color:#fff;font-size:12px;padding:6px 12px}
 .event-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:1rem;overflow:hidden}
-.event-hdr{padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.event-name{font-size:17px;font-weight:700;color:var(--text)}
+.event-hdr{padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.event-name{font-size:17px;font-weight:700}
 .event-meta{font-size:12px;color:var(--text2);margin-top:2px}
 .event-body{padding:1rem 1.25rem;border-top:1px solid var(--border)}
+.shift-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.shift-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.75rem}
+.shift-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;display:flex;justify-content:space-between;margin-bottom:.5rem}
+.slot{font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;color:var(--text2)}
+.slot:last-child{border-bottom:none}
+.slot.filled{color:var(--text)}
+.slot-empty{font-style:italic;color:var(--border)}
+.rmv{background:none;border:none;color:var(--red);cursor:pointer;font-size:13px}
+.signup-btn{width:100%;margin-top:.5rem;padding:7px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer}
+.signup-btn:disabled{opacity:.4;cursor:not-allowed}
 .badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
 .badge-open{background:#1a3a20;color:#4ade80}
 .badge-closed{background:#3a1a1a;color:#f87171}
-/* SHIFT GRID */
-.shift-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:.75rem}
-.shift-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.75rem}
-.shift-box-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between}
-.shift-slot{font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;color:var(--text2)}
-.shift-slot:last-child{border-bottom:none}
-.shift-slot.filled{color:var(--text)}
-.shift-slot .remove-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:0 4px}
-.slot-empty{color:var(--border);font-style:italic}
-.btn-signup{width:100%;margin-top:.5rem;padding:7px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;transition:background .15s}
-.btn-signup:hover{background:#16c784}
-.btn-signup:disabled{opacity:.4;cursor:not-allowed}
-/* FORMS */
-.form-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1.5rem}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.form-group{display:flex;flex-direction:column;gap:6px}
-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.08em}
-input,select{padding:10px 12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;font-family:'Barlow',sans-serif;outline:none;transition:border-color .15s}
-input:focus,select:focus{border-color:var(--gold)}
-.btn-primary{padding:10px 20px;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;cursor:pointer;transition:background .15s}
-.btn-primary:hover{background:#f5cc50}
-.btn-danger{padding:6px 12px;background:#3a1a1a;color:var(--red);border:1px solid var(--red);border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer}
-/* JOB COLORS */
-.job-floorman{color:#a78bfa}
-.job-dealer{color:var(--gold)}
-.job-gastro{color:#38bdf8}
-.job-kueche{color:#fb923c}
-/* USER TABLE */
-table{width:100%;border-collapse:collapse;margin-top:.5rem}
+.jc-fl{color:#a78bfa}.jc-de{color:var(--gold)}.jc-ga{color:#38bdf8}.jc-ku{color:#fb923c}
+table{width:100%;border-collapse:collapse}
 th,td{padding:10px 12px;text-align:left;font-size:13px;border-bottom:1px solid var(--border)}
-th{color:var(--text2);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;background:var(--bg3)}
-tr:hover td{background:var(--bg3)}
-.empty{text-align:center;padding:3rem;color:var(--text2);font-size:14px}
+th{color:var(--text2);font-size:11px;text-transform:uppercase;background:var(--bg3)}
+.empty{text-align:center;padding:3rem;color:var(--text2)}
+.flex{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
 <div class="hdr">
   <div><div class="hdr-logo">RPR</div><div class="hdr-sub">Staff Planung</div></div>
-  <div class="hdr-user">Angemeldet als <span id="hdr-name"></span>
-    <button class="btn-logout" onclick="logout()">Abmelden</button>
+  <div class="hdr-user">Angemeldet als <b id="hdr-name"></b>
+    <button class="logout" id="btn-logout">Abmelden</button>
   </div>
 </div>
-
-<div class="tabs" id="tabs">
-  <div class="tab active" onclick="showTab('events')">📅 Anlässe</div>
-  <div class="tab" id="tab-admin" style="display:none" onclick="showTab('admin')">⚙️ Verwaltung</div>
+<div class="tabs">
+  <div class="tab active" id="tab-events-btn">Anlaesse</div>
+  <div class="tab" id="tab-admin-btn" style="display:none">Verwaltung</div>
 </div>
-
 <div class="page">
-  <!-- EVENTS TAB -->
-  <div id="tab-events">
-    <!-- Admin: create event -->
-    <div id="create-event-form" style="display:none" class="form-card">
-      <div class="section-title">Neuer Anlass</div>
-      <div class="form-row">
-        <div class="form-group"><label>Name / Turnier</label><input id="ev-name" placeholder="z.B. RPR Pokerturnier April"></div>
-        <div class="form-group"><label>Datum</label><input type="date" id="ev-datum"></div>
+  <div id="page-events">
+    <div class="card" id="create-form" style="display:none">
+      <div class="card-title">Neuer Anlass</div>
+      <div class="form-grid">
+        <div class="fg"><label>Name / Turnier</label><input id="ev-name" placeholder="z.B. RPR Pokerturnier"></div>
+        <div class="fg"><label>Datum</label><input type="date" id="ev-datum"></div>
+        <div class="fg"><label>Uhrzeit</label><input type="time" id="ev-uhrzeit" value="18:00"></div>
+        <div class="fg"><label>Floorman</label><input type="number" id="ev-floor" value="1" min="0" max="5"></div>
+        <div class="fg"><label>Dealer</label><input type="number" id="ev-dealer" value="4" min="0" max="20"></div>
+        <div class="fg"><label>Gastro</label><input type="number" id="ev-gastro" value="2" min="0" max="10"></div>
+        <div class="fg"><label>Kueche</label><input type="number" id="ev-kueche" value="1" min="0" max="5"></div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label>Uhrzeit</label><input type="time" id="ev-uhrzeit" value="18:00"></div>
-        <div class="form-group"><label>Floorman (Anzahl)</label><input type="number" id="ev-floor" value="1" min="0" max="5"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Dealer (Anzahl)</label><input type="number" id="ev-dealer" value="4" min="0" max="20"></div>
-        <div class="form-group"><label>Gastro (Anzahl)</label><input type="number" id="ev-gastro" value="2" min="0" max="10"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Küche (Anzahl)</label><input type="number" id="ev-kueche" value="1" min="0" max="5"></div>
-        <div></div>
-      </div>
-      <button class="btn-primary" onclick="createEvent()">✓ Anlass erstellen</button>
+      <button class="btn btn-gold" id="btn-create-event">Anlass erstellen</button>
     </div>
-
-    <div id="events-list"></div>
+    <div id="events-list"><div class="empty">Lade Anlaesse...</div></div>
   </div>
-
-  <!-- ADMIN TAB -->
-  <div id="content-admin" style="display:none">
-    <div class="form-card">
-      <div class="section-title">Neuer Mitarbeiter</div>
-      <div class="form-row">
-        <div class="form-group"><label>Name</label><input id="u-name" placeholder="Vorname Nachname"></div>
-        <div class="form-group"><label>E-Mail</label><input type="email" id="u-email" placeholder="name@example.com"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Passwort</label><input type="password" id="u-pass" placeholder="Mindestens 6 Zeichen"></div>
-        <div class="form-group"><label>Funktion</label>
+  <div id="page-admin" style="display:none">
+    <div class="card">
+      <div class="card-title">Neuer Mitarbeiter</div>
+      <div class="form-grid">
+        <div class="fg"><label>Name</label><input id="u-name" placeholder="Vorname Nachname"></div>
+        <div class="fg"><label>E-Mail</label><input type="email" id="u-email"></div>
+        <div class="fg"><label>Passwort</label><input type="password" id="u-pass"></div>
+        <div class="fg"><label>Funktion</label>
           <select id="u-job">
             <option value="floorman">Floorman</option>
             <option value="dealer" selected>Dealer</option>
             <option value="gastro">Gastro</option>
-            <option value="kueche">Küche</option>
+            <option value="kueche">Kueche</option>
           </select>
         </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Rolle</label>
+        <div class="fg"><label>Rolle</label>
           <select id="u-role">
             <option value="staff" selected>Mitarbeiter</option>
             <option value="admin">Admin</option>
           </select>
         </div>
-        <div></div>
       </div>
-      <button class="btn-primary" onclick="createUser()">✓ Mitarbeiter erstellen</button>
+      <button class="btn btn-gold" id="btn-create-user">Mitarbeiter erstellen</button>
     </div>
-
-    <div class="section-title">Alle Mitarbeiter</div>
-    <div class="form-card" style="padding:0">
-      <table id="users-table">
-        <thead><tr><th>Name</th><th>E-Mail</th><th>Funktion</th><th>Rolle</th><th></th></tr></thead>
-        <tbody id="users-body"></tbody>
-      </table>
+    <div class="card-title" style="margin-top:1rem">Alle Mitarbeiter</div>
+    <div class="card" style="padding:0">
+      <table><thead><tr><th>Name</th><th>E-Mail</th><th>Funktion</th><th>Rolle</th><th></th></tr></thead>
+      <tbody id="users-body"></tbody></table>
     </div>
   </div>
 </div>
 
 <script>
-const JOB_LABELS = {floorman:'Floorman', dealer:'Dealer', gastro:'Gastro', kueche:'Küche'};
-const JOB_COLORS = {floorman:'job-floorman', dealer:'job-dealer', gastro:'job-gastro', kueche:'job-kueche'};
-let currentUser = null;
-let currentToken = null;
-let eventsData = [];
+const JL = {floorman:'Floorman',dealer:'Dealer',gastro:'Gastro',kueche:'Kueche'};
+const JC = {floorman:'jc-fl',dealer:'jc-de',gastro:'jc-ga',kueche:'jc-ku'};
+let token = '', user = null;
 
-// ── Auth ──
-function init() {
-  const token = localStorage.getItem('sp_token');
-  const user = localStorage.getItem('sp_user');
-  if (!token || !user) { window.location.href = '/login.html'; return; }
-  currentToken = token;
-  currentUser = JSON.parse(user);
-  document.getElementById('hdr-name').textContent = currentUser.name;
-  if (currentUser.role === 'admin') {
-    document.getElementById('tab-admin').style.display = 'block';
-    document.getElementById('content-admin').style.display = 'none';
-    document.getElementById('create-event-form').style.display = 'block';
-    // Set today's date
+function api(method, path, body) {
+  return fetch(path, {
+    method,
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body: body ? JSON.stringify(body) : undefined
+  }).then(r => r.json());
+}
+
+function showTab(t) {
+  document.getElementById('page-events').style.display = t==='events' ? 'block' : 'none';
+  document.getElementById('page-admin').style.display = t==='admin' ? 'block' : 'none';
+  document.getElementById('tab-events-btn').classList.toggle('active', t==='events');
+  document.getElementById('tab-admin-btn').classList.toggle('active', t==='admin');
+  if (t==='admin') loadUsers();
+}
+
+async function loadEvents() {
+  const events = await api('GET','/api/events');
+  const cont = document.getElementById('events-list');
+  if (!events.length) { cont.innerHTML = '<div class="empty">Noch keine Anlaesse.</div>'; return; }
+  const cards = await Promise.all(events.map(ev => renderEvent(ev)));
+  cont.innerHTML = cards.join('');
+}
+
+async function renderEvent(ev) {
+  const shifts = await api('GET', '/api/events/'+ev.id+'/shifts');
+  const d = new Date(ev.datum+'T12:00:00').toLocaleDateString('de-CH',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const isAdmin = user.role==='admin';
+  const userShift = shifts.find(s=>s.user_id===user.id);
+  const isPast = new Date(ev.datum) < new Date(new Date().toDateString());
+  const jobs = ['floorman','dealer','gastro','kueche'];
+  let boxes = '';
+  for (const job of jobs) {
+    const needed = ev[job+'_needed'];
+    if (!needed) continue;
+    const js = shifts.filter(s=>s.job===job);
+    const full = js.length>=needed;
+    const canSign = ev.status==='open' && !isPast && !userShift && !full && (isAdmin || user.job===job);
+    boxes += '<div class="shift-box"><div class="shift-title"><span class="'+JC[job]+'">'+JL[job]+'</span><span style="color:var(--text2)">'+js.length+'/'+needed+'</span></div>';
+    for (let i=0;i<needed;i++) {
+      const s=js[i];
+      if (s) boxes += '<div class="slot filled"><span>'+s.name+'</span>'+((isAdmin||s.user_id===user.id)&&ev.status==='open'&&!isPast?'<button class="rmv" data-eid="'+ev.id+'" data-sid="'+s.id+'">x</button>':'')+'</div>';
+      else boxes += '<div class="slot"><span class="slot-empty">frei</span></div>';
+    }
+    if (canSign) boxes += '<button class="signup-btn" data-eid="'+ev.id+'" data-job="'+job+'">+ Eintragen</button>';
+    boxes += '</div>';
+  }
+  const adminBtns = isAdmin ? '<button class="btn btn-red" data-del="'+ev.id+'">Loeschen</button> <button class="btn btn-red" data-tog="'+ev.id+'" data-status="'+ev.status+'" style="'+(ev.status!=='open'?'color:#4ade80;border-color:#4ade80':'')+'">'+( ev.status==='open'?'Schliessen':'Oeffnen')+'</button>' : '';
+  return '<div class="event-card"><div class="event-hdr"><div><div class="event-name">'+ev.name+'</div><div class="event-meta">'+d+' - '+ev.uhrzeit+' Uhr</div></div><div class="flex"><span class="badge badge-'+(ev.status==='open'?'open':'closed')+'">'+(ev.status==='open'?'Offen':'Geschlossen')+'</span>'+adminBtns+'</div></div><div class="event-body"><div class="shift-grid">'+boxes+'</div></div></div>';
+}
+
+async function loadUsers() {
+  const users = await api('GET','/api/users');
+  document.getElementById('users-body').innerHTML = users.map(u=>'<tr><td>'+u.name+'</td><td>'+u.email+'</td><td><span class="'+JC[u.job]+'">'+JL[u.job]+'</span></td><td>'+(u.role==='admin'?'Admin':'Mitarbeiter')+'</td><td>'+(u.role!=='admin'?'<button class="btn btn-red" data-del-user="'+u.id+'">Loeschen</button>':'')+'</td></tr>').join('') || '<tr><td colspan="5" class="empty">Keine Mitarbeiter</td></tr>';
+}
+
+// Event delegation
+document.addEventListener('click', async function(e) {
+  const t = e.target;
+
+  if (t.id==='btn-logout') { localStorage.clear(); location.href='/login.html'; }
+
+  if (t.id==='tab-events-btn') showTab('events');
+  if (t.id==='tab-admin-btn') showTab('admin');
+
+  if (t.id==='btn-create-event') {
+    const name = document.getElementById('ev-name').value.trim();
+    const datum = document.getElementById('ev-datum').value;
+    const uhrzeit = document.getElementById('ev-uhrzeit').value;
+    if (!name) { alert('Bitte Turniername eingeben'); return; }
+    if (!datum) { alert('Bitte Datum waehlen'); return; }
+    const body = { name, datum, uhrzeit,
+      floorman_needed: parseInt(document.getElementById('ev-floor').value)||1,
+      dealer_needed: parseInt(document.getElementById('ev-dealer').value)||4,
+      gastro_needed: parseInt(document.getElementById('ev-gastro').value)||2,
+      kueche_needed: parseInt(document.getElementById('ev-kueche').value)||1
+    };
+    const res = await api('POST','/api/events',body);
+    if (res.id) { document.getElementById('ev-name').value=''; loadEvents(); }
+    else alert(res.error||'Fehler');
+  }
+
+  if (t.id==='btn-create-user') {
+    const name=document.getElementById('u-name').value.trim();
+    const email=document.getElementById('u-email').value.trim();
+    const password=document.getElementById('u-pass').value;
+    if (!name||!email||!password) { alert('Alle Felder ausfullen'); return; }
+    const res = await api('POST','/api/users',{name,email,password,job:document.getElementById('u-job').value,role:document.getElementById('u-role').value});
+    if (res.id) { document.getElementById('u-name').value=''; document.getElementById('u-email').value=''; document.getElementById('u-pass').value=''; loadUsers(); }
+    else alert(res.error||'Fehler');
+  }
+
+  if (t.dataset.del) {
+    if (!confirm('Anlass loeschen?')) return;
+    await api('DELETE','/api/events/'+t.dataset.del);
+    loadEvents();
+  }
+
+  if (t.dataset.tog) {
+    const ev = { status: t.dataset.status==='open' ? 'closed' : 'open' };
+    await api('PATCH','/api/events/'+t.dataset.tog, ev);
+    loadEvents();
+  }
+
+  if (t.dataset.sid) {
+    if (!confirm('Einteilung entfernen?')) return;
+    await api('DELETE','/api/events/'+t.dataset.eid+'/shifts/'+t.dataset.sid);
+    loadEvents();
+  }
+
+  if (t.dataset.job) {
+    const res = await api('POST','/api/events/'+t.dataset.eid+'/shifts',{job:t.dataset.job});
+    if (res.id) loadEvents();
+    else alert(res.error||'Fehler');
+  }
+
+  if (t.dataset.delUser) {
+    if (!confirm('Mitarbeiter loeschen?')) return;
+    await api('DELETE','/api/users/'+t.dataset.delUser);
+    loadUsers();
+  }
+});
+
+// Init
+token = localStorage.getItem('sp_token');
+const userData = localStorage.getItem('sp_user');
+if (!token || !userData) { location.href='/login.html'; }
+else {
+  user = JSON.parse(userData);
+  document.getElementById('hdr-name').textContent = user.name;
+  if (user.role==='admin') {
+    document.getElementById('tab-admin-btn').style.display='block';
+    document.getElementById('create-form').style.display='block';
     document.getElementById('ev-datum').value = new Date().toISOString().split('T')[0];
   }
   loadEvents();
 }
-
-function logout() {
-  localStorage.removeItem('sp_token');
-  localStorage.removeItem('sp_user');
-  window.location.href = '/login.html';
-}
-
-function showTab(t) {
-  document.getElementById('tab-events').style.display = t === 'events' ? 'block' : 'none';
-  document.getElementById('content-admin').style.display = t === 'admin' ? 'block' : 'none';
-  document.querySelectorAll('.tabs .tab').forEach((el,i) => {
-    el.classList.toggle('active', (i===0&&t==='events')||(i===1&&t==='admin'));
-  });
-  if (t === 'admin') loadUsers();
-}
-
-// ── API ──
-async function api(method, path, body) {
-  const res = await fetch(path, {
-    method,
-    headers: {'Content-Type':'application/json', 'Authorization':'Bearer '+currentToken},
-    body: body ? JSON.stringify(body) : undefined
-  });
-  return res.json();
-}
-
-// ── Events ──
-async function loadEvents() {
-  const events = await api('GET', '/api/events');
-  eventsData = events;
-  renderEvents(events);
-}
-
-async function renderEvents(events) {
-  const container = document.getElementById('events-list');
-  if (!events.length) { container.innerHTML = '<div class="empty">Noch keine Anlässe geplant.</div>'; return; }
-
-  const html = await Promise.all(events.map(async ev => {
-    const shifts = await api('GET', `/api/events/${ev.id}/shifts`);
-    return renderEventCard(ev, shifts);
-  }));
-  container.innerHTML = html.join('');
-}
-
-function renderEventCard(ev, shifts) {
-  const d = new Date(ev.datum+'T12:00:00');
-  const datumStr = d.toLocaleDateString('de-CH', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
-  const jobs = ['floorman','dealer','gastro','kueche'];
-  const isAdmin = currentUser.role === 'admin';
-  const userShift = shifts.find(s => s.user_id === currentUser.id);
-  const isPast = new Date(ev.datum) < new Date(new Date().toDateString());
-
-  let shiftsHtml = '<div class="shift-grid">';
-  for (const job of jobs) {
-    const needed = ev[`${job}_needed`];
-    if (needed === 0) continue;
-    const jobShifts = shifts.filter(s => s.job === job);
-    const isFull = jobShifts.length >= needed;
-    const userInJob = jobShifts.find(s => s.user_id === currentUser.id);
-    const canSignup = ev.status === 'open' && !isPast && !userShift && !isFull;
-
-    shiftsHtml += `<div class="shift-box">
-      <div class="shift-box-title">
-        <span class="${JOB_COLORS[job]}">${JOB_LABELS[job]}</span>
-        <span style="font-size:11px;color:var(--text2)">${jobShifts.length}/${needed}</span>
-      </div>`;
-
-    for (let i = 0; i < needed; i++) {
-      const s = jobShifts[i];
-      if (s) {
-        shiftsHtml += `<div class="shift-slot filled">
-          <span>👤 ${s.name}</span>
-          ${(isAdmin || s.user_id === currentUser.id) && ev.status === 'open' && !isPast ?
-            `<button class="remove-btn" onclick="removeShift(${ev.id}, ${s.id})">✕</button>` : ''}
-        </div>`;
-      } else {
-        shiftsHtml += `<div class="shift-slot"><span class="slot-empty">— frei —</span></div>`;
-      }
-    }
-
-    if (canSignup && currentUser.job === job) {
-      shiftsHtml += `<button class="btn-signup" onclick="signup(${ev.id}, '${job}')">+ Eintragen</button>`;
-    } else if (canSignup && isAdmin) {
-      shiftsHtml += `<button class="btn-signup" onclick="signup(${ev.id}, '${job}')">+ Eintragen</button>`;
-    }
-
-    shiftsHtml += '</div>';
-  }
-  shiftsHtml += '</div>';
-
-  const adminBtns = isAdmin ? `
-    <button class="btn-danger" style="margin-left:8px" onclick="deleteEvent(${ev.id})">🗑 Löschen</button>
-    <button class="btn-danger" style="margin-left:8px;${ev.status==='open'?'':'color:#4ade80;border-color:#4ade80'}" 
-      onclick="toggleEvent(${ev.id}, '${ev.status}')">
-      ${ev.status==='open'?'⏸ Schliessen':'▶ Öffnen'}
-    </button>` : '';
-
-  return `<div class="event-card">
-    <div class="event-hdr">
-      <div>
-        <div class="event-name">${ev.name}</div>
-        <div class="event-meta">📅 ${datumStr} · ⏰ ${ev.uhrzeit} Uhr</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="badge badge-${ev.status==='open'?'open':'closed'}">${ev.status==='open'?'Offen':'Geschlossen'}</span>
-        ${adminBtns}
-      </div>
-    </div>
-    <div class="event-body">${shiftsHtml}</div>
-  </div>`;
-}
-
-async function createEvent() {
-  const name = document.getElementById('ev-name').value.trim();
-  const datum = document.getElementById('ev-datum').value;
-  const uhrzeit = document.getElementById('ev-uhrzeit').value;
-  if (!name) { alert('Bitte Turniername eingeben.'); return; }
-  if (!datum) { alert('Bitte Datum wählen.'); return; }
-  if (!uhrzeit) { alert('Bitte Uhrzeit eingeben.'); return; }
-  const body = {
-    name, datum, uhrzeit,
-    floorman_needed: parseInt(document.getElementById('ev-floor').value) || 1,
-    dealer_needed: parseInt(document.getElementById('ev-dealer').value) || 4,
-    gastro_needed: parseInt(document.getElementById('ev-gastro').value) || 2,
-    kueche_needed: parseInt(document.getElementById('ev-kueche').value) || 1
-  };
-  try {
-    const res = await api('POST', '/api/events', body);
-    if (res.id) {
-      document.getElementById('ev-name').value = '';
-      await loadEvents();
-      alert('✅ Anlass erstellt!');
-    } else {
-      alert('Fehler: ' + (res.error || 'Unbekannt'));
-    }
-  } catch(e) {
-    alert('Verbindungsfehler: ' + e.message);
-  }
-}
-
-async function deleteEvent(id) {
-  if (!confirm('Anlass und alle Einteilungen löschen?')) return;
-  await api('DELETE', `/api/events/${id}`);
-  loadEvents();
-}
-
-async function toggleEvent(id, status) {
-  const ev = eventsData.find(e => e.id === id);
-  await api('PATCH', `/api/events/${id}`, {...ev, status: status === 'open' ? 'closed' : 'open'});
-  loadEvents();
-}
-
-async function signup(eventId, job) {
-  const res = await api('POST', `/api/events/${eventId}/shifts`, {job});
-  if (res.id) loadEvents();
-  else alert(res.error || 'Fehler beim Eintragen');
-}
-
-async function removeShift(eventId, shiftId) {
-  if (!confirm('Einteilung entfernen?')) return;
-  await api('DELETE', `/api/events/${eventId}/shifts/${shiftId}`);
-  loadEvents();
-}
-
-// ── Users ──
-async function loadUsers() {
-  const users = await api('GET', '/api/users');
-  const tbody = document.getElementById('users-body');
-  tbody.innerHTML = users.map(u => `
-    <tr>
-      <td>${u.name}</td>
-      <td>${u.email}</td>
-      <td><span class="${JOB_COLORS[u.job]}">${JOB_LABELS[u.job]||u.job}</span></td>
-      <td>${u.role === 'admin' ? '⭐ Admin' : 'Mitarbeiter'}</td>
-      <td>${u.role !== 'admin' ? `<button class="btn-danger" onclick="deleteUser(${u.id})">Löschen</button>` : ''}</td>
-    </tr>
-  `).join('') || '<tr><td colspan="5" class="empty">Keine Mitarbeiter</td></tr>';
-}
-
-async function createUser() {
-  const body = {
-    name: document.getElementById('u-name').value.trim(),
-    email: document.getElementById('u-email').value.trim(),
-    password: document.getElementById('u-pass').value,
-    job: document.getElementById('u-job').value,
-    role: document.getElementById('u-role').value
-  };
-  if (!body.name || !body.email || !body.password) { alert('Alle Felder ausfüllen.'); return; }
-  if (body.password.length < 6) { alert('Passwort mindestens 6 Zeichen.'); return; }
-  const res = await api('POST', '/api/users', body);
-  if (res.id) {
-    document.getElementById('u-name').value = '';
-    document.getElementById('u-email').value = '';
-    document.getElementById('u-pass').value = '';
-    loadUsers();
-  } else alert(res.error || 'Fehler');
-}
-
-async function deleteUser(id) {
-  if (!confirm('Mitarbeiter löschen?')) return;
-  await api('DELETE', `/api/users/${id}`);
-  loadUsers();
-}
-
-init();
 </script>
 </body>
 </html>
