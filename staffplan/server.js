@@ -176,9 +176,15 @@ app.delete('/api/events/:eid/shifts/:sid', auth, async (req, res) => {
 });
 
 // ── Start ──
+console.log('DATABASE_URL gesetzt:', !!process.env.DATABASE_URL);
+if (!process.env.DATABASE_URL) {
+  console.error('FEHLER: DATABASE_URL nicht gesetzt!');
+  process.exit(1);
+}
+
 initDb().then(() => {
   app.listen(PORT, () => console.log(`StaffPlan auf Port ${PORT}`));
 }).catch(e => {
-  console.error('DB Init Fehler:', e.message);
+  console.error('DB Init Fehler:', e.message, e.stack);
   process.exit(1);
 });
