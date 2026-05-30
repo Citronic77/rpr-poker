@@ -140,45 +140,55 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 
 <script>
-const KEY = 'uq_einkaufsliste';
+const API = 'https://rpr-poker-production.up.railway.app/api/einkaufsliste';
 let items = [];
 let filter = 'all';
 let editId = null;
 
-function load() {
-  try { items = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { items = []; }
+async function load() {
+  try {
+    const res = await fetch(API);
+    items = await res.json();
+  } catch(e) { items = []; }
+  render();
 }
 
-function save() {
-  localStorage.setItem(KEY, JSON.stringify(items));
+async function save() {
+  try {
+    await fetch(API, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(items)
+    });
+  } catch(e) {}
 }
 
-function addItem() {
+async function addItem() {
   const name = document.getElementById('newName').value.trim();
   const qty = parseInt(document.getElementById('newQty').value) || 1;
   if(!name) { document.getElementById('newName').focus(); return; }
   items.unshift({ id: Date.now(), name, qty, done: false });
-  save();
+  await save();
   document.getElementById('newName').value = '';
   document.getElementById('newQty').value = '1';
   document.getElementById('newName').focus();
   render();
 }
 
-function toggleDone(id) {
+async function toggleDone(id) {
   const item = items.find(i=>i.id===id);
-  if(item) { item.done = !item.done; save(); render(); }
+  if(item) { item.done = !item.done; await save(); render(); }
 }
 
-function deleteItem(id) {
+async function deleteItem(id) {
   items = items.filter(i=>i.id!==id);
-  save(); render();
+  await save(); render();
 }
 
-function clearDone() {
+async function clearDone() {
   if(!confirm('Alle gekauften Artikel löschen?')) return;
   items = items.filter(i=>!i.done);
-  save(); render();
+  await save(); render();
 }
 
 function openEdit(id) {
@@ -196,14 +206,14 @@ function closeEdit() {
   document.getElementById('editModal').classList.remove('open');
 }
 
-function saveEdit() {
+async function saveEdit() {
   const item = items.find(i=>i.id===editId);
   if(!item) return;
   const name = document.getElementById('editName').value.trim();
   const qty = parseInt(document.getElementById('editQty').value) || 1;
   if(!name) return;
   item.name = name; item.qty = qty;
-  save(); closeEdit(); render();
+  await save(); closeEdit(); render();
 }
 
 function setFilter(f) {
@@ -270,7 +280,6 @@ document.getElementById('editModal').addEventListener('click', e => {
 });
 
 load();
-render();
 </script>
 </body>
 </html>
