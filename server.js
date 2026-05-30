@@ -7,7 +7,7 @@ async function sendPush(title, message, priority) {
     const resp = await fetch(`https://ntfy.sh/${topic}`, {
       method: 'POST',
       headers: {
-        'Title': encodeURIComponent(title),
+        'Title': title.replace(/[^\x00-\x7F]/g, '').trim(),
         'Priority': priority || 'default',
         'Content-Type': 'text/plain'
       },
@@ -514,7 +514,7 @@ wss.on('connection', ws => {
           const remaining = state.players.length - state.eliminations.length;
           let msg = `Platz ${activePlayers} · ${remaining} Spieler verbleiben`;
           if (hitmanName) msg += ` · Hitman: ${hitmanName}`;
-          sendPush(`❌ ${playerName} eliminiert`, msg, activePlayers <= 10 ? 'high' : 'default');
+          sendPush(`${playerName} eliminiert`, msg, activePlayers <= 10 ? 'high' : 'default');
         }
       } else if (msg.type === 'undo') {
         const { playerId } = msg;
