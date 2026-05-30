@@ -58,6 +58,12 @@ async function initDb() {
     );
   `);
 
+  // Migration: job -> jobs
+  try {
+    await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS jobs TEXT[] DEFAULT '{dealer}'");
+    await pool.query("UPDATE users SET jobs = ARRAY[job] WHERE jobs IS NULL OR jobs = '{}' AND job IS NOT NULL");
+  } catch(e) { console.log('Migration info:', e.message); }
+
   const admins = await query("SELECT id FROM users WHERE role='admin'");
   if (!admins.length) {
     const hash = bcrypt.hashSync('admin123', 10);
