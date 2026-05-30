@@ -106,7 +106,11 @@ app.post('/api/users', auth, adminOnly, async (req, res) => {
       'INSERT INTO users (name,email,password,role,jobs) VALUES ($1,$2,$3,$4,$5) RETURNING id',
       [name, email, hash, role||'staff', jobsArr]);
     res.json({id:rows[0].id, name, email, role:role||'staff', jobs:jobsArr});
-  } catch(e) { res.status(400).json({error:'E-Mail bereits vorhanden'}); }
+  } catch(e) { 
+    console.error('User insert error:', e.message);
+    const msg = e.message.includes('unique') || e.message.includes('duplicate') ? 'E-Mail bereits vorhanden' : 'Fehler: '+e.message;
+    res.status(400).json({error: msg}); 
+  }
 });
 
 app.delete('/api/users/:id', auth, adminOnly, async (req, res) => {
