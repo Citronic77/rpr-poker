@@ -1,16 +1,18 @@
 const express = require('express');
 
 // ── ntfy.sh Push Notification ──
-function sendPush(title, message, priority) {
+async function sendPush(title, message, priority) {
   const topic = process.env.NTFY_TOPIC || 'rpr-poker-eliminierung';
-  const data = JSON.stringify({ topic, title, message, priority: priority || 'default' });
-  const req = https.request({
-    hostname: 'ntfy.sh', port: 443, path: '/', method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
-  }, () => {});
-  req.on('error', () => {});
-  req.write(data);
-  req.end();
+  try {
+    await fetch('https://ntfy.sh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, title, message, priority: priority || 'default' })
+    });
+    console.log('[ntfy] Sent:', title);
+  } catch(e) {
+    console.error('[ntfy] Error:', e.message);
+  }
 }
 const http = require('http');
 const https = require('https');
