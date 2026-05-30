@@ -98,7 +98,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 // ── Users ──
 app.get('/api/users', auth, adminOnly, async (req, res) => {
-  const rows = await query('SELECT id,name,email,role,jobs FROM users ORDER BY name');
+  const rows = await query("SELECT id,name,email,role,COALESCE(jobs,ARRAY['dealer']) as jobs FROM users ORDER BY name");
   res.json(rows);
 });
 
@@ -109,7 +109,7 @@ app.post('/api/users', auth, adminOnly, async (req, res) => {
     const hash = bcrypt.hashSync(password, 10);
     const jobsArr = Array.isArray(jobs) && jobs.length ? jobs : ['dealer'];
     const rows = await query(
-      'INSERT INTO users (name,email,password,role,jobs) VALUES ($1,$2,$3,$4,$5) RETURNING id',
+      'INSERT INTO users (name,email,password,role,jobs) VALUES ($1,$2,$3,$4,$5::text[]) RETURNING id',
       [name, email, hash, role||'staff', jobsArr]);
     res.json({id:rows[0].id, name, email, role:role||'staff', jobs:jobsArr});
   } catch(e) { 
