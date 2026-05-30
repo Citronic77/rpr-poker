@@ -4,12 +4,16 @@ const express = require('express');
 async function sendPush(title, message, priority) {
   const topic = process.env.NTFY_TOPIC || 'rpr-poker-eliminierung';
   try {
-    await fetch('https://ntfy.sh', {
+    const resp = await fetch(`https://ntfy.sh/${topic}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic, title, message, priority: priority || 'default' })
+      headers: {
+        'Title': title,
+        'Priority': priority || 'default',
+        'Content-Type': 'text/plain'
+      },
+      body: message
     });
-    console.log('[ntfy] Sent:', title);
+    console.log('[ntfy] Sent:', title, '→ Status:', resp.status);
   } catch(e) {
     console.error('[ntfy] Error:', e.message);
   }
