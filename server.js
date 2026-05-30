@@ -1,5 +1,4 @@
 const express = require('express');
-const https = require('https');
 
 // ── ntfy.sh Push Notification ──
 function sendPush(title, message, priority) {
