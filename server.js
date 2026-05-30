@@ -1,4 +1,18 @@
 const express = require('express');
+const https = require('https');
+
+// ── ntfy.sh Push Notification ──
+function sendPush(title, message, priority) {
+  const topic = process.env.NTFY_TOPIC || 'rpr-poker-eliminierung';
+  const data = JSON.stringify({ topic, title, message, priority: priority || 'default' });
+  const req = https.request({
+    hostname: 'ntfy.sh', port: 443, path: '/', method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
+  }, () => {});
+  req.on('error', () => {});
+  req.write(data);
+  req.end();
+}
 const http = require('http');
 const https = require('https');
 const WebSocket = require('ws');
@@ -491,6 +505,11 @@ wss.on('connection', ws => {
           const currentBuyinCounts = state.lastBuyinCounts || {};
           state.eliminations.push({ id: playerId, name: playerName, table, seat, time, pos: activePlayers, buyinsAtElim: currentBuyinCounts[playerId] || 1, hitmanId: hitmanId || null, hitmanName: hitmanName || null });
           broadcastState();
+          // Push Notification via ntfy.sh
+          const remaining = state.players.length - state.eliminations.length;
+          let msg = `Platz ${activePlayers} · ${remaining} Spieler verbleiben`;
+          if (hitmanName) msg += ` · Hitman: ${hitmanName}`;
+          sendPush(`❌ ${playerName} eliminiert`, msg, activePlayers <= 10 ? 'high' : 'default');
         }
       } else if (msg.type === 'undo') {
         const { playerId } = msg;
