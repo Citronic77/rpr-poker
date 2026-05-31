@@ -148,14 +148,14 @@ async function loadEvents() {
       return;
     }
     if (!events.length) { cont.innerHTML = '<div class="empty">Noch keine Anlaesse.</div>'; return; }
-    const cards = await Promise.all(events.map(ev => renderEvent(ev)));
+    const cards = await Promise.all(events.map((ev, idx) => renderEvent(ev, idx)));
     cont.innerHTML = cards.join('');
   } catch(e) {
     cont.innerHTML = '<div class="empty">Fehler beim Laden: '+e.message+'</div>';
   }
 }
 
-async function renderEvent(ev) {
+async function renderEvent(ev, idx) {
   const shifts = await api('GET', '/api/events/'+ev.id+'/shifts');
   const d = new Date(ev.datum+'T12:00:00').toLocaleDateString('de-CH',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   const isAdmin = user.role==='admin';
@@ -181,7 +181,8 @@ async function renderEvent(ev) {
     boxes += '</div>';
   }
   const adminBtns = isAdmin ? '<button class="btn btn-red" data-edit="'+ev.id+'" data-ev="'+encodeURIComponent(JSON.stringify(ev))+'">Bearbeiten</button> <button class="btn btn-red" data-del="'+ev.id+'">Loeschen</button> <button class="btn btn-red" data-tog="'+ev.id+'" data-status="'+ev.status+'" style="'+(ev.status!=='open'?'color:#4ade80;border-color:#4ade80':'')+'">'+( ev.status==='open'?'Schliessen':'Oeffnen')+'</button>' : '';
-  return '<div class="event-card"><div class="event-hdr"><div><div class="event-name">'+ev.name+'</div><div class="event-meta">'+d+' - '+ev.uhrzeit+' Uhr</div></div><div class="flex"><span class="badge badge-'+(ev.status==='open'?'open':'closed')+'">'+(ev.status==='open'?'Offen':'Geschlossen')+'</span>'+adminBtns+'</div></div><div class="event-body"><div class="shift-grid">'+boxes+'</div></div></div>';
+  const altBg = idx % 2 === 1 ? 'background:#161a22' : '';
+  return '<div class="event-card" style="'+altBg+'"><div class="event-hdr"><div><div class="event-name">'+ev.name+'</div><div class="event-meta">'+d+' - '+ev.uhrzeit+' Uhr</div></div><div class="flex"><span class="badge badge-'+(ev.status==='open'?'open':'closed')+'">'+(ev.status==='open'?'Offen':'Geschlossen')+'</span>'+adminBtns+'</div></div><div class="event-body"><div class="shift-grid">'+boxes+'</div></div></div>';
 }
 
 
