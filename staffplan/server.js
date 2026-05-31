@@ -155,7 +155,7 @@ app.delete('/api/users/:id', auth, adminOnly, async (req, res) => {
 
 // ── Events ──
 app.get('/api/events', auth, async (req, res) => {
-  const rows = await query('SELECT * FROM events ORDER BY datum DESC, uhrzeit DESC');
+  const rows = await query('SELECT * FROM events ORDER BY datum ASC, uhrzeit ASC');
   res.json(rows);
 });
 
