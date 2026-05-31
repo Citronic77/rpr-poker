@@ -169,7 +169,7 @@ app.post('/api/events', auth, adminOnly, async (req, res) => {
 });
 
 app.patch('/api/events/:id', auth, adminOnly, async (req, res) => {
-  const {name,datum,uhrzeit,floorman_needed,dealer_needed,gastro_needed,kueche_needed,status} = req.body;
+  const {name,datum,uhrzeit,floorman_needed,dealer_needed,gastro_needed,kueche_needed,status,floorman_note,dealer_note,gastro_note,kueche_note} = req.body;
   await query(
     'UPDATE events SET name=$1,datum=$2,uhrzeit=$3,floorman_needed=$4,dealer_needed=$5,gastro_needed=$6,kueche_needed=$7,status=$8,floorman_note=$9,dealer_note=$10,gastro_note=$11,kueche_note=$12 WHERE id=$13',
     [name,datum,uhrzeit,floorman_needed,dealer_needed,gastro_needed,kueche_needed,status,floorman_note||'',dealer_note||'',gastro_note||'',kueche_note||'',req.params.id]);
