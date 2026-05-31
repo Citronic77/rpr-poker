@@ -73,6 +73,7 @@ th{color:var(--text2);font-size:11px;text-transform:uppercase;background:var(--b
       <div class="card-title">Neuer Anlass</div>
       <div class="form-grid">
         <div class="fg"><label>Name / Turnier</label><input id="ev-name" placeholder="z.B. RPR Pokerturnier"></div>
+        <div class="fg"><label>Bemerkung</label><input id="ev-bemerkung" placeholder="z.B. Zusatzinfo..."></div>
         <div class="fg"><label>Datum</label><input type="date" id="ev-datum"></div>
         <div class="fg"><label>Uhrzeit</label><input type="time" id="ev-uhrzeit" value="18:00"></div>
         <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:8px">
@@ -233,6 +234,7 @@ document.addEventListener('click', async function(e) {
       dealer_needed: parseInt(document.getElementById('ev-dealer').value)||4,
       gastro_needed: parseInt(document.getElementById('ev-gastro').value)||2,
       kueche_needed: parseInt(document.getElementById('ev-kueche').value)||1,
+      bemerkung: document.getElementById('ev-bemerkung').value.trim(),
       floorman_note: document.getElementById('ev-floor-note').value.trim(),
       dealer_note: document.getElementById('ev-dealer-note').value.trim(),
       gastro_note: document.getElementById('ev-gastro-note').value.trim(),
@@ -271,6 +273,7 @@ document.addEventListener('click', async function(e) {
   if (t.dataset.edit) {
     const ev = JSON.parse(decodeURIComponent(t.dataset.ev));
     document.getElementById('edit-name').value = ev.name;
+    document.getElementById('edit-bemerkung').value = ev.bemerkung||'';
     document.getElementById('edit-datum').value = ev.datum;
     document.getElementById('edit-uhrzeit').value = ev.uhrzeit;
     document.getElementById('edit-floor').value = ev.floorman_needed;
@@ -301,6 +304,7 @@ document.addEventListener('click', async function(e) {
       dealer_needed: parseInt(document.getElementById('edit-dealer').value)||0,
       gastro_needed: parseInt(document.getElementById('edit-gastro').value)||0,
       kueche_needed: parseInt(document.getElementById('edit-kueche').value)||0,
+      bemerkung: document.getElementById('edit-bemerkung').value.trim(),
       floorman_note: document.getElementById('edit-floor-note').value.trim(),
       dealer_note: document.getElementById('edit-dealer-note').value.trim(),
       gastro_note: document.getElementById('edit-gastro-note').value.trim(),
@@ -442,6 +446,7 @@ else {
     <div class="card-title">Anlass bearbeiten</div>
     <div class="form-grid">
       <div class="fg"><label>Name</label><input id="edit-name"></div>
+      <div class="fg"><label>Bemerkung</label><input id="edit-bemerkung" placeholder="z.B. Zusatzinfo..."></div>
       <div class="fg"><label>Datum</label><input type="date" id="edit-datum"></div>
       <div class="fg"><label>Uhrzeit</label><input type="time" id="edit-uhrzeit"></div>
       <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:8px">
