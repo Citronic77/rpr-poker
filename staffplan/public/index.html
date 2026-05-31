@@ -311,7 +311,7 @@ document.addEventListener('click', async function(e) {
         document.getElementById('sm-list').innerHTML = '<div style="color:var(--text2);text-align:center;padding:1rem">Keine verfuegbaren Mitarbeiter fuer diese Funktion</div>';
       } else {
         document.getElementById('sm-list').innerHTML = available.map(u =>
-          '<button class="btn" style="width:100%;text-align:left;background:var(--bg3);border:1px solid var(--border);margin-bottom:6px;padding:10px 14px;border-radius:var(--r);color:#fff;font-size:15px;font-weight:700" data-assign-user="'+u.id+'" data-assign-name="'+u.name+'">'
+          '<button class="btn" style="width:100%;text-align:left;background:var(--bg3);border:1px solid var(--border);margin-bottom:6px;padding:10px 14px;border-radius:var(--r);color:#fff;font-size:15px;font-weight:400" data-assign-user="'+u.id+'" data-assign-name="'+u.name+'">'
           +'<b>'+u.name+'</b>'
           +'</button>'
         ).join('');
