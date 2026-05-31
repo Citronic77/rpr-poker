@@ -360,10 +360,11 @@ document.addEventListener('click', async function(e) {
     }
   }
 
-  if (t.dataset.assignUser) {
+  const assignBtn = t.closest ? t.closest('[data-assign-user]') : (t.dataset.assignUser ? t : null);
+  if (assignBtn && assignBtn.dataset.assignUser) {
     const eid = document.getElementById('staff-modal').dataset.eid;
     const job = document.getElementById('staff-modal').dataset.job;
-    const userId = t.dataset.assignUser;
+    const userId = assignBtn.dataset.assignUser;
     const res = await api('POST','/api/events/'+eid+'/shifts',{job, userId});
     document.getElementById('staff-modal').style.display = 'none';
     if (res.id) loadEvents();
