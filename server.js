@@ -768,9 +768,46 @@ let regList = (() => {
   try { return JSON.parse(fs.readFileSync(REG_LIST_FILE, 'utf8')) || []; } catch(e) { return []; }
 })();
 
-function saveRegList() {
+// OneDrive Backup für regList
+async function saveRegList() {
   try { fs.writeFileSync(REG_LIST_FILE, JSON.stringify(regList)); } catch(e) {}
+  // Backup auf OneDrive
+  try {
+    const buf = Buffer.from(JSON.stringify(regList));
+    await uploadToOneDrive(buf, 'reglist.json', 'Registrierungen');
+  } catch(e) { console.log('OneDrive regList backup:', e.message); }
 }
+
+async function loadRegListFromOneDrive() {
+  try {
+    const clientId = process.env.MS_CLIENT_ID;
+    const clientSecret = process.env.MS_CLIENT_SECRET;
+    const tenantId = process.env.MS_TENANT_ID;
+    const driveUser = process.env.MS_ONEDRIVE_USER;
+    const folder = process.env.MS_ONEDRIVE_FOLDER;
+    if (!clientId || !clientSecret) return;
+    const tokenRes = await fetch(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({client_id:clientId, client_secret:clientSecret, scope:'https://graph.microsoft.com/.default', grant_type:'client_credentials'})
+    });
+    const tokenData = await tokenRes.json();
+    const token = tokenData.access_token;
+    const fileUrl = `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(driveUser)}/drive/root:/${folder}/Registrierungen/reglist.json:/content`;
+    const fileRes = await fetch(fileUrl, {headers:{Authorization:'Bearer '+token}});
+    if (fileRes.ok) {
+      const data = await fileRes.json();
+      if (Array.isArray(data) && data.length > 0) {
+        regList = data;
+        fs.writeFileSync(REG_LIST_FILE, JSON.stringify(regList));
+        console.log(`RegList aus OneDrive geladen: ${regList.length} Einträge`);
+      }
+    }
+  } catch(e) { console.log('OneDrive regList load:', e.message); }
+}
+
+// Beim Start von OneDrive laden
+loadRegListFromOneDrive();
 
 app.post('/api/reg/add', express.json(), (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
