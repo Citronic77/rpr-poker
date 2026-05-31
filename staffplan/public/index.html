@@ -287,9 +287,54 @@ document.addEventListener('click', async function(e) {
   }
 
   if (t.dataset.job) {
-    const res = await api('POST','/api/events/'+t.dataset.eid+'/shifts',{job:t.dataset.job});
+    const eid = t.dataset.eid;
+    const job = t.dataset.job;
+    if (user.role === 'admin') {
+      // Admin: show staff selection modal
+      document.getElementById('sm-job').textContent = job;
+      document.getElementById('sm-list').innerHTML = '<div style="color:var(--text2)">Lade Mitarbeiter...</div>';
+      document.getElementById('staff-modal').style.display = 'flex';
+      document.getElementById('staff-modal').dataset.eid = eid;
+      document.getElementById('staff-modal').dataset.job = job;
+      // Load available staff for this job
+      const [users, shifts] = await Promise.all([
+        api('GET','/api/users'),
+        api('GET','/api/events/'+eid+'/shifts')
+      ]);
+      const assignedIds = shifts.map(s=>s.user_id);
+      const available = users.filter(u =>
+        u.role !== 'admin' &&
+        !assignedIds.includes(u.id) &&
+        (u.jobs||[]).includes(job)
+      );
+      if (!available.length) {
+        document.getElementById('sm-list').innerHTML = '<div style="color:var(--text2);text-align:center;padding:1rem">Keine verfuegbaren Mitarbeiter fuer diese Funktion</div>';
+      } else {
+        document.getElementById('sm-list').innerHTML = available.map(u =>
+          '<button class="btn" style="width:100%;text-align:left;background:var(--bg3);border:1px solid var(--border);margin-bottom:6px;padding:10px 14px;border-radius:var(--r)" data-assign-user="'+u.id+'" data-assign-name="'+u.name+'">'
+          +'<b>'+u.name+'</b>'
+          +'</button>'
+        ).join('');
+      }
+    } else {
+      const res = await api('POST','/api/events/'+eid+'/shifts',{job});
+      if (res.id) loadEvents();
+      else alert(res.error||'Fehler');
+    }
+  }
+
+  if (t.dataset.assignUser) {
+    const eid = document.getElementById('staff-modal').dataset.eid;
+    const job = document.getElementById('staff-modal').dataset.job;
+    const userId = t.dataset.assignUser;
+    const res = await api('POST','/api/events/'+eid+'/shifts',{job, userId});
+    document.getElementById('staff-modal').style.display = 'none';
     if (res.id) loadEvents();
     else alert(res.error||'Fehler');
+  }
+
+  if (t.id==='sm-cancel') {
+    document.getElementById('staff-modal').style.display = 'none';
   }
 
   if (t.dataset.delUser) {
@@ -331,6 +376,14 @@ else {
       <button class="btn btn-gold" id="btn-save-edit">Speichern</button>
       <button class="btn" style="background:var(--bg3);color:var(--text2)" id="btn-cancel-edit">Abbrechen</button>
     </div>
+  </div>
+</div>
+<!-- Staff Auswahl Modal -->
+<div id="staff-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.5rem;width:min(420px,95%);max-height:80vh;overflow-y:auto">
+    <div class="card-title">Mitarbeiter einteilen — <span id="sm-job"></span></div>
+    <div id="sm-list" style="margin:1rem 0"></div>
+    <button class="btn" style="background:var(--bg3);color:var(--text2);width:100%" id="sm-cancel">Abbrechen</button>
   </div>
 </div>
 </body>
