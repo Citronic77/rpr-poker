@@ -75,14 +75,12 @@ th{color:var(--text2);font-size:11px;text-transform:uppercase;background:var(--b
         <div class="fg"><label>Name / Turnier</label><input id="ev-name" placeholder="z.B. RPR Pokerturnier"></div>
         <div class="fg"><label>Datum</label><input type="date" id="ev-datum"></div>
         <div class="fg"><label>Uhrzeit</label><input type="time" id="ev-uhrzeit" value="18:00"></div>
-        <div class="fg"><label>Floorman</label><input type="number" id="ev-floor" value="1" min="0" max="5"></div>
-        <div class="fg"><label>Floorman Bemerkung</label><input id="ev-floor-note" placeholder="z.B. ab 18:00"></div>
-        <div class="fg"><label>Dealer</label><input type="number" id="ev-dealer" value="4" min="0" max="20"></div>
-        <div class="fg"><label>Dealer Bemerkung</label><input id="ev-dealer-note" placeholder="z.B. ab 18:00"></div>
-        <div class="fg"><label>Gastro</label><input type="number" id="ev-gastro" value="2" min="0" max="10"></div>
-        <div class="fg"><label>Gastro Bemerkung</label><input id="ev-gastro-note" placeholder="z.B. ab 17:00"></div>
-        <div class="fg"><label>Kueche</label><input type="number" id="ev-kueche" value="1" min="0" max="5"></div>
-        <div class="fg"><label>Kueche Bemerkung</label><input id="ev-kueche-note" placeholder="z.B. ab 16:00"></div>
+        <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:8px">
+          <div class="fg"><label>Floorman</label><div style="display:flex;gap:8px"><input type="number" id="ev-floor" value="1" min="0" max="5" style="width:70px;flex-shrink:0"><input id="ev-floor-note" placeholder="Bemerkung..." style="flex:1"></div></div>
+          <div class="fg"><label>Dealer</label><div style="display:flex;gap:8px"><input type="number" id="ev-dealer" value="4" min="0" max="20" style="width:70px;flex-shrink:0"><input id="ev-dealer-note" placeholder="Bemerkung..." style="flex:1"></div></div>
+          <div class="fg"><label>Gastro</label><div style="display:flex;gap:8px"><input type="number" id="ev-gastro" value="2" min="0" max="10" style="width:70px;flex-shrink:0"><input id="ev-gastro-note" placeholder="Bemerkung..." style="flex:1"></div></div>
+          <div class="fg"><label>Kueche</label><div style="display:flex;gap:8px"><input type="number" id="ev-kueche" value="1" min="0" max="5" style="width:70px;flex-shrink:0"><input id="ev-kueche-note" placeholder="Bemerkung..." style="flex:1"></div></div>
+        </div>
       </div>
       <button class="btn btn-gold" id="btn-create-event">Anlass erstellen</button>
     </div>
@@ -422,14 +420,12 @@ else {
       <div class="fg"><label>Name</label><input id="edit-name"></div>
       <div class="fg"><label>Datum</label><input type="date" id="edit-datum"></div>
       <div class="fg"><label>Uhrzeit</label><input type="time" id="edit-uhrzeit"></div>
-      <div class="fg"><label>Floorman</label><input type="number" id="edit-floor" min="0" max="5"></div>
-      <div class="fg"><label>Floorman Bemerkung</label><input id="edit-floor-note" placeholder="z.B. ab 18:00"></div>
-      <div class="fg"><label>Dealer</label><input type="number" id="edit-dealer" min="0" max="20"></div>
-      <div class="fg"><label>Dealer Bemerkung</label><input id="edit-dealer-note" placeholder="z.B. ab 18:00"></div>
-      <div class="fg"><label>Gastro</label><input type="number" id="edit-gastro" min="0" max="10"></div>
-      <div class="fg"><label>Gastro Bemerkung</label><input id="edit-gastro-note" placeholder="z.B. ab 17:00"></div>
-      <div class="fg"><label>Kueche</label><input type="number" id="edit-kueche" min="0" max="5"></div>
-      <div class="fg"><label>Kueche Bemerkung</label><input id="edit-kueche-note" placeholder="z.B. ab 16:00"></div>
+      <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:8px">
+        <div class="fg"><label>Floorman</label><div style="display:flex;gap:8px"><input type="number" id="edit-floor" min="0" max="5" style="width:70px;flex-shrink:0"><input id="edit-floor-note" placeholder="Bemerkung..." style="flex:1"></div></div>
+        <div class="fg"><label>Dealer</label><div style="display:flex;gap:8px"><input type="number" id="edit-dealer" min="0" max="20" style="width:70px;flex-shrink:0"><input id="edit-dealer-note" placeholder="Bemerkung..." style="flex:1"></div></div>
+        <div class="fg"><label>Gastro</label><div style="display:flex;gap:8px"><input type="number" id="edit-gastro" min="0" max="10" style="width:70px;flex-shrink:0"><input id="edit-gastro-note" placeholder="Bemerkung..." style="flex:1"></div></div>
+        <div class="fg"><label>Kueche</label><div style="display:flex;gap:8px"><input type="number" id="edit-kueche" min="0" max="5" style="width:70px;flex-shrink:0"><input id="edit-kueche-note" placeholder="Bemerkung..." style="flex:1"></div></div>
+      </div>
     </div>
     <div class="flex" style="margin-top:1rem">
       <button class="btn btn-gold" id="btn-save-edit">Speichern</button>
