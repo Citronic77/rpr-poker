@@ -181,7 +181,7 @@ async function renderEvent(ev, idx) {
     boxes += '</div>';
   }
   const adminBtns = isAdmin ? '<button class="btn btn-red" data-edit="'+ev.id+'" data-ev="'+encodeURIComponent(JSON.stringify(ev))+'">Bearbeiten</button> <button class="btn btn-red" data-del="'+ev.id+'">Loeschen</button> <button class="btn btn-red" data-tog="'+ev.id+'" data-status="'+ev.status+'" style="'+(ev.status!=='open'?'color:#4ade80;border-color:#4ade80':'')+'">'+( ev.status==='open'?'Schliessen':'Oeffnen')+'</button>' : '';
-  const altBg = idx % 2 === 1 ? 'background:#161a22' : '';
+  const altBg = idx % 2 === 1 ? 'background:#111318;border-color:#2a2e38' : 'background:#1a2035;border-color:#2e3a5e';
   return '<div class="event-card" style="'+altBg+'"><div class="event-hdr"><div><div class="event-name">'+ev.name+'</div><div class="event-meta">'+d+' - '+ev.uhrzeit+' Uhr</div></div><div class="flex"><span class="badge badge-'+(ev.status==='open'?'open':'closed')+'">'+(ev.status==='open'?'Offen':'Geschlossen')+'</span>'+adminBtns+'</div></div><div class="event-body"><div class="shift-grid">'+boxes+'</div></div></div>';
 }
 
