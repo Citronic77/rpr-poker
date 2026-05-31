@@ -164,8 +164,8 @@ async function renderEvent(ev, idx) {
   const jobs = ['floorman','dealer','gastro','kueche'];
   let boxes = '';
   for (const job of jobs) {
-    const needed = ev[job+'_needed'];
-    if (!needed) continue;
+    const needed = parseInt(ev[job+'_needed'])||0;
+    if (needed <= 0) continue;
     const js = shifts.filter(s=>s.job===job);
     const full = js.length>=needed;
     const userJobs = user.jobs || [user.job] || [];
