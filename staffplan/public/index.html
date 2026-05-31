@@ -188,7 +188,7 @@ async function loadUsers() {
   document.getElementById('users-body').innerHTML = users.map(u => {
     const jobList = Array.isArray(u.jobs) ? u.jobs : (u.job ? [u.job] : ['?']);
     const jobHtml = jobList.map(j=>'<span class="'+(JC[j]||'')+'">'+(JL[j]||j)+'</span>').join(' ');
-    return '<tr><td>'+u.name+'</td><td>'+u.email+'</td><td>'+jobHtml+'</td><td>'+(u.role==='admin'?'Admin':'Mitarbeiter')+'</td><td>'+(u.role!=='admin'?'<button class="btn btn-red" data-del-user="'+u.id+'">Loeschen</button>':'')+'</td></tr>';
+    return '<tr><td>'+u.name+'</td><td>'+u.email+'</td><td>'+jobHtml+'</td><td>'+(u.role==='admin'?'Admin':'Mitarbeiter')+'</td><td>'+'<button class="btn" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);font-size:12px;padding:4px 10px;margin-right:4px" data-edit-user="'+u.id+'" data-edit-name="'+u.name+'" data-edit-email="'+u.email+'" data-edit-role="'+u.role+'" data-edit-jobs="'+(u.jobs||[]).join(',')+'">Bearbeiten</button>'+(u.role!=='admin'?'<button class="btn btn-red" data-del-user="'+u.id+'">Loeschen</button>':'')+'</td></tr>';
   }).join('') || '<tr><td colspan="5" class="empty">Keine Mitarbeiter</td></tr>';
 }
 
@@ -337,6 +337,44 @@ document.addEventListener('click', async function(e) {
     document.getElementById('staff-modal').style.display = 'none';
   }
 
+  if (t.dataset.editUser) {
+    const uid = t.dataset.editUser;
+    document.getElementById('ue-name').value = t.dataset.editName;
+    document.getElementById('ue-email').value = t.dataset.editEmail;
+    document.getElementById('ue-role').value = t.dataset.editRole;
+    document.getElementById('ue-pass').value = '';
+    const jobs = (t.dataset.editJobs||'').split(',').filter(Boolean);
+    ['fl','de','ga','ku'].forEach(k => {
+      const map = {fl:'floorman',de:'dealer',ga:'gastro',ku:'kueche'};
+      document.getElementById('ue-job-'+k).checked = jobs.includes(map[k]);
+    });
+    document.getElementById('user-edit-modal').dataset.uid = uid;
+    document.getElementById('user-edit-modal').style.display = 'flex';
+  }
+
+  if (t.id==='ue-cancel') {
+    document.getElementById('user-edit-modal').style.display = 'none';
+  }
+
+  if (t.id==='ue-save') {
+    const uid = document.getElementById('user-edit-modal').dataset.uid;
+    const jobs = ['floorman','dealer','gastro','kueche'].filter(j =>
+      document.getElementById('ue-job-'+j.substring(0,2)).checked
+    );
+    if (!jobs.length) { alert('Bitte mindestens eine Funktion waehlen'); return; }
+    const body = {
+      name: document.getElementById('ue-name').value.trim(),
+      email: document.getElementById('ue-email').value.trim(),
+      jobs,
+      role: document.getElementById('ue-role').value
+    };
+    const pass = document.getElementById('ue-pass').value;
+    if (pass) body.password = pass;
+    const res = await api('PATCH', '/api/users/'+uid, body);
+    if (res.ok) { document.getElementById('user-edit-modal').style.display='none'; loadUsers(); }
+    else alert(res.error||'Fehler');
+  }
+
   if (t.dataset.delUser) {
     if (!confirm('Mitarbeiter loeschen?')) return;
     await api('DELETE','/api/users/'+t.dataset.delUser);
@@ -378,6 +416,38 @@ else {
     </div>
   </div>
 </div>
+<!-- User Edit Modal -->
+<div id="user-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.5rem;width:min(460px,95%);max-height:90vh;overflow-y:auto">
+    <div class="card-title">Mitarbeiter bearbeiten</div>
+    <div class="form-grid">
+      <div class="fg"><label>Name</label><input id="ue-name"></div>
+      <div class="fg"><label>E-Mail</label><input type="email" id="ue-email"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px"><label>Funktionen</label>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+        <label style="text-transform:none;letter-spacing:0;font-size:13px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="ue-job-fl" value="floorman"> Floorman</label>
+        <label style="text-transform:none;letter-spacing:0;font-size:13px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="ue-job-de" value="dealer"> Dealer</label>
+        <label style="text-transform:none;letter-spacing:0;font-size:13px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="ue-job-ga" value="gastro"> Gastro</label>
+        <label style="text-transform:none;letter-spacing:0;font-size:13px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="ue-job-ku" value="kueche"> Kueche</label>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:12px"><label>Rolle</label>
+      <select id="ue-role">
+        <option value="staff">Mitarbeiter</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="fg" style="margin-bottom:1rem"><label>Neues Passwort (leer lassen = unveraendert)</label>
+      <input type="password" id="ue-pass" placeholder="Neues Passwort...">
+    </div>
+    <div class="flex">
+      <button class="btn btn-gold" id="ue-save">Speichern</button>
+      <button class="btn" style="background:var(--bg3);color:var(--text2)" id="ue-cancel">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
 <!-- Staff Auswahl Modal -->
 <div id="staff-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center">
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.5rem;width:min(420px,95%);max-height:80vh;overflow-y:auto">
