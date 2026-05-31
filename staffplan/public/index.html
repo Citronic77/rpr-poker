@@ -171,7 +171,9 @@ async function renderEvent(ev, idx) {
     const userJobs = user.jobs || [user.job] || [];
     const canSign = ev.status==='open' && !isPast && !userShift && !full && (isAdmin || userJobs.includes(job));
     const note = ev[job+'_note']||'';
-    boxes += '<div class="shift-box"><div class="shift-title"><span class="'+JC[job]+'">'+ JL[job]+(note?' <span style="color:var(--text2);font-weight:400;font-size:10px;text-transform:none;letter-spacing:0">('+note+')</span>':'')+'</span><span style="color:var(--text2)">'+js.length+'/'+needed+'</span></div>';
+    const isFull2 = js.length >= needed;
+    const boxBg = isFull2 ? '' : 'background:rgba(220,50,50,0.12);border-color:rgba(220,50,50,0.3)';
+    boxes += '<div class="shift-box" style="'+boxBg+'"><div class="shift-title"><span class="'+JC[job]+'">'+ JL[job]+(note?' <span style="color:var(--text2);font-weight:400;font-size:10px;text-transform:none;letter-spacing:0">('+note+')</span>':'')+'</span><span style="color:var(--text2)">'+js.length+'/'+needed+'</span></div>';
     for (let i=0;i<needed;i++) {
       const s=js[i];
       if (s) boxes += '<div class="slot filled"><span>'+s.name+'</span>'+((isAdmin||s.user_id===user.id)&&ev.status==='open'&&!isPast?'<button class="rmv" data-eid="'+ev.id+'" data-sid="'+s.id+'">x</button>':'')+'</div>';
