@@ -161,20 +161,22 @@ app.get('/api/events/:id/shifts', auth, async (req, res) => {
 });
 
 app.post('/api/events/:id/shifts', auth, async (req, res) => {
-  const {job} = req.body;
+  const {job, userId} = req.body;
   const eventId = req.params.id;
+  // Admin kann userId übergeben, sonst eigener User
+  const targetUserId = (req.user.role === 'admin' && userId) ? parseInt(userId) : req.user.id;
   const evRows = await query('SELECT * FROM events WHERE id=$1', [eventId]);
   const ev = evRows[0];
   if (!ev) return res.status(404).json({error:'Nicht gefunden'});
   if (ev.status !== 'open') return res.status(400).json({error:'Anlass nicht offen'});
   const cnt = await query('SELECT COUNT(*) as c FROM shifts WHERE event_id=$1 AND job=$2', [eventId, job]);
   if (parseInt(cnt[0].c) >= ev[`${job}_needed`]) return res.status(400).json({error:'Schicht voll'});
-  const userRow = await query('SELECT jobs,role FROM users WHERE id=$1',[req.user.id]);
+  const userRow = await query('SELECT jobs,role FROM users WHERE id=$1',[targetUserId]);
   const userJobs = userRow[0]?.jobs || [];
-  if (userRow[0]?.role !== 'admin' && !userJobs.includes(job)) return res.status(403).json({error:'Keine Berechtigung fuer diese Funktion'});
+  if (req.user.role !== 'admin' && !userJobs.includes(job)) return res.status(403).json({error:'Keine Berechtigung fuer diese Funktion'});
   try {
     const rows = await query('INSERT INTO shifts (event_id,user_id,job) VALUES ($1,$2,$3) RETURNING id',
-      [eventId, req.user.id, job]);
+      [eventId, targetUserId, job]);
     res.json({id:rows[0].id});
   } catch(e) { res.status(400).json({error:'Bereits eingetragen'}); }
 });
