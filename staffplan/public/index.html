@@ -76,9 +76,13 @@ th{color:var(--text2);font-size:11px;text-transform:uppercase;background:var(--b
         <div class="fg"><label>Datum</label><input type="date" id="ev-datum"></div>
         <div class="fg"><label>Uhrzeit</label><input type="time" id="ev-uhrzeit" value="18:00"></div>
         <div class="fg"><label>Floorman</label><input type="number" id="ev-floor" value="1" min="0" max="5"></div>
+        <div class="fg"><label>Floorman Bemerkung</label><input id="ev-floor-note" placeholder="z.B. ab 18:00"></div>
         <div class="fg"><label>Dealer</label><input type="number" id="ev-dealer" value="4" min="0" max="20"></div>
+        <div class="fg"><label>Dealer Bemerkung</label><input id="ev-dealer-note" placeholder="z.B. ab 18:00"></div>
         <div class="fg"><label>Gastro</label><input type="number" id="ev-gastro" value="2" min="0" max="10"></div>
+        <div class="fg"><label>Gastro Bemerkung</label><input id="ev-gastro-note" placeholder="z.B. ab 17:00"></div>
         <div class="fg"><label>Kueche</label><input type="number" id="ev-kueche" value="1" min="0" max="5"></div>
+        <div class="fg"><label>Kueche Bemerkung</label><input id="ev-kueche-note" placeholder="z.B. ab 16:00"></div>
       </div>
       <button class="btn btn-gold" id="btn-create-event">Anlass erstellen</button>
     </div>
@@ -168,7 +172,8 @@ async function renderEvent(ev) {
     const full = js.length>=needed;
     const userJobs = user.jobs || [user.job] || [];
     const canSign = ev.status==='open' && !isPast && !userShift && !full && (isAdmin || userJobs.includes(job));
-    boxes += '<div class="shift-box"><div class="shift-title"><span class="'+JC[job]+'">'+JL[job]+'</span><span style="color:var(--text2)">'+js.length+'/'+needed+'</span></div>';
+    const note = ev[job+'_note']||'';
+    boxes += '<div class="shift-box"><div class="shift-title"><span class="'+JC[job]+'">'+ JL[job]+(note?' <span style="color:var(--text2);font-weight:400;font-size:10px;text-transform:none;letter-spacing:0">('+note+')</span>':'')+'</span><span style="color:var(--text2)">'+js.length+'/'+needed+'</span></div>';
     for (let i=0;i<needed;i++) {
       const s=js[i];
       if (s) boxes += '<div class="slot filled"><span>'+s.name+'</span>'+((isAdmin||s.user_id===user.id)&&ev.status==='open'&&!isPast?'<button class="rmv" data-eid="'+ev.id+'" data-sid="'+s.id+'">x</button>':'')+'</div>';
@@ -211,7 +216,11 @@ document.addEventListener('click', async function(e) {
       floorman_needed: parseInt(document.getElementById('ev-floor').value)||1,
       dealer_needed: parseInt(document.getElementById('ev-dealer').value)||4,
       gastro_needed: parseInt(document.getElementById('ev-gastro').value)||2,
-      kueche_needed: parseInt(document.getElementById('ev-kueche').value)||1
+      kueche_needed: parseInt(document.getElementById('ev-kueche').value)||1,
+      floorman_note: document.getElementById('ev-floor-note').value.trim(),
+      dealer_note: document.getElementById('ev-dealer-note').value.trim(),
+      gastro_note: document.getElementById('ev-gastro-note').value.trim(),
+      kueche_note: document.getElementById('ev-kueche-note').value.trim()
     };
     const res = await api('POST','/api/events',body);
     if (res.id) { document.getElementById('ev-name').value=''; loadEvents(); }
@@ -249,9 +258,13 @@ document.addEventListener('click', async function(e) {
     document.getElementById('edit-datum').value = ev.datum;
     document.getElementById('edit-uhrzeit').value = ev.uhrzeit;
     document.getElementById('edit-floor').value = ev.floorman_needed;
+    document.getElementById('edit-floor-note').value = ev.floorman_note||'';
     document.getElementById('edit-dealer').value = ev.dealer_needed;
+    document.getElementById('edit-dealer-note').value = ev.dealer_note||'';
     document.getElementById('edit-gastro').value = ev.gastro_needed;
+    document.getElementById('edit-gastro-note').value = ev.gastro_note||'';
     document.getElementById('edit-kueche').value = ev.kueche_needed;
+    document.getElementById('edit-kueche-note').value = ev.kueche_note||'';
     document.getElementById('edit-modal').style.display = 'flex';
     document.getElementById('edit-modal').dataset.eid = t.dataset.edit;
     document.getElementById('edit-modal').dataset.status = ev.status;
@@ -272,6 +285,10 @@ document.addEventListener('click', async function(e) {
       dealer_needed: parseInt(document.getElementById('edit-dealer').value)||0,
       gastro_needed: parseInt(document.getElementById('edit-gastro').value)||0,
       kueche_needed: parseInt(document.getElementById('edit-kueche').value)||0,
+      floorman_note: document.getElementById('edit-floor-note').value.trim(),
+      dealer_note: document.getElementById('edit-dealer-note').value.trim(),
+      gastro_note: document.getElementById('edit-gastro-note').value.trim(),
+      kueche_note: document.getElementById('edit-kueche-note').value.trim(),
       status
     };
     if (!body.name || !body.datum) { alert('Name und Datum benoetigt'); return; }
@@ -406,9 +423,13 @@ else {
       <div class="fg"><label>Datum</label><input type="date" id="edit-datum"></div>
       <div class="fg"><label>Uhrzeit</label><input type="time" id="edit-uhrzeit"></div>
       <div class="fg"><label>Floorman</label><input type="number" id="edit-floor" min="0" max="5"></div>
+      <div class="fg"><label>Floorman Bemerkung</label><input id="edit-floor-note" placeholder="z.B. ab 18:00"></div>
       <div class="fg"><label>Dealer</label><input type="number" id="edit-dealer" min="0" max="20"></div>
+      <div class="fg"><label>Dealer Bemerkung</label><input id="edit-dealer-note" placeholder="z.B. ab 18:00"></div>
       <div class="fg"><label>Gastro</label><input type="number" id="edit-gastro" min="0" max="10"></div>
+      <div class="fg"><label>Gastro Bemerkung</label><input id="edit-gastro-note" placeholder="z.B. ab 17:00"></div>
       <div class="fg"><label>Kueche</label><input type="number" id="edit-kueche" min="0" max="5"></div>
+      <div class="fg"><label>Kueche Bemerkung</label><input id="edit-kueche-note" placeholder="z.B. ab 16:00"></div>
     </div>
     <div class="flex" style="margin-top:1rem">
       <button class="btn btn-gold" id="btn-save-edit">Speichern</button>
