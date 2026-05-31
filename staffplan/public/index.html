@@ -150,7 +150,39 @@ async function loadEvents() {
     }
     if (!events.length) { cont.innerHTML = '<div class="empty">Noch keine Anlaesse.</div>'; return; }
     const allShifts = await Promise.all(events.map(ev => api('GET','/api/events/'+ev.id+'/shifts')));
-    const jKeys = ['floorman','dealer','gastro','kueche'];
+    // Meine Einteilungen (nur für Mitarbeiter)
+  let myShiftsHtml = '';
+  if (user.role !== 'admin') {
+    const myShifts = [];
+    events.forEach((ev, i) => {
+      const sh = allShifts[i];
+      const mine = sh.find(s => s.user_id === user.id);
+      if (mine) {
+        const d = new Date(ev.datum+'T12:00:00').toLocaleDateString('de-CH',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+        myShifts.push({datum: d, name: ev.name, job: mine.job, uhrzeit: ev.uhrzeit, bemerkung: ev.bemerkung||''});
+      }
+    });
+    const jl = {floorman:'Floorman',dealer:'Dealer',gastro:'Gastro',kueche:'Kueche'};
+    const jc = {floorman:'#a78bfa',dealer:'#d4af35',gastro:'#38bdf8',kueche:'#fb923c'};
+    let myHtml = '<div class="card" style="margin-bottom:1.5rem;border-left:3px solid var(--gold)">';
+    myHtml += '<div class="card-title" style="margin-bottom:.75rem">Meine Einteilungen</div>';
+    if (!myShifts.length) {
+      myHtml += '<div style="color:var(--text2);font-size:13px">Du bist noch bei keinem Anlass eingetragen.</div>';
+    } else {
+      myShifts.forEach(s => {
+        myHtml += '<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)">'
+          +'<div style="min-width:140px;font-size:12px;color:var(--text2)">'+s.datum+'</div>'
+          +'<div style="min-width:50px;font-size:12px;color:var(--text2)">'+s.uhrzeit+' Uhr</div>'
+          +'<div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">'+s.name+(s.bemerkung?' <span style="font-weight:400;color:var(--text2)">('+s.bemerkung+')</span>':'')+'</div>'
+          +'<div style="font-size:12px;font-weight:700;color:'+jc[s.job]+'">'+jl[s.job]+'</div>'
+          +'</div>';
+      });
+    }
+    myHtml += '</div>';
+    myShiftsHtml = myHtml;
+  }
+
+  const jKeys = ['floorman','dealer','gastro','kueche'];
     const jLbl = {floorman:'Floor',dealer:'Dealer',gastro:'Gastro',kueche:'Kueche'};
     let tbl = '<div class="card" style="margin-bottom:1.5rem;padding:0;overflow:hidden"><table style="width:100%;border-collapse:collapse">';
     tbl += '<thead><tr style="background:var(--bg3)"><th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border)">Datum</th><th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border)">Anlass</th>'+jKeys.map(j=>'<th style="padding:8px 12px;text-align:center;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border)">'+jLbl[j]+'</th>').join('')+'</tr></thead><tbody>';
@@ -165,7 +197,7 @@ async function loadEvents() {
     });
     tbl+='</tbody></table></div>';
     const cards = await Promise.all(events.map((ev, idx) => renderEvent(ev, idx)));
-    cont.innerHTML = tbl + cards.join('');
+    cont.innerHTML = myShiftsHtml + tbl + cards.join('');
   } catch(e) {
     cont.innerHTML = '<div class="empty">Fehler beim Laden: '+e.message+'</div>';
   }
