@@ -45,6 +45,7 @@ async function initDb() {
       dealer_needed INT DEFAULT 4,
       gastro_needed INT DEFAULT 2,
       kueche_needed INT DEFAULT 1,
+      bemerkung TEXT DEFAULT '',
       floorman_note TEXT DEFAULT '',
       dealer_note TEXT DEFAULT '',
       gastro_note TEXT DEFAULT '',
@@ -63,7 +64,7 @@ async function initDb() {
   `);
 
   // Migration: add note columns
-  for (const col of ['floorman_note','dealer_note','gastro_note','kueche_note']) {
+  for (const col of ['floorman_note','dealer_note','gastro_note','kueche_note','bemerkung']) {
     try { await pool.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS ${col} TEXT DEFAULT ''`); } catch(e) {}
   }
 
@@ -160,19 +161,19 @@ app.get('/api/events', auth, async (req, res) => {
 });
 
 app.post('/api/events', auth, adminOnly, async (req, res) => {
-  const {name,datum,uhrzeit,floorman_needed,dealer_needed,gastro_needed,kueche_needed,floorman_note,dealer_note,gastro_note,kueche_note} = req.body;
+  const {name,datum,uhrzeit,floorman_needed,dealer_needed,gastro_needed,kueche_needed,floorman_note,dealer_note,gastro_note,kueche_note,bemerkung} = req.body;
   if (!name||!datum||!uhrzeit) return res.status(400).json({error:'Fehlende Felder'});
   const rows = await query(
-    'INSERT INTO events (name,datum,uhrzeit,floorman_needed,dealer_needed,gastro_needed,kueche_needed,floorman_note,dealer_note,gastro_note,kueche_note) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id',
-    [name,datum,uhrzeit,floorman_needed||1,dealer_needed||4,gastro_needed||2,kueche_needed||1,floorman_note||'',dealer_note||'',gastro_note||'',kueche_note||'']);
+    'INSERT INTO events (name,datum,uhrzeit,floorman_needed,dealer_needed,gastro_needed,kueche_needed,floorman_note,dealer_note,gastro_note,kueche_note,bemerkung) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id',
+    [name,datum,uhrzeit,floorman_needed||1,dealer_needed||4,gastro_needed||2,kueche_needed||1,floorman_note||'',dealer_note||'',gastro_note||'',kueche_note||'',bemerkung||'']);
   res.json({id:rows[0].id});
 });
 
 app.patch('/api/events/:id', auth, adminOnly, async (req, res) => {
-  const {name,datum,uhrzeit,floorman_needed,dealer_needed,gastro_needed,kueche_needed,status,floorman_note,dealer_note,gastro_note,kueche_note} = req.body;
+  const {name,datum,uhrzeit,floorman_needed,dealer_needed,gastro_needed,kueche_needed,status,floorman_note,dealer_note,gastro_note,kueche_note,bemerkung} = req.body;
   await query(
-    'UPDATE events SET name=$1,datum=$2,uhrzeit=$3,floorman_needed=$4,dealer_needed=$5,gastro_needed=$6,kueche_needed=$7,status=$8,floorman_note=$9,dealer_note=$10,gastro_note=$11,kueche_note=$12 WHERE id=$13',
-    [name,datum,uhrzeit,floorman_needed,dealer_needed,gastro_needed,kueche_needed,status,floorman_note||'',dealer_note||'',gastro_note||'',kueche_note||'',req.params.id]);
+    'UPDATE events SET name=$1,datum=$2,uhrzeit=$3,floorman_needed=$4,dealer_needed=$5,gastro_needed=$6,kueche_needed=$7,status=$8,floorman_note=$9,dealer_note=$10,gastro_note=$11,kueche_note=$12,bemerkung=$13 WHERE id=$14',
+    [name,datum,uhrzeit,floorman_needed,dealer_needed,gastro_needed,kueche_needed,status,floorman_note||'',dealer_note||'',gastro_note||'',kueche_note||'',bemerkung||'',req.params.id]);
   res.json({ok:true});
 });
 
