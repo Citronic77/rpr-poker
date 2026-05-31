@@ -366,8 +366,9 @@ document.addEventListener('click', async function(e) {
     else alert(res.error||'Fehler');
   }
 
-  if (t.dataset.scroll) {
-    const el = document.getElementById(t.dataset.scroll);
+  const scrollRow = t.closest ? t.closest('[data-scroll]') : null;
+  if (scrollRow && scrollRow.dataset.scroll) {
+    const el = document.getElementById(scrollRow.dataset.scroll);
     if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
   }
 
