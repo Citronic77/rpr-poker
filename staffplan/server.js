@@ -119,6 +119,26 @@ app.post('/api/users', auth, adminOnly, async (req, res) => {
   }
 });
 
+app.patch('/api/users/:id', auth, adminOnly, async (req, res) => {
+  const {name, email, jobs, role, password} = req.body;
+  const id = req.params.id;
+  try {
+    const jobsArr = Array.isArray(jobs) && jobs.length ? jobs : ['dealer'];
+    await query(
+      'UPDATE users SET name=$1, email=$2, jobs=$3::text[], role=$4 WHERE id=$5',
+      [name, email, jobsArr, role||'staff', id]
+    );
+    if (password && password.length >= 6) {
+      const hash = bcrypt.hashSync(password, 10);
+      await query('UPDATE users SET password=$1 WHERE id=$2', [hash, id]);
+    }
+    res.json({ok:true});
+  } catch(e) {
+    console.error('User update error:', e.message);
+    res.status(400).json({error: e.message.includes('unique') ? 'E-Mail bereits vorhanden' : 'Fehler: '+e.message});
+  }
+});
+
 app.delete('/api/users/:id', auth, adminOnly, async (req, res) => {
   await query("DELETE FROM users WHERE id=$1 AND role!='admin'", [req.params.id]);
   res.json({ok:true});
